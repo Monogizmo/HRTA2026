@@ -1,6 +1,6 @@
 // HRTA Offsite - service worker
 // เปลี่ยนเลขเวอร์ชันนี้ทุกครั้งที่แก้ไฟล์ เพื่อบังคับให้เครื่องผู้ใช้โหลดของใหม่
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = "hrta-offsite-" + VERSION;
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 // เว็บภายนอกที่ "จำไว้ใช้ออฟไลน์" (ไลบรารีแผนที่ + ฟอนต์) ส่วนแผนที่ดาวเทียม/เส้นทางไม่เก็บ
