@@ -1,8 +1,9 @@
 // HRTA Offsite - service worker
 // เปลี่ยนเลขเวอร์ชันนี้ทุกครั้งที่แก้ไฟล์ เพื่อบังคับให้เครื่องผู้ใช้โหลดของใหม่
-const VERSION = "v26";
+const VERSION = "v28";
 const CACHE = "hrta-offsite-" + VERSION;
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png",
+  "online/online.css", "online/config.js", "online/nn-engine.js", "online/online-game.js", "online/online.js",
   // รูปที่แยกออกจาก index.html (v26) เก็บไว้ใช้ออฟไลน์เหมือนเดิม
   "img/01-de66637f.jpg",
   "img/02-a13e26d2.jpg",
@@ -53,7 +54,7 @@ const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon
   "img/47-defd9456.jpg",
   "img/48-f587e48c.jpg"];
 // เว็บภายนอกที่ "จำไว้ใช้ออฟไลน์" (ไลบรารีแผนที่ + ฟอนต์) ส่วนแผนที่ดาวเทียม/เส้นทางไม่เก็บ
-const KEEP_HOSTS = ["cdnjs.cloudflare.com", "fonts.googleapis.com", "fonts.gstatic.com"];
+const KEEP_HOSTS = ["cdnjs.cloudflare.com", "cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
