@@ -1,4 +1,10 @@
 # Changelog
+## v29 — Phase 3 + หน้าตาออนไลน์เหมือนออฟไลน์ + ปรับเศรษฐกิจเหรียญ
+- หน้าเกมออนไลน์ใช้โต๊ะ/ไพ่/เอฟเฟกต์/เสียงชุดเดียวกับโหมดออฟไลน์ (index.html ส่งออก `window.__nn.ui`; `desc()` รับ two/cap ได้); ย่อรูปไพ่ล่วงหน้า + fallback รูปเต็ม
+- Phase 3: heartbeat, ตาละ 60 วิ, รอ reconnect 120 วิ, หมดเวลา/หลุด/ออก = ยอมแพ้, ย้าย Host อัตโนมัติ, เชื่อม Realtime ใหม่อัตโนมัติ
+- ใหม่: `supabase/migrations/003_phase3_stability.sql`, `supabase/tests/rls_check.sql`, action `check`/`forfeit` ใน `nn-api`
+- เศรษฐกิจเหรียญ (แอปเดิม): ราคาอาหาร+เครื่องแต่งกายลดครึ่ง (PM 2.5→1.25; ยา 50 เท่าเดิม) · เหรียญจากเกมไพ่ (จับคู่ไพ่/สงครามไพ่/เลขเพดาน) ×2 · โบนัสอื่นทั้งเว็บ (รายวัน/BINGO/Quiz ฯลฯ) ×1.5 · เกมวิ่งไม่เปลี่ยน — ปรับได้ที่ `window.COIN_X` ใน index.html
+- `sw.js` v29
 ## v28 — Phase 2: เล่นไพ่จริงแบบเซิร์ฟเวอร์เป็นผู้ตัดสิน
 - ใหม่: `online/nn-engine.js` (engine คัดลอกตรงจาก index.html), `nn-server.js`, `nn-api-core.js`, `online-game.js`
 - ใหม่: `supabase/migrations/002_phase2_gameplay.sql`, `supabase/functions/nn-api/index.ts` (สร้างด้วย tools/build-edge.js)

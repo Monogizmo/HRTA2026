@@ -21,29 +21,29 @@ with sync_playwright() as p:
     pg.click('[data-act="ready"]'); pg.wait_for_timeout(500)
     check(not pg.is_disabled('[data-act="start"]'),'start enabled when everyone ready')
     pg.click('[data-act="start"]'); pg.wait_for_timeout(1200)
-    check(pg.is_visible('.onlBig'),'game screen visible after start')
-    check(pg.locator('.onlCard').count()==3,'my hand has 3 cards')
+    check(pg.is_visible('#nnT'),'offline-style table (#nnT) visible after start')
+    check(pg.locator('#nnHand .nnC').count()==3,'my hand has 3 cards (.nnC like offline)')
     pub=pg.evaluate("JSON.stringify(HRTAOnline.state.game.public_state)")
     check(not re.search(r'"hands?"|"deck"|"disc"',pub),'public state has no hands/deck')
     check(pg.evaluate("HRTAOnline.state.hand.length")==3,'private hand loaded separately')
     shot=False; plays=0; over=False
-    for i in range(400):
+    for i in range(900):
         pg.wait_for_timeout(250)
-        if pg.locator('.onlRes').count(): over=True; break
-        if pg.locator('.onlHint.mine').count():
-            btns=pg.locator('.onlCard:not([disabled])')
+        if pg.locator('.nnRes').count(): over=True; break
+        if pg.locator('#nnHand .nnHdr').count() and 'ตาของคุณ' in pg.inner_text('#nnHand .nnHdr'):
+            btns=pg.locator('#nnHand .nnC:not(.dim)')
             if btns.count()==0: continue
             btns.nth(0).click(); pg.wait_for_timeout(100)
-            pb=pg.locator('[data-act="playcard"]')
-            if pb.count() and not pb.is_disabled():
+            pb=pg.locator('#nnHand .nnAct button')
+            if pb.count():
                 if not shot: pg.screenshot(path='/tmp/game.png'); shot=True
-                pb.click(); plays+=1; pg.wait_for_timeout(600)
+                pb.nth(0).click(); plays+=1; pg.wait_for_timeout(900)
     check(over,'game reached result screen (plays by me: %d)'%plays)
     if over:
         pg.screenshot(path='/tmp/result.png')
-        txt=pg.inner_text('.onlRes'); print('RESULT:',txt.replace('\n',' | ')[:200])
-        check('ทำกองเกินเพดาน' in txt and 'ผู้ชนะ' in txt,'result shows loser + winners')
-        pg.click('[data-act="rematch"]'); pg.wait_for_timeout(900)
+        txt=pg.inner_text('.nnRes'); print('RESULT:',txt.replace('\n',' | ')[:200])
+        check('ทำกองเกิน' in txt and 'ผู้ชนะ' in txt,'result shows loser + winners')
+        pg.click('[data-act="rematch"]'); pg.wait_for_timeout(1200)
         check(pg.locator('[data-act="ready"]').count()==1,'rematch returns to lobby')
         pg.click('[data-act="ready"]'); pg.wait_for_timeout(500); pg.click('[data-act="start"]'); pg.wait_for_timeout(1200)
         check(pg.evaluate("HRTAOnline.state.game.round_no")==2,'second round started (round_no=2)')

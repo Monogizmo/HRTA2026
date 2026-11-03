@@ -9,7 +9,7 @@
     sb: null, uid: null, rid: null, room: null, players: [], online: {}, ch: null,
     link: "idle", busy: false, screen: "menu", net: navigator.onLine !== false,
     name: "", av: "", cap: 150, mode: "one_loser", code: "", timer: null, root: null,
-    game: null, hand: null, sel: null, flash: false
+    game: null, hand: null, sel: null, flash: false, skewMs: 0
   };
 
   var ERR = {
@@ -163,7 +163,12 @@
       if (a.error || b.error) throw (a.error || b.error);
       var me = (b.data || []).filter(function (p) { return p.user_id === S.uid; })[0];
       if (!a.data || !me) { exitRoom("คุณไม่ได้อยู่ในห้องนี้แล้ว"); return; }
+      var prevHost = S.room ? S.room.host_user_id : null;
       S.room = a.data; S.players = b.data || [];
+      if (prevHost && prevHost !== S.room.host_user_id) {
+        var nh = S.players.filter(function (p) { return p.user_id === S.room.host_user_id; })[0];
+        toast((S.room.host_user_id === S.uid ? "คุณ" : (nh ? nh.player_name : "ผู้เล่นอื่น")) + " เป็น Host คนใหม่");
+      }
       if (S.room.status === "playing" || S.room.status === "finished") {
         var gq = await sb.from("games").select("*").eq("room_id", S.rid).order("round_no", { ascending: false }).limit(1).maybeSingle();
         if (gq.error) throw gq.error;
@@ -204,8 +209,8 @@
         S.online = o; render();
       })
       .subscribe(function (status) {
-        if (status === "SUBSCRIBED") { S.link = "ok"; try { ch.track({ t: Date.now() }); } catch (e) {} schedule(); }
-        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") { S.link = "bad"; render(); }
+        if (status === "SUBSCRIBED") { S.link = "ok"; resubN = 0; try { ch.track({ t: Date.now() }); } catch (e) {} schedule(); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") { S.link = "bad"; render(); scheduleResub(); }
       });
     S.ch = ch;
   }
@@ -213,12 +218,30 @@
     if (S.ch) { try { client().removeChannel(S.ch); } catch (e) {} S.ch = null; }
     S.online = {}; S.link = "idle";
   }
+  /* ---------- heartbeat (ให้เซิร์ฟเวอร์รู้ว่ายังออนไลน์ + ซิงก์นาฬิกา) และ resubscribe แบบถอยหลัง ---------- */
+  var hbT = null, resubT = null, resubN = 0;
+  async function beat() {
+    if (!S.rid || !S.net) return;
+    try {
+      var d = await rpc("nn_heartbeat", { p_room: S.rid });
+      if (d && d.now_ms) S.skewMs = d.now_ms - Date.now();
+    } catch (e) { /* ยังไม่ได้รัน SQL 003 หรือไม่ได้อยู่ในห้องแล้ว: ข้ามได้ */ }
+  }
+  function startBeat() { stopBeat(); beat(); hbT = setInterval(beat, 20000); }
+  function stopBeat() { clearInterval(hbT); hbT = null; clearTimeout(resubT); resubT = null; resubN = 0; }
+  function scheduleResub() {
+    if (resubT || !S.rid) return;
+    var d = Math.min(15000, 2000 * Math.pow(2, resubN++));
+    resubT = setTimeout(function () { resubT = null; if (S.rid && S.link === "bad") { subscribe(); schedule(); } }, d);
+  }
   function enterRoom(id) {
     S.rid = id; S.room = null; S.players = []; S.game = null; S.hand = null; S.sel = null; S.screen = "lobby";
-    subscribe(); refetch(); render();
+    subscribe(); startBeat(); refetch(); render();
   }
   function exitRoom(msg) {
-    unsub(); clearTimeout(S.timer);
+    unsub(); stopBeat(); clearTimeout(S.timer);
+    if (window.NNOnlineGame) NNOnlineGame.reset();
+    if (S.root && !S.root.hidden) document.documentElement.style.overflow = "hidden";
     S.rid = null; S.room = null; S.players = []; S.screen = "menu"; S.game = null; S.hand = null; S.sel = null;
     if (msg) toast(msg);
     syncEntry(); render();
@@ -346,7 +369,7 @@
       return top("🌐 ห้องออนไลน์") + '<p>' + (r.status === "closed" ? "ห้องนี้ถูกปิดแล้ว" : "ห้องนี้หมดอายุแล้ว") + '</p>' +
         '<button type="button" class="onlBtn pri" data-act="leave">กลับเมนู</button>';
     }
-    if (r.status === "playing" || r.status === "finished") return window.NNOnlineGame.view();
+    if (r.status === "playing" || r.status === "finished") return top("🎮 เกมเลขเพดาน") + '<div class="onlSpin" role="progressbar" aria-label="กำลังโหลด"></div>';
     var hint = isHost
       ? (n < 2 ? "ต้องมีผู้เล่นอย่างน้อย 2 คนจึงเริ่มได้" : (allReady ? "ทุกคนพร้อมแล้ว เริ่มเกมได้เลย" : "รอทุกคนกด “พร้อม” (รวมคุณด้วย)"))
       : "รอ Host กดเริ่มเกม";
@@ -368,6 +391,10 @@
 
   function render() {
     if (!S.root || S.root.hidden) return;
+    if (S.screen === "lobby" && S.room && (S.room.status === "playing" || S.room.status === "finished") && window.NNOnlineGame) {
+      if (NNOnlineGame.render(S.root)) return;       // หน้าเกม: วาดครั้งเดียวแล้วอัปเดตเฉพาะส่วน (ไม่ล้างเอฟเฟกต์กลางแอนิเมชัน)
+    }
+    if (window.NNOnlineGame && S.screen !== "lobby") NNOnlineGame.reset();
     var scr = S.screen;
     var html = scr === "create" ? viewCreate() : scr === "join" ? viewJoin() : scr === "lobby" ? viewLobby() :
       scr === "loading" ? top("🌐 เล่นออนไลน์") + '<div class="onlSpin" role="progressbar" aria-label="กำลังเชื่อมต่อ"></div>' : viewMenu();
@@ -392,13 +419,14 @@
     S.root = d; return d;
   }
   async function open(to, code) {
+    if (window.__nn && __nn.ui && __nn.ui.offlineBusy && __nn.ui.offlineBusy()) { toast("จบเกมออฟไลน์ที่กำลังเล่นอยู่ก่อน (กด ✕ ในเกม) แล้วค่อยเล่นออนไลน์"); return; }
     ensureRoot().hidden = false;
     document.documentElement.style.overflow = "hidden";
     if (!S.name) S.name = ls("hrta-onl-name") || "";
     if (!S.av) S.av = ls("hrta-onl-av") || "";
     if (!S.av && S.name && photos()[S.name]) S.av = S.name;
     if (code) S.code = code;
-    if (S.rid) { S.screen = "lobby"; render(); schedule(); return; }
+    if (S.rid) { S.screen = "lobby"; render(); schedule(); if (window.NNOnlineGame) NNOnlineGame.onShow(); beat(); return; }
     S.screen = to || "menu"; render();
     if (!to || to === "menu") {            // เปิดแบบปกติ: ถ้าเคยอยู่ในห้อง ให้กลับเข้าห้องเดิม
       try {
@@ -410,6 +438,7 @@
     }
   }
   function hide() {
+    if (window.NNOnlineGame) NNOnlineGame.onHide();
     if (S.root) S.root.hidden = true;
     document.documentElement.style.overflow = "";
     syncEntry();
@@ -448,8 +477,8 @@
     if (a === "start") return run(async function () { var res = await callApi({ action: "start", room_id: S.rid }); if (res.error) throw new Error(res.error); await refetch(); });
     if (a === "leave") {
       if (S.room && S.room.status === "lobby" && !confirm("ออกจากห้องนี้?")) return;
-      if (S.room && S.room.status === "playing" && !confirm("ออกจากเกมกลางคัน? เกมของคนอื่นอาจค้างจนกว่าจะปิดห้อง (ระบบจัดการคนหลุดจะมาใน Phase 3)")) return;
-      return run(async function () { var id = S.rid; try { await rpc("nn_leave_room", { p_room: id }); } catch (er) { if (er.message !== "not_in_room") throw er; } exitRoom(); });
+      if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing" && !confirm("ออกจากเกมกลางคัน? จะถือว่าคุณยอมแพ้")) return;
+      return run(async function () { var id = S.rid; if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing") { try { await callApi({ action: "forfeit", game_id: S.game.id }); } catch (fe) {} } try { await rpc("nn_leave_room", { p_room: id }); } catch (er) { if (er.message !== "not_in_room") throw er; } exitRoom(); });
     }
     if (a === "close") {
       if (!confirm("ปิดห้อง? ทุกคนจะถูกเด้งออกจากห้อง")) return;
@@ -480,17 +509,18 @@
     if (window.NNOnlineGame) window.NNOnlineGame.init({
       S: S, esc: esc, avImg: avImg, mine: mine, top: top, banner: banner, run: run, rpc: rpc, callApi: callApi,
       refetch: refetch, render: render, softRender: softRender, uuid: uuid,
-      isHost: function () { return !!(S.room && S.room.host_user_id === S.uid); }
+      isHost: function () { return !!(S.room && S.room.host_user_id === S.uid); },
+      skew: function () { return S.skewMs || 0; }, hide: hide
     });
     var B = document.getElementById("nnB");
     if (B) { new MutationObserver(inject).observe(B, { childList: true }); inject(); }
     document.addEventListener("click", function (e) { if (e.target.closest && e.target.closest("#onlOpen")) open(); });
-    window.addEventListener("online", function () { S.net = true; if (S.rid) { subscribe(); schedule(); } render(); });
+    window.addEventListener("online", function () { S.net = true; if (S.rid) { subscribe(); beat(); schedule(); } render(); });
     window.addEventListener("offline", function () { S.net = false; render(); });
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState !== "visible" || !S.rid) return;
       if (!S.ch || S.ch.state !== "joined") subscribe();
-      schedule();
+      beat(); schedule();
     });
     // ลิงก์ชวนเพื่อน ?room=CODE
     try {

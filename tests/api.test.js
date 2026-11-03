@@ -8,7 +8,8 @@ const uuid = () => crypto.randomUUID();
 const clone = x => JSON.parse(JSON.stringify(x));
 
 function makeDb() {
-  const T = { rooms: [], room_players: [], games: [], game_secrets: [], player_private_states: [], game_actions: [] };
+  const CLOCK = { t: Date.parse("2026-11-02T10:00:00Z") };
+  const T = { rooms: [], room_players: [], games: [], game_secrets: [], player_private_states: [], game_actions: [], player_heartbeats: [] };
   function builder(name) {
     let rows = T[name], filters = [], ord = null;
     const b = {
@@ -37,7 +38,7 @@ function makeDb() {
       const keys = Object.keys(a.p_hands);
       if (keys.length !== ps.length || !ps.every(p => keys.includes(p.user_id))) return { error: "stale" };
       const gid = uuid(), rno = T.games.filter(g => g.room_id === r.id).length + 1;
-      T.games.push(clone({ id: gid, room_id: r.id, round_no: rno, status: "playing", version: 0, public_state: a.p_public, cur_p: a.p_cur }));
+      T.games.push(clone({ id: gid, room_id: r.id, round_no: rno, status: "playing", version: 0, public_state: a.p_public, cur_p: a.p_cur, turn_deadline_at: a.p_deadline, updated_at: new Date().toISOString() }));
       T.game_secrets.push(clone({ game_id: gid, deck: a.p_secret.deck, disc: a.p_secret.disc }));
       ps.forEach(p => T.player_private_states.push(clone({ game_id: gid, user_id: p.user_id, seat: p.seat, hand: a.p_hands[p.user_id] })));
       r.status = "playing";
@@ -49,7 +50,7 @@ function makeDb() {
       if (T.game_actions.some(x => x.game_id === g.id && x.request_id === a.p_request)) return { ok: true, dup: true, version: g.version };
       if (g.status !== "playing") return { error: "game_over" };
       if (g.version !== a.p_expected) return { error: "stale", version: g.version };
-      g.version++; g.public_state = clone(a.p_public); g.cur_p = a.p_cur;
+      g.version++; g.public_state = clone(a.p_public); g.cur_p = a.p_cur; g.turn_deadline_at = a.p_deadline; g.updated_at = new Date(CLOCK.t).toISOString();
       if (a.p_over >= 0) { g.status = "finished"; g.loser_p = a.p_over; T.rooms.find(x => x.id === g.room_id).status = "finished"; }
       const s = T.game_secrets.find(x => x.game_id === g.id); s.deck = clone(a.p_secret.deck); s.disc = clone(a.p_secret.disc);
       Object.keys(a.p_hands).forEach(u => { T.player_private_states.find(x => x.game_id === g.id && x.user_id === u).hand = clone(a.p_hands[u]); });
@@ -58,17 +59,17 @@ function makeDb() {
     }
   };
   const admin = { from: builder, rpc: (n, a) => Promise.resolve({ data: clone(rpcs[n](clone(a))), error: null }) };
-  return { T, admin };
+  return { T, admin, CLOCK };
 }
 
 function setup(n, cap = 150, mode = "one_loser", ready = true) {
-  const { T, admin } = makeDb();
+  const { T, admin, CLOCK } = makeDb();
   const rid = uuid(), users = Array.from({ length: n }, () => uuid());
   T.rooms.push({ id: rid, host_user_id: users[0], status: "lobby", cap, mode });
   users.forEach((u, i) => T.room_players.push({ room_id: rid, user_id: u, seat: i + 1, player_name: "P" + i, avatar: "", is_ready: ready, left_at: null }));
   const rnd = prng(12345);
-  const api = Api.create({ admin, rnd });
-  return { T, rid, users, api, rnd };
+  const api = Api.create({ admin, rnd, now: () => CLOCK.t });
+  return { T, rid, users, api, rnd, CLOCK };
 }
 
 (async () => {
@@ -127,6 +128,70 @@ function setup(n, cap = 150, mode = "one_loser", ready = true) {
     assert.strictEqual([a, b].find(x => !x.ok).error === "stale" || [a, b].find(x => !x.ok).error === "not_your_turn", true);
     assert.strictEqual(s.T.games[0].version, 1);
     console.log("ok  concurrency: two simultaneous plays on the same version -> exactly one applied"); }
+
+  // --- Phase 3: timeout / หลุด / ยอมแพ้ ---
+  { const s = setup(3);
+    const st = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+    const gid = st.game_id, g = () => s.T.games[0];
+    const uidOfP = p => s.T.player_private_states.find(x => x.seat === g().public_state.players[p].seat).user_id;
+    const hb = (u, ageMs) => { const r = s.T.player_heartbeats.find(x => x.user_id === u); const iso = new Date(s.CLOCK.t - ageMs).toISOString(); if (r) r.last_seen_at = iso; else s.T.player_heartbeats.push({ room_id: s.rid, user_id: u, last_seen_at: iso }); };
+    const cur = g().public_state.cur, curU = uidOfP(cur), other = uidOfP((cur + 1) % 3);
+    s.T.games[0].turn_deadline_at = new Date(s.CLOCK.t + 60000).toISOString();     // ตาละ 60 วิ
+    s.users.forEach(u => hb(u, 1000));
+    // ยังไม่หมดเวลา: เรียก check เร็วไปไม่มีผล
+    let r = await s.api.handle(other, { action: "check", game_id: gid });
+    assert.strictEqual(r.state, "waiting"); assert.strictEqual(g().status, "playing");
+    assert.strictEqual((await s.api.handle(uuid(), { action: "check", game_id: gid })).error, "not_in_game");
+    // หมดเวลาตา 61 วิ + ผู้เล่นยังออนไลน์ → ยอมแพ้ (timeout)
+    s.CLOCK.t += 61000; hb(curU, 5000);
+    r = await s.api.handle(other, { action: "check", game_id: gid });
+    assert.strictEqual(r.state, "forfeited"); assert.strictEqual(r.reason, "timeout"); assert.strictEqual(r.loser, cur);
+    assert.strictEqual(g().status, "finished"); assert.strictEqual(g().loser_p, cur); assert.strictEqual(s.T.rooms[0].status, "finished");
+    assert.strictEqual(g().public_state.last.forfeit, true);
+    assert.strictEqual((await s.api.handle(curU, { action: "play", game_id: gid, card_id: 1, request_id: uuid(), expected_version: g().version })).error, "game_over");
+    assert.strictEqual((await s.api.handle(other, { action: "check", game_id: gid })).state, "over");
+    console.log("ok  timeout: early check ignored; 61s idle while connected -> forfeit(timeout), room finished"); }
+
+  { const s = setup(2);
+    const st = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+    const gid = st.game_id, g = () => s.T.games[0];
+    const uidOfP = p => s.T.player_private_states.find(x => x.seat === g().public_state.players[p].seat).user_id;
+    const cur = g().public_state.cur, curU = uidOfP(cur), other = uidOfP(1 - cur);
+    const T0 = s.CLOCK.t; s.T.games[0].turn_deadline_at = new Date(T0 + 60000).toISOString();
+    s.T.player_heartbeats.push({ room_id: s.rid, user_id: other, last_seen_at: new Date(T0).toISOString() });
+    s.T.player_heartbeats.push({ room_id: s.rid, user_id: curU, last_seen_at: new Date(T0 - 10000).toISOString() }); // เห็นล่าสุด 10 วิก่อน
+    s.CLOCK.t = T0 + 70000;                       // ตาเกิน 60 วิ และคนนี้หายไป 80 วิ (ยังไม่ครบ 120)
+    s.T.player_heartbeats.find(x => x.user_id === other).last_seen_at = new Date(s.CLOCK.t).toISOString();
+    let r = await s.api.handle(other, { action: "check", game_id: gid });
+    assert.strictEqual(r.state, "waiting"); assert.strictEqual(r.connected, false); assert.ok(r.remaining_ms > 0 && r.remaining_ms <= 50000, JSON.stringify(r));
+    s.CLOCK.t = T0 - 10000 + 121000;              // หายครบ 120 วิ
+    s.T.player_heartbeats.find(x => x.user_id === other).last_seen_at = new Date(s.CLOCK.t).toISOString();
+    r = await s.api.handle(other, { action: "check", game_id: gid });
+    assert.strictEqual(r.state, "forfeited"); assert.strictEqual(r.reason, "disconnected"); assert.strictEqual(g().loser_p, cur);
+    console.log("ok  disconnect: waits through 120s reconnect window, then forfeit(disconnected)"); }
+
+  { const s = setup(4);
+    const st = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+    const gid = st.game_id, g = () => s.T.games[0];
+    // ออกกลางเกม (ไม่ใช่ตาตัวเอง) = ยอมแพ้ ; เรียกซ้ำพร้อมกันได้ผลครั้งเดียว
+    const leaver = s.users[2], pOf = s.T.player_private_states.find(x => x.user_id === leaver).seat - 1;
+    const rs = await Promise.all([1, 2, 3].map(() => s.api.handle(leaver, { action: "forfeit", game_id: gid })));
+    assert.strictEqual(rs.filter(x => x.state === "forfeited").length, 1, JSON.stringify(rs));
+    assert.ok(rs.every(x => x.ok));
+    assert.strictEqual(g().version, 1); assert.strictEqual(g().loser_p, g().public_state.players.findIndex(pl => pl.seat === pOf + 1));
+    assert.strictEqual(g().public_state.last.reason, "left");
+    assert.strictEqual((await s.api.handle(uuid(), { action: "forfeit", game_id: gid })).error, "not_in_game");
+    console.log("ok  forfeit: leaving mid-game = loss, concurrent calls apply exactly once"); }
+
+  { // เช็กพร้อมกัน 3 เครื่องหลังหมดเวลา → ตัดสินครั้งเดียว
+    const s = setup(3);
+    const st = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+    s.T.games[0].turn_deadline_at = new Date(s.CLOCK.t - 1000).toISOString();
+    s.T.player_heartbeats.push(...s.users.map(u => ({ room_id: s.rid, user_id: u, last_seen_at: new Date(s.CLOCK.t).toISOString() })));
+    const rs = await Promise.all(s.users.map(u => s.api.handle(u, { action: "check", game_id: st.game_id })));
+    assert.strictEqual(rs.filter(x => x.state === "forfeited").length, 1, JSON.stringify(rs));
+    assert.strictEqual(s.T.games[0].version, 1);
+    console.log("ok  concurrent check: 3 clients, timeout applied exactly once"); }
 
   // --- เล่นจนจบเกมผ่าน API (2,3,4 คน หลายเกม) ---
   let finished = 0, plays = 0;

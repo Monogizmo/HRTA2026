@@ -1,7 +1,7 @@
 // ตัวจำลอง Supabase สำหรับทดสอบ UI แบบ end-to-end ในเบราว์เซอร์: ใช้ "ตรรกะเซิร์ฟเวอร์ตัวจริง" (NNApi/NNServer/NNEngine)
 // กับฐานข้อมูลจำลองในหน่วยความจำ + บอท 2 ตัวที่เล่นแทนเพื่อน (ใช้เฉพาะในเทสต์นี้ ไม่ใช่ฟีเจอร์ของแอป)
 (function () {
-  var T = { rooms: [], room_players: [], games: [], game_secrets: [], player_private_states: [], game_actions: [] };
+  var T = { rooms: [], room_players: [], games: [], game_secrets: [], player_private_states: [], game_actions: [], player_heartbeats: [] };
   var ME = "11111111-1111-4111-8111-111111111111", BOTS = ["22222222-2222-4222-8222-222222222222", "33333333-3333-4333-8333-333333333333"];
   var listeners = [];
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
@@ -56,7 +56,7 @@
       var r = { id: uuid(), code: "ABC234", host_user_id: ME, status: "lobby", max_players: 4, cap: a.p_cap, mode: a.p_mode };
       T.rooms.push(r);
       T.room_players.push({ id: uuid(), room_id: r.id, user_id: ME, seat: 1, player_name: a.p_name, avatar: a.p_avatar, is_host: true, is_ready: false, left_at: null });
-      BOTS.forEach(function (u, i) { T.room_players.push({ id: uuid(), room_id: r.id, user_id: u, seat: i + 2, player_name: ["บอทเอ", "บอทบี"][i], avatar: "", is_host: false, is_ready: true, left_at: null }); });
+      BOTS.slice(0, window.__BOT_COUNT == null ? 2 : window.__BOT_COUNT).forEach(function (u, i) { T.room_players.push({ id: uuid(), room_id: r.id, user_id: u, seat: i + 2, player_name: ["บอทเอ", "บอทบี"][i], avatar: "", is_host: false, is_ready: true, left_at: null }); });
       return { room_id: r.id, code: r.code };
     },
     nn_my_room: function () { var p = T.room_players.find(function (x) { return x.user_id === ME && !x.left_at; }); var r = p && T.rooms.find(function (x) { return x.id === p.room_id; }); return r ? { room_id: r.id, code: r.code, status: r.status } : null; },
@@ -64,6 +64,7 @@
     nn_update_settings: function (a) { var r = T.rooms[0]; r.cap = a.p_cap; r.mode = a.p_mode; return null; },
     nn_rematch: function () { var r = T.rooms[0]; r.status = "lobby"; T.room_players.forEach(function (p) { p.is_ready = BOTS.indexOf(p.user_id) >= 0; }); return null; },
     nn_leave_room: function () { T.room_players.find(function (x) { return x.user_id === ME; }).left_at = "x"; T.rooms[0].status = "closed"; return null; },
+    nn_heartbeat: function () { return { now_ms: Date.now() }; },
     nn_close_room: function () { T.rooms[0].status = "closed"; return null; }
   };
 

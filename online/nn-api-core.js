@@ -84,11 +84,73 @@
       return { ok: true, version: res.version, dup: !!res.dup };
     }
 
+    /* ---- Phase 3: หมดเวลา / หลุดการเชื่อมต่อ / ออกจากเกม = ผู้เล่นนั้นยอมแพ้ (เกมจบ) ---- */
+    var HB_FRESH_MS = 45000, RECONNECT_MS = 120000;
+
+    async function loadGame(uid, b) {
+      if (!UUID.test(String(b.game_id || ""))) return { error: "bad_request" };
+      var game = await q(admin.from("games").select("*").eq("id", b.game_id).maybeSingle());
+      if (!game) return { error: "game_not_found" };
+      var mem = await q(admin.from("room_players").select("user_id").eq("room_id", game.room_id).eq("user_id", uid).is("left_at", null));
+      if (!mem.length) return { error: "not_in_game" };
+      if (game.status !== "playing") return { ok: true, state: "over", game: game };
+      var rows = await q(admin.from("player_private_states").select("user_id,seat").eq("game_id", game.id));
+      var uids = [];
+      game.public_state.players.forEach(function (pl, p) {
+        var row = rows.filter(function (r) { return r.seat === pl.seat; })[0];
+        uids[p] = row ? row.user_id : null;
+      });
+      if (uids.some(function (u) { return !u; })) return { error: "server_error" };
+      return { game: game, uids: uids };
+    }
+
+    async function forfeitPlayer(game, uids, p, reason, caller) {
+      var pub = game.public_state;
+      var sec = await q(admin.from("game_secrets").select("deck,disc").eq("game_id", game.id).maybeSingle());
+      if (!sec) return { error: "game_not_found" };
+      var last = { seq: pub.turn, p: p, n: null, id: null, t: "", before: pub.total, after: pub.total, heat: 0, fx: null, saved: false, bust: false, nx: null, forfeit: true, reason: reason };
+      var npub = JSON.parse(JSON.stringify(pub));
+      npub.over = p; npub.last = last; npub.log = (pub.log || []).concat([last]).slice(-8);
+      var uuid = deps.uuid ? deps.uuid() : (globalThis.crypto && globalThis.crypto.randomUUID ? globalThis.crypto.randomUUID() : null);
+      var res = await q(admin.rpc("nn_commit_action", {
+        p_game: game.id, p_expected: game.version, p_user: caller, p_request: uuid,
+        p_public: npub, p_secret: sec, p_hands: {}, p_cur: pub.cur, p_over: p,
+        p_deadline: deadline(), p_action: { p: p, forfeit: true, reason: reason, by: caller }, p_type: "forfeit"
+      }));
+      if (res && res.error === "stale") return { ok: true, state: "stale" };
+      if (res && res.error === "game_over") return { ok: true, state: "over" };
+      if (res && res.error) return { error: res.error };
+      return { ok: true, state: "forfeited", loser: p, reason: reason };
+    }
+
+    // ใครก็ตามในเกมเรียกได้ แต่เซิร์ฟเวอร์ตัดสินจากเวลา/heartbeat เอง (เรียกเร็วเกินไปไม่มีผล)
+    async function check(uid, b) {
+      var L = await loadGame(uid, b); if (L.error || L.state) return L.error ? L : { ok: true, state: "over" };
+      var game = L.game, pub = game.public_state, curUid = L.uids[pub.cur];
+      var hb = await q(admin.from("player_heartbeats").select("user_id,last_seen_at").eq("room_id", game.room_id).eq("user_id", curUid));
+      var seen = hb.length ? Date.parse(hb[0].last_seen_at) : (Date.parse(game.updated_at || game.created_at) || 0);
+      var t = now(), dl = Date.parse(game.turn_deadline_at) || 0;
+      var connected = (t - seen) <= HB_FRESH_MS;
+      var eff = connected ? dl : Math.max(dl, seen + RECONNECT_MS);
+      if (t <= eff) return { ok: true, state: "waiting", remaining_ms: eff - t, connected: connected };
+      return await forfeitPlayer(game, L.uids, pub.cur, connected ? "timeout" : "disconnected", uid);
+    }
+
+    // ผู้เล่นกดออกจากเกมกลางคัน = ยอมแพ้
+    async function forfeit(uid, b) {
+      var L = await loadGame(uid, b); if (L.error || L.state) return L.error ? L : { ok: true, state: "over" };
+      var p = L.uids.indexOf(uid);
+      if (p < 0) return { error: "not_in_game" };
+      return await forfeitPlayer(L.game, L.uids, p, "left", uid);
+    }
+
     async function handle(uid, body) {
       try {
         if (!uid || !body || typeof body !== "object") return { error: "bad_request" };
         if (body.action === "start") return await start(uid, body);
         if (body.action === "play") return await play(uid, body);
+        if (body.action === "check") return await check(uid, body);
+        if (body.action === "forfeit") return await forfeit(uid, body);
         return { error: "bad_action" };
       } catch (e) {
         log("nn-api error", e && e.message);

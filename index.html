@@ -2690,7 +2690,7 @@ var ICON={head:headThumb,top:topThumb,bottom:botThumb,shoes:shoeThumb,neck:neckT
 function applyHead(){var W=ST.worn,id=W.head,tp=W.top;window.PETE_HEAD=id?headSprite(id):null;window.PETE_TOP=tp&&byId[tp]?topInfo(tp):null;window.PETE_BOT=W.bottom&&byId[W.bottom]?botInfo(W.bottom):null;window.PETE_SHOE=W.shoes&&byId[W.shoes]?shoeInfo(W.shoes):null;window.PETE_NECK=W.neck&&byId[W.neck]?neckInfo(W.neck):null;window.PETE_BACK=W.back&&byId[W.back]?(BSP[W.back]||(BSP[W.back]=rcv(W.back,true))):null;window.PETE_BACKF=W.back&&BFRONT[W.back]?bf(W.back):null;window.PETE_EYES=W.eyes&&byId[W.eyes]?rcv(W.eyes,false):null;RF=null;window.peteRedraw&&peteRedraw()}
 var SLOTS=[["head","🎩 หัว"],["eyes","👀 ตา"],["top","👕 เสื้อ"],["bottom","👖 กางเกง / กระโปรง"],["shoes","👟 รองเท้า"],["neck","📿 เครื่องประดับ"],["back","🪽 ด้านหลัง"]];
 var byId={};IT.forEach(function(a){byId[a[0]]={id:a[0],slot:a[1],e:a[2],n:a[3],p:a[4],b:a[5],col:a[6],d:a[7]}});
-var TASTE={love:["😍 ชอบมาก",14],like:["🙂 ชอบ",10],ok:["😐 เฉยๆ",6],no:["🤢 ไม่ชอบ",1]},MED=50,PM=2.5;
+var TASTE={love:["😍 ชอบมาก",14],like:["🙂 ชอบ",10],ok:["😐 เฉยๆ",6],no:["🤢 ไม่ชอบ",1]},MED=50,PM=1.25;
 function PR(p){return Math.round(p*PM)}
 function FH(x){return TASTE[x[5]][1]+Math.round(x[2]/5)}
 var FOODS=[["🍚","ข้าวผัดกะเพรา",10,40,8,"like"],["🍜","ก๋วยเตี๋ยวเรือ",8,30,6,"love"],["🧋","ชาไทยเย็น",5,8,-6,"like"],["🍦","ไอติมกะทิ",6,10,0,"love"],["🍌","กล้วยทอด",4,15,2,"ok"],["🥭","ข้าวเหนียวมะม่วง",9,25,6,"love"],["🍤","กุ้งเผา",14,30,4,"like"],["🥗","ส้มตำ",7,14,-2,"like"],["🍲","ต้มยำ",12,28,2,"like"],["🍛","แกงเขียวหวาน",11,35,8,"ok"],["🍳","ไข่เจียว",5,22,4,"ok"],["🍗","ไก่ทอด",9,30,6,"love"],["🍡","ขนมครก",5,10,2,"like"],["☕","กาแฟดำ",6,2,-25,"no"],["🥬","ผักต้มจืด",4,12,0,"no"],["🐟","ปลาร้า",3,8,0,"no"],["🥒","แตงกวาดอง",4,6,0,"ok"],["🍰","เค้กช็อกโกแลต",12,15,10,"love"],["🍕","พิซซ่า",15,38,10,"like"],["🍩","โดนัท",6,14,6,"like"]];
@@ -2717,9 +2717,11 @@ function buyMed(){tick();if(!ST.sick){say2("น้องเบสท์สบา
 function beauty(){var b=20,n=0;for(var k in ST.worn){var it=byId[ST.worn[k]];if(it){b+=it.b;n++}}if(n>=5)b+=8;if(n>=7)b+=6;return Math.min(100,b)}
 var tt=0;function toast(t){var e=$("#gToast");if(!e){e=document.createElement("div");e.id="gToast";e.className="gToast";document.body.appendChild(e)}e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){e.classList.remove("on")},2800)}
 function paintCoin(){$("#gCoin").textContent="🪙 "+ST.c}
+/* ตัวคูณเหรียญที่ได้รับ: card = เกมไพ่ (จับคู่ไพ่/สงครามไพ่/เลขเพดาน) · web = โบนัสอื่น ๆ ทั้งเว็บ (เช็กอิน BINGO ไพ่ใหม่ Quiz รายวัน) · เกมวิ่งไม่คูณ */
+window.COIN_X={card:2,web:1.5};
 function addCoins(n,why){ST.c+=n;save();paintCoin();toast("+"+n+" 🪙 "+why);window.bestSay&&bestSay("ได้เหรียญเพิ่ม "+n+" เหรียญค่ะ 🪙")}
-window.gameBonus=function(k,n,why){if(ST.cl[k])return;ST.cl[k]=1;addCoins(n,why)};
-window.gameQuiz=function(sc){var d=sc-ST.qb;if(d>0){ST.qb=sc;addCoins(d,"Quiz ได้ "+sc+"/20")}};
+window.gameBonus=function(k,n,why){if(ST.cl[k])return;ST.cl[k]=1;addCoins(Math.round(n*COIN_X.web),why)};
+window.gameQuiz=function(sc){var d=sc-ST.qb;if(d>0){ST.qb=sc;addCoins(Math.round(d*COIN_X.web),"Quiz ได้ "+sc+"/20")}};
 var day=function(){return new Date(Date.now()+252e5).toISOString().slice(0,10)};
 
 /* ---------- น้องเบสท์: ภาพ + แต่งตัว ---------- */
@@ -3070,7 +3072,7 @@ function mmNew(mode){
   $("#mmG").className="mmG m"+mode;
   $("#mmG").innerHTML=deck.map(function(c,i){return '<button type="button" class="mmC" data-i="'+i+'" aria-label="ไพ่ใบที่ '+(i+1)+'"><span class="in"><span class="bk">✦</span><span class="fr"><img src="'+c.u+'" alt="'+c.n+'" decoding="async"></span></span></button>'}).join("");
   document.querySelectorAll("#mmMode button").forEach(function(b){b.classList.toggle("on",+b.dataset.m===mode)});
-  var cf=MODES[mode];$("#mmRw").textContent="เหรียญโหมด "+pairs+" คู่: "+cf.base+" + โบนัสเวลา (ภายใน "+fmt(cf.th[0])+" +"+cf.bo[0]+", "+fmt(cf.th[1])+" +"+cf.bo[1]+", "+fmt(cf.th[2])+" +"+cf.bo[2]+", "+fmt(cf.th[3])+" +"+cf.bo[3]+") รับเต็มวันละ 3 รอบต่อโหมด";
+  var cf=MODES[mode];$("#mmRw").textContent="เหรียญโหมด "+pairs+" คู่: "+Math.round(cf.base*COIN_X.card)+" + โบนัสเวลา (ภายใน "+fmt(cf.th[0])+" +"+Math.round(cf.bo[0]*COIN_X.card)+", "+fmt(cf.th[1])+" +"+Math.round(cf.bo[1]*COIN_X.card)+", "+fmt(cf.th[2])+" +"+Math.round(cf.bo[2]*COIN_X.card)+", "+fmt(cf.th[3])+" +"+Math.round(cf.bo[3]*COIN_X.card)+") รับเต็มวันละ 3 รอบต่อโหมด";
   mmStat();$("#mmMsg").textContent="เปิดไพ่ทีละ 2 ใบ หาคู่ที่เหมือนกันให้ครบ "+pairs+" คู่ เวลาเริ่มนับเมื่อเปิดใบแรก"})
 }
 function mmStat(){var s=M.started?(Date.now()-M.t0)/1000:0,b=ST.mm.best[M.mode];$("#mmT").textContent="⏱ "+fmt(s);$("#mmM").textContent="เปิด "+M.moves+" ครั้ง · คู่ "+M.matched+"/"+M.pairs+(b?" · เร็วสุด "+fmt(b):"")}
@@ -3084,7 +3086,7 @@ $("#mmG").onclick=function(e){var b=e.target.closest(".mmC");if(!b||M.lock||M.do
 function mmWin(){
  M.done=true;clearInterval(M.iv);var s=(Date.now()-M.t0)/1000,cf=MODES[M.mode],i=0,d=day();while(i<4&&s>cf.th[i])i++;var bonus=i<4?cf.bo[i]:0;
  if(ST.mm.day!==d){ST.mm.day=d;ST.mm.n={8:0,12:0,16:0,22:0}}
- var cnt=ST.mm.n[M.mode]||0,coins=cnt<3?cf.base+bonus:Math.max(2,Math.round(cf.base/3));ST.mm.n[M.mode]=cnt+1;
+ var cnt=ST.mm.n[M.mode]||0,coins=Math.round((cnt<3?cf.base+bonus:Math.max(2,Math.round(cf.base/3)))*COIN_X.card);ST.mm.n[M.mode]=cnt+1;
  var bs=ST.mm.best[M.mode],nb=!bs||s<bs;if(nb)ST.mm.best[M.mode]=Math.round(s);save();mmStat();
  $("#mmMsg").textContent="🎉 สำเร็จใน "+fmt(s)+" ("+M.moves+" ครั้ง)"+(nb?" · สถิติใหม่ของโหมดนี้!":"")+" ได้ "+coins+" 🪙"+(cnt>=3?" (เล่นเกิน 3 รอบ/วัน ได้เหรียญน้อยลง)":"");
  ST.h=Math.min(100,ST.h+6);addCoins(coins,"จับคู่ไพ่ "+M.pairs+" คู่ "+fmt(s));window.bestJump&&bestJump()}
@@ -3375,7 +3377,7 @@ async function play(tk){var lead=0;
 /* ---------- จบเกม ---------- */
 function reward(res){var S=ST.wr,d=day();if(S.day!==d){S.day=d;S.n={f:0,d:0}}var k=W.mode==="friend"?"f":"d",cnt=S.n[k]||0,c;
  if(k==="f")c=8;else if(res.w===0)c=14+Math.min(3,E.st.ww[0])*3;else if(res.w===1)c=3;else c=6;
- c=Math.round(c*(R.len==="long"?1.5:1));var full=cnt<3;if(!full)c=Math.max(2,Math.round(c/3));if(ST.sick)c=Math.max(1,Math.round(c/2));S.n[k]=cnt+1;return{c:c,full:full}}
+ c=Math.round(c*(R.len==="long"?1.5:1)*COIN_X.card);var full=cnt<3;if(!full)c=Math.max(2,Math.round(c/3));if(ST.sick)c=Math.max(1,Math.round(c/2));S.n[k]=cnt+1;return{c:c,full:full}}
 async function finish(tk){var res=E.result(),S=ST.wr;W.run=false;clearInterval(nudgeI);
  S.g=(S.g||0)+1;S.wars=(S.wars||0)+E.wars;if(E.st.bp>(S.pot||0))S.pot=E.st.bp;var bs=Math.max(E.st.best[0],W.mode==="friend"?E.st.best[1]:0);if(bs>(S.st||0))S.st=bs;S.fl=(S.fl||0)+E.st.fool[0]+(W.mode==="friend"?E.st.fool[1]:0);
  if(W.mode==="dealer"){if(res.w===0)S.w=(S.w||0)+1;else if(res.w===1)S.l=(S.l||0)+1;else S.dr=(S.dr||0)+1}
@@ -3408,7 +3410,7 @@ function applyPrefs(){var S=ST.wr;PF=Object.assign(PF,S.pref||{});if(["u","un","
  seg("#wrOMode",PF.mode);seg("#wrOLen",PF.len);seg("#wrOClash",PF.clash);seg("#wrOFool",PF.fool);
  Q("#wrI0").value=PF.n0;Q("#wrI1").value=PF.mode==="dealer"?"น้องเบสท์":PF.n1;Q("#wrI1").disabled=PF.mode==="dealer";
  Q("#wrDMode").textContent=LN.dMode[PF.mode];Q("#wrDLen").textContent=LN.dLen[PF.len];Q("#wrDClash").textContent=LN.dClash[PF.clash];Q("#wrDFool").textContent=LN.dFool[PF.fool];
- Q("#wrDRew").textContent=PF.mode==="friend"?"🪙 เหรียญรางวัล: จบศึกได้ 8 🪙 ทั้งสองคนแชร์กระเป๋าเดียวกัน (3 ตาแรกของวันได้เต็ม)"+(PF.len==="long"?" ×1.5":""):"🪙 เหรียญรางวัล: ชนะเจ้ามือ 14–23 🪙 · เสมอ 6 · แพ้ 3 (3 ตาแรกของวันได้เต็ม)"+(PF.len==="long"?" ×1.5":"")}
+ Q("#wrDRew").textContent=PF.mode==="friend"?"🪙 เหรียญรางวัล: จบศึกได้ "+Math.round(8*COIN_X.card)+" 🪙 ทั้งสองคนแชร์กระเป๋าเดียวกัน (3 ตาแรกของวันได้เต็ม)"+(PF.len==="long"?" ×1.5":""):"🪙 เหรียญรางวัล: ชนะเจ้ามือ "+Math.round(14*COIN_X.card)+"–"+Math.round(23*COIN_X.card)+" 🪙 · เสมอ "+Math.round(6*COIN_X.card)+" · แพ้ "+Math.round(3*COIN_X.card)+" (3 ตาแรกของวันได้เต็ม)"+(PF.len==="long"?" ×1.5":"")}
 function savePrefs(){ST.wr.pref=PF;save()}
 [["#wrOMode","mode"],["#wrOLen","len"],["#wrOClash","clash"],["#wrOFool","fool"]].forEach(function(x){Q(x[0]).onclick=function(e){var b=e.target.closest("button");if(!b)return;var v=b.dataset.v;PF[x[1]]=x[1]==="fool"?+v:v;applyPrefs();savePrefs();wsfx("tap")}});
 Q("#wrI0").oninput=function(){PF.n0=this.value;savePrefs()};Q("#wrI1").oninput=function(){PF.n1=this.value;savePrefs()};
@@ -3444,7 +3446,7 @@ function buildInfo(){el.info.innerHTML=
  '<h4>ไพ่ไม่พอวางครบ</h4><p>ใช้ไพ่ใบสุดท้ายในมือเป็นใบเปิด (วางคว่ำเท่าที่เหลือ) ถ้าฝ่ายใดไม่มีไพ่ในมือเลยตอนที่ต้องทำสงครามต่อ ฝ่ายนั้นแพ้สงคราม ถ้าไพ่หมดพร้อมกัน แบ่งกองกลางคนละครึ่ง</p>'+
  '<h4>กฎพิเศษ: คนโง่ล้มเจ้าโลก (เปิด/ปิดได้)</h4><p>ถ้าฝ่ายหนึ่งเปิดได้ The Fool (0) และอีกฝ่ายเปิดได้ The World (21) ฝ่าย The Fool ชนะทันทีและไม่ถือว่าชนกัน ทำให้ไพ่เลข 0 ไม่ใช่ไพ่ทิ้ง</p>'+
  '<h4>จบเกม</h4><ul><li><b>ศึกสั้น</b> เล่นจนไพ่ในมือหมด กองรางวัลที่ชนะไม่เอากลับมาเล่นอีก ใครมีไพ่มากกว่าชนะ เท่ากันเสมอ (ราว 3–5 นาที)</li><li><b>ศึกยืดเยื้อ</b> ไพ่ในมือหมดเมื่อไรสับกองรางวัลกลับมาเล่นต่อ จบเมื่อครบ 60 รอบ (ใครไพ่รวมมากกว่าชนะ) หรือมีฝ่ายไพ่เกลี้ยง (ฝ่ายนั้นแพ้)</li></ul>'+
- '<h4>เหรียญรางวัล 🪙</h4><table><tr><th>โหมด</th><th>ผลลัพธ์</th><th>เหรียญ</th></tr><tr><td>เพื่อน 2 คน</td><td>จบศึก</td><td>8</td></tr><tr><td rowspan="3">ท้าเจ้ามือ</td><td>ชนะ</td><td>14 + 3 ต่อสงครามที่ชนะ (สูงสุด +9)</td></tr><tr><td>เสมอ</td><td>6</td></tr><tr><td>แพ้</td><td>3</td></tr></table><p>ศึกยืดเยื้อ ×1.5 · เล่นเกิน 3 ตา/วัน (นับแยกโหมดเพื่อน/เจ้ามือ) ได้เหลือราว 1 ใน 3 (ขั้นต่ำ 2) · ถ้าน้องเบสท์ป่วยได้ครึ่งเดียว · ต้องเล่นจนจบจึงได้เหรียญ</p></details>'+
+ '<h4>เหรียญรางวัล 🪙</h4><table><tr><th>โหมด</th><th>ผลลัพธ์</th><th>เหรียญ</th></tr><tr><td>เพื่อน 2 คน</td><td>จบศึก</td><td>'+Math.round(8*COIN_X.card)+'</td></tr><tr><td rowspan="3">ท้าเจ้ามือ</td><td>ชนะ</td><td>'+Math.round(14*COIN_X.card)+' + '+Math.round(3*COIN_X.card)+' ต่อสงครามที่ชนะ (สูงสุด +'+Math.round(9*COIN_X.card)+')</td></tr><tr><td>เสมอ</td><td>'+Math.round(6*COIN_X.card)+'</td></tr><tr><td>แพ้</td><td>'+Math.round(3*COIN_X.card)+'</td></tr></table><p>ศึกยืดเยื้อ ×1.5 · เล่นเกิน 3 ตา/วัน (นับแยกโหมดเพื่อน/เจ้ามือ) ได้เหลือราว 1 ใน 3 (ขั้นต่ำ 2) · ถ้าน้องเบสท์ป่วยได้ครึ่งเดียว · ต้องเล่นจนจบจึงได้เหรียญ</p></details>'+
  '<details id="wrBal"><summary>⚖️ ทำไมถึงปรับสมดุลกติกา</summary><p>ไพ่ทาโรต์ 2 สำรับมีเลขซ้ำแค่เลขละ 2 ใบ ถ้าชนกันเฉพาะเลขเท่ากัน โอกาสชนกันมีเพียงราว 2% ต่อรอบ จำลอง 20,000 เกมต่อกติกา: <b>กว่า 60% ของศึกสั้นไม่เจอสงครามเลย</b> (เฉลี่ย 0.5 ครั้งต่อเกม)</p><p>จึงเพิ่มกติกา <b>“หลักหน่วยเหมือนกันถือว่าชนกัน”</b> (ค่าเริ่มต้น) สงครามเกิดราว 9% ต่อรอบ เฉลี่ย 1.5 ครั้งต่อเกม เจออย่างน้อย 1 ครั้งในกว่า 85% ของเกม ส่วนโหมด “หลักหน่วย + ห่าง 1” เดือดสุด ราว 20% ต่อรอบ เฉลี่ย 2.6 ครั้งต่อเกม แต่สงครามกวาดไพ่ทีละ 10 ใบขึ้นไป ยิ่งเกิดบ่อยคะแนนยิ่งเหวี่ยง (ส่วนต่างเฉลี่ยท้ายเกม: คลาสสิก 9 · หลักหน่วย 11 · เดือด 14 ใบ)</p><p>ถ้าอยากให้เกมเดือดขึ้นอีกหรือเบาลง บอกได้เลยค่ะ ปรับตัวเลขได้ง่าย</p></details>'+
  '<details id="wrPwD"><summary>🔮 ตารางพลังไพ่ 0–21 (แตะดูรายละเอียด)</summary><div class="wrPw" id="wrPw"><p class="gTips">กำลังโหลดไพ่…</p></div></details>'+
  '<details id="wrStD"><summary>📊 สถิติสงครามไพ่ของคุณ</summary><div id="wrStats"></div></details>'}
@@ -3576,7 +3578,7 @@ var LN={0:["The Fool! ไม่เพิ่มแต้ม แถมรีเซ
  15:["ปีศาจกวนตีน! 😈 คนถัดไปต้องลงสองใบติดกัน ขอให้โชคดีค่ะ","The Devil ปล่อยของ! ไพ่สองใบรวด คนต่อไปมือสั่นแน่ ๆ"],
  16:["The Tower! ฟ้าผ่ากองกลางจนเหลือ 0 ทุกคนถอนหายใจ ⚡","หอคอยถล่ม! ล้างความตึงเครียดกลับไปเริ่มใหม่ค่ะ"],17:["The Star ไพ่ประจำตัวน้องเบสท์เอง! ✨ ขอบคุณที่ลงมาช่วยลดกองค่ะ"],
  18:["The Moon! สลับไพ่ในมือกับคนถัดไป ไพ่ดีไพ่ร้ายเปลี่ยนมือหมดค่ะ 🌙"],19:["The Sun! แสงสว่างให้ลงไพ่ซ้ำอีกใบค่ะ ☀️"],20:["Judgement! วันพิพากษา ทุกคนทิ้งไพ่ใบใหญ่สุดแล้วจั่วใหม่ค่ะ 📯"],21:["The World! ดันกองไปที่เพดานทันที ใครเป็นคนต่อไปเตรียมใจ 🌍"]};
-function desc(n){var two=PF.n===2,c=PF.cap;return[
+function desc(n,two0,cap0){var two=two0!=null?two0:PF.n===2,c=cap0!=null?cap0:PF.cap;return[
  two?"ไม่เพิ่มแต้ม · รีเซ็ตมือ: ทิ้งไพ่ทั้งมือ จั่วใหม่ 3 ใบ":"ไม่เพิ่มแต้ม · รีเซ็ตทิศกลับเป็นปกติ",
  "+1 และเสกไพ่ปีศาจ (เลข 15) ไปแทนไพ่ใบต่ำสุดในมือคนถัดไป",
  "ปั่นเลข: สลับหลักสิบกับหลักหน่วยของกอง เช่น 47 → 74 (เสี่ยงดวง อาจรอดหรือเกิน)",
@@ -3721,7 +3723,7 @@ async function turn(my){if(my!==tk||G.over>=0)return;var p=G.cur;sel=-1;reveal=P
  busy=true;thinking=p;paint();await sl(1500);if(my!==tk)return;
  var m=G.ai(p);doPlay(my,p,m.i,m.k,rectOf(Q("#nnS"+p+" .av")))}
 function nnReward(x){var d=day();if(S.day!==d){S.day=d;S.n={f:0,d:0}}var k=PF.mode==="friend"?"f":"d",cnt=S.n[k]||0,c;
- if(k==="f")c=8;else c=x===0?3:10;c=Math.round(c*(PF.cap===150?1.25:PF.cap===200?1.5:1));if(cnt>=3)c=Math.max(2,Math.round(c/3));if(ST.sick)c=Math.max(1,Math.round(c/2));
+ if(k==="f")c=8;else c=x===0?3:10;c=Math.round(c*(PF.cap===150?1.25:PF.cap===200?1.5:1)*COIN_X.card);if(cnt>=3)c=Math.max(2,Math.round(c/3));if(ST.sick)c=Math.max(1,Math.round(c/2));
  S.n[k]=cnt+1;S.g=(S.g||0)+1;if(k==="d"){if(x===0)S.l=(S.l||0)+1;else S.w=(S.w||0)+1}save();addCoins(c,"เกมเลขเพดาน");return c}
 function endGame(){var x=G.over;setFs(false);try{addHappy(3,10,20)}catch(e){}st="end";var rw=nnReward(x),cl=PF.mode==="clone";nsfx(cl&&x!==0?"win":"boom");
  B.innerHTML='<div class="nnRes"><div class="big">'+(cl?(x===0?"😵":"🎉"):"💥")+'</div><h3>'+esc(names[x])+' ทำกองเกิน '+G.cap+'!</h3><p>'+(cl?(x===0?"คุณแพ้ในศึกนี้ ลองใหม่ได้เสมอค่ะ":"คุณรอดมาได้! ผู้แพ้คือ "+esc(names[x])):"ผู้แพ้ของศึกนี้คือ "+esc(names[x])+" · คนที่เหลือเป็นผู้ชนะ 🏆")+'</p><p class="nnD">รวม '+G.turn+' ตา · ไพ่ใบสุดท้าย: '+esc(cn(lastR.c.n))+'</p><p><b>+'+rw+' 🪙</b></p><button type="button" class="nnBt" data-a="go">🔁 เล่นอีกตา กติกาเดิม</button><button type="button" class="nnBt alt" data-a="setup">⚙️ ตั้งค่าใหม่</button></div>'}
@@ -3750,6 +3752,9 @@ B.onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var a=b.da
 nnApi.frame=function(){};
 nnApi.enter=function(){if(st==="setup")setupUI();loadThumbs()};
 nnApi.state=function(){return{G:G,st:st,PF:PF,busy:busy}};
+nnApi.ui={TH:TH,loadThumbs:loadThumbs,photoFor:photoFor,ph:ph,desc:desc,cn:cn,POS:POS,ms:ms,SPL:SPL,PF:PF,
+  flash:flash,shake:shake,burst:burst,bolt:bolt,banner:banner,pop:pop,fly:fly,pre:pre,nsfx:nsfx,rectOf:rectOf,
+  save:save2,setFs:setFs,offlineBusy:function(){return !!Q("#nnT")}};
 setupUI();
 })();
 
