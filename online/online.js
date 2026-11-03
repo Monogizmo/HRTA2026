@@ -30,7 +30,9 @@
     bad_player_count: "ต้องมีผู้เล่น 2–4 คน",
     not_all_ready: "ยังมีคนที่ไม่ได้กด พร้อม",
     code_generation_failed: "สร้างรหัสห้องไม่สำเร็จ ลองอีกครั้ง",
-    mode_not_ready: "โหมดคัดออกยังไม่เปิดให้เล่น เลือกโหมด แพ้ 1 คน ก่อนนะ",
+    mode_not_ready: "โหมดนี้ยังเริ่มเล่นไม่ได้",
+    eliminated: "คุณตกรอบแล้ว",
+    bad_mode: "โหมดเกมไม่ถูกต้อง",
     not_your_turn: "ยังไม่ถึงตาคุณ",
     card_not_in_hand: "ไม่มีไพ่ใบนี้ในมือ",
     illegal_card: "ลงใบนี้ไม่ได้ (ถูกบังคับให้ลงใบสูงสุด)",
@@ -44,7 +46,7 @@
   };
   var MODE_TXT = {
     one_loser: "แพ้ 1 คน (ที่เหลือชนะ)",
-    elimination: "แพ้คัดออกทีละคน เหลือผู้ชนะ 1 คน"
+    elimination: "คัดออกทีละคน เหลือผู้ชนะ 1 คน"
   };
 
   /* ---------- ตัวช่วย ---------- */
@@ -294,6 +296,14 @@
     if (d && d.room_id) { if (announce) toast("กลับเข้าห้อง " + d.code + " ที่คุณอยู่"); enterRoom(d.room_id); return true; }
     return false;
   }
+  function amAlive() {                       // ยังอยู่ในเกมอยู่ไหม (โหมดคัดออก: ตกรอบแล้วไม่ต้องยอมแพ้ตอนออก)
+    var g = S.game, me = null;
+    S.players.forEach(function (p) { if (p.user_id === S.uid) me = p; });
+    if (!g || !me) return false;
+    var pub = g.public_state, alive = true;
+    pub.players.forEach(function (pl) { if (pl.seat === me.seat && pub.alive && pub.alive.indexOf(pl.p) < 0) alive = false; });
+    return alive;
+  }
   function mine() {
     return S.players.filter(function (p) { return p.user_id === S.uid; })[0];
   }
@@ -334,7 +344,7 @@
   function viewCreate() {
     return top("➕ สร้างห้อง", "menu") + formTop(true) +
       '<div class="lb">เพดาน (เกินแล้วแพ้)</div>' + seg("cap", [[120, "120 · สบาย"], [150, "150 · กลาง"], [200, "200 · ยาว"]], S.cap) +
-      '<div class="lb">โหมดจบเกม</div>' + seg("mode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก · เร็วๆ นี้", 1]], S.mode) +
+      '<div class="lb">โหมดจบเกม</div>' + seg("mode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], S.mode) +
       '<p class="onlSub" id="onlModeD">' + MODE_TXT[S.mode] + "</p>" +
       '<button type="button" class="onlBtn pri" data-act="create"' + (S.busy ? " disabled" : "") + ">สร้างห้อง</button>";
   }
@@ -378,7 +388,7 @@
       '<button type="button" class="onlX" data-act="share">📤 ชวนเพื่อน</button></div>' +
       '<div class="onlInfo"><span>👥 ' + n + "/" + r.max_players + " คน</span><span>🎯 เพดาน " + r.cap + "</span><span>🏁 " + MODE_TXT[r.mode] + "</span></div>" +
       (isHost ? '<div class="lb">ตั้งค่าห้อง (Host)</div>' + seg("scap", [[120, "120"], [150, "150"], [200, "200"]], r.cap, S.busy) +
-        seg("smode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก · เร็วๆ นี้", 1]], r.mode, S.busy) +
+        seg("smode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], r.mode, S.busy) +
         '<p class="onlSub">เปลี่ยนตั้งค่า = ทุกคนต้องกด พร้อม ใหม่</p>' : "") +
       '<div class="onlSeats">' + seats + "</div>" +
       '<button type="button" class="onlBtn ' + (me.is_ready ? "" : "pri") + '" data-act="ready"' + (S.busy ? " disabled" : "") + ">" +
@@ -477,8 +487,8 @@
     if (a === "start") return run(async function () { var res = await callApi({ action: "start", room_id: S.rid }); if (res.error) throw new Error(res.error); await refetch(); });
     if (a === "leave") {
       if (S.room && S.room.status === "lobby" && !confirm("ออกจากห้องนี้?")) return;
-      if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing" && !confirm("ออกจากเกมกลางคัน? จะถือว่าคุณยอมแพ้")) return;
-      return run(async function () { var id = S.rid; if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing") { try { await callApi({ action: "forfeit", game_id: S.game.id }); } catch (fe) {} } try { await rpc("nn_leave_room", { p_room: id }); } catch (er) { if (er.message !== "not_in_room") throw er; } exitRoom(); });
+      if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing" && amAlive() && !confirm("ออกจากเกมกลางคัน? จะถือว่าคุณยอมแพ้")) return;
+      return run(async function () { var id = S.rid; if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing" && amAlive()) { try { await callApi({ action: "forfeit", game_id: S.game.id }); } catch (fe) {} } try { await rpc("nn_leave_room", { p_room: id }); } catch (er) { if (er.message !== "not_in_room") throw er; } exitRoom(); });
     }
     if (a === "close") {
       if (!confirm("ปิดห้อง? ทุกคนจะถูกเด้งออกจากห้อง")) return;
@@ -501,7 +511,7 @@
     if (!B || !B.querySelector('[data-a="mode"]') || B.querySelector("#onlOpen")) return;
     var lb = B.querySelector(".lb"), box = document.createElement("div");
     box.className = "onlEntry";
-    box.innerHTML = '<button type="button" id="onlOpen"></button><p class="nnD">สร้างห้อง/ใส่รหัสห้อง แล้วเล่นพร้อมกันผ่านอินเทอร์เน็ต · ไม่มี AI · ยังไม่มีรางวัลเหรียญ</p>';
+    box.innerHTML = '<button type="button" id="onlOpen"></button><p class="nnD">เล่นพร้อมกันคนละเครื่อง ผ่านอินเทอร์เน็ต · ไม่มี AI · ยังไม่มีเหรียญรางวัล</p>';
     B.insertBefore(box, lb || null);
     syncEntry();
   }

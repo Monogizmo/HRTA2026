@@ -66,3 +66,7 @@
 #onl .onlX.lv{display:block;margin:12px auto 0}
 #onl .nnRes p,#onl .nnRules p{margin:6px 0}
 @media (prefers-reduced-motion:reduce){#onl .onlSpin{animation:none}}
+
+/* โหมดคัดออก: ที่นั่งคนตกรอบ */
+#onl .nnSeat.out{opacity:.4;filter:grayscale(1)}
+#onl .nnSeat .outTag{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font-style:normal;font-size:11px;font-weight:700;background:#b3412a;color:#fff;border-radius:99px;padding:1px 8px}

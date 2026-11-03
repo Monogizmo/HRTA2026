@@ -9,7 +9,7 @@
   var M = {
     gid: null, n: 0, cap: 0, two: false, myP: -1, order: [], names: [], avatars: [], pile: [],
     shownSeq: -1, shownTotal: 0, capSeq: -2, queue: [], queued: {}, busy: false, sel: null, rc: null, sending: false,
-    ready: false, loading: false, tick: null, lastCheck: 0, resultShown: false, fs: false
+    ready: false, loading: false, tick: null, lastCheck: 0, resultShown: false, fs: false, mode: "one_loser"
   };
 
   function ui() { return (window.__nn && window.__nn.ui) || null; }
@@ -115,7 +115,7 @@
   }
   function rulesHTML(pub) {
     var h = '<h3>📖 กติกา · พลังไพ่</h3><p class="nnD">แจกคนละ 3 ใบ ผลัดกันลง 1 ใบแล้วจั่ว 1 ใบ แต้มเท่าเลขบนไพ่ บวกเข้ากองกลาง ใครทำให้กองเกิน <b>' + pub.cap +
-      "</b> แพ้ · พลังไพ่ด้านล่างเป็นของโหมด " + pub.n + " คน · ตาละ 60 วินาที หมดเวลา/หลุดนานเกินไป/ออกจากเกม = ยอมแพ้</p>";
+      "</b> แพ้ · พลังไพ่ด้านล่างเป็นของโหมด " + pub.n + " คน · ตาละ 60 วินาที หมดเวลา/หลุดนาน/ออกจากเกม = แพ้" + (pub.mode === "elimination" ? " · โหมดคัดออก: ใครทำกองเกินตกรอบ กองรีเซ็ต เล่นต่อจนเหลือคนสุดท้าย" : "") + "</p>";
     for (var n = 0; n < 22; n++) h += '<div class="nnRw"><img alt="" src="' + tsrc(n) + '"><b>' + n + "</b><div><u>" + esc(cn(n)) + "</u><br>" + esc(ui().desc(n, pub.two, pub.cap)) + "</div></div>";
     return h + '<button type="button" data-act="nrulesx">ปิด</button>';
   }
@@ -124,10 +124,11 @@
   function myTurn(pub) { return pub.over < 0 && pub.cur === M.myP; }
   function paintHand() {
     var e = Q("#nnHand"), g = X.S.game, hand = X.S.hand; if (!e || !g || !hand) return;
-    var u = ui(), pub = g.public_state, me = M.myP, can = myTurn(pub) && !M.busy && !M.sending && !X.S.busy;
+    var u = ui(), pub = g.public_state, me = M.myP, can = myTurn(pub) && !isOut(pub, M.myP) && !M.busy && !M.sending && !X.S.busy;
     var pic = M.avatars[me], forced = pub.force === me;
     var mx = -1; hand.forEach(function (c) { if (c.n > mx) mx = c.n; });
-    var status = pub.over >= 0 ? "จบเกม" : myTurn(pub) ? (M.sending ? "กำลังลงไพ่…" : "ตาของคุณ") : "รอ " + esc(nm(pub.cur)) + "…";
+    var out = isOut(pub, me);
+    var status = pub.over >= 0 ? "จบเกม" : out ? "ตกรอบแล้ว — ดูเพื่อนเล่นต่อ" : myTurn(pub) ? (M.sending ? "กำลังลงไพ่…" : "ตาของคุณ") : "รอ " + esc(nm(pub.cur)) + "…";
     var hdr = '<div class="nnHdr">' + (pic ? '<img class="hav" alt="" src="' + esc(pic) + '"> ' : "🧑 ") + "<b>" + esc(nm(me)) + "</b>" + (pub.shield[me] ? " 🛡️" : "") + " · " + status +
       (forced ? " · ⛓️ ถูกบังคับลงใบเลขสูงสุด" : "") + (pub.dbl && pub.dbl.p === me ? " · ✌️ ลง 2 ใบติดกัน (เหลือ " + pub.dbl.left + ")" : "") + "</div>";
     var sel = null; hand.forEach(function (c) { if (c.id === M.sel) sel = c; });
@@ -162,13 +163,17 @@
     }
     t.textContent = txt; t.style.color = (!over && isFinite(rem) && rem <= 10) ? "#c0392b" : "";
   }
+  function isFinal(l) { var g = X.S.game, pub = g && g.public_state; return !!(pub && pub.over >= 0 && pub.last && pub.last.seq === l.seq); }
+  function isOut(pub, p) { return !!pub.alive && pub.alive.indexOf(p) < 0; }
   function paintAll(pub) {
-    var over = pub.over >= 0;
+    var over = pub.over >= 0; M.two = pub.two;
     for (var i = 1; i < M.n; i++) {
       var p = M.order[i], s = Q("#nnS" + i); if (!s) continue;
-      s.classList.toggle("act", pub.cur === p && !over);
+      s.classList.toggle("act", pub.cur === p && !over && !isOut(pub, p));
+      s.classList.toggle("out", isOut(pub, p));
+      var tg = s.querySelector(".outTag"); if (isOut(pub, p) && !tg) { tg = document.createElement("em"); tg.className = "outTag"; tg.textContent = "ตกรอบ"; s.appendChild(tg); } else if (!isOut(pub, p) && tg) tg.remove();
       s.querySelector(".sh").hidden = !pub.shield[p];
-      s.querySelector(".th").hidden = !(pub.cur === p && !over);
+      s.querySelector(".th").hidden = !(pub.cur === p && !over && !isOut(pub, p));
       s.querySelectorAll(".bk i").forEach(function (el, k) { el.style.visibility = k < pub.handCounts[p] ? "visible" : "hidden"; });
     }
     setNum(pub.total); M.shownTotal = pub.total;
@@ -184,7 +189,7 @@
   async function animate(l) {
     var u = ui(), p = l.p, i = M.order.indexOf(p);
     if (l.forfeit) {
-      setCap(l); u.nsfx("boom"); u.banner("🏳️ " + nm(p) + " ยอมแพ้", REASON[l.reason], 1800); u.shake();
+      setCap(l); u.nsfx("boom"); u.banner("🏳️ " + nm(p) + (l.elim != null && M.mode === "elimination" ? " ตกรอบ" : " ยอมแพ้"), REASON[l.reason], 1800); u.shake();
       await sl(1700); return;
     }
     setNum(l.before);
@@ -202,6 +207,9 @@
     M.shownTotal = l.after;
     await sl(spc ? 1300 : 800);
     if (l.bust) await sl(400);
+    if (l.bust && M.mode === "elimination" && l.elim != null && !isFinal(l)) {      // คัดออกกลางเกม: ประกาศ + กองรีเซ็ต
+      u.banner("💥 " + nm(p) + " ตกรอบ!", "กองกลางรีเซ็ตเป็น 0", 1800); await sl(1500);
+    }
   }
 
   function pump() {
@@ -219,14 +227,24 @@
 
   /* ---------- หน้าผลลัพธ์ (ข้อความตามออฟไลน์) ---------- */
   function resultHTML(pub) {
-    var x = pub.over, last = pub.last || {}, me = M.myP, iLost = x === me, loser = nm(x), fo = last.forfeit;
-    var winners = pub.players.filter(function (pl) { return pl.p !== x; }).map(function (pl) { return esc(pl.name); }).join(", ");
-    var why = fo ? esc(loser) + " " + REASON[last.reason] + " — ถือว่ายอมแพ้" : esc(loser) + " ทำกองเกิน " + pub.cap + "!";
-    var msg = iLost ? "คุณแพ้ในศึกนี้ ลองใหม่ได้เสมอค่ะ" : "คุณรอด! ผู้แพ้คือ " + esc(loser);
-    var host = X.isHost(), b = X.S.busy ? " disabled" : "";
-    return '<div class="nnRes"><div class="big">' + (iLost ? "😵" : "🎉") + "</div><h3>" + why + "</h3><p>" + msg + " · 🏆 ผู้ชนะ: " + winners + '</p><p class="nnD">รวม ' + pub.turn + " ตา" +
+    var x = pub.over, last = pub.last || {}, me = M.myP, fo = last.forfeit, host = X.isHost(), bd = X.S.busy ? " disabled" : "";
+    var big, title, msg, ranks = "";
+    if (pub.mode === "elimination" && pub.winner != null) {
+      var order = [pub.winner].concat(pub.out.slice().reverse()), medal = ["🥇", "🥈", "🥉", "4️⃣"], mine = order.indexOf(me) + 1;
+      big = mine === 1 ? "🏆" : "😵";
+      title = esc(nm(pub.winner)) + " คือผู้ชนะ!";
+      msg = mine === 1 ? "คุณชนะ! เหลือรอดคนสุดท้าย" : "คุณได้อันดับ " + mine + " จาก " + order.length;
+      ranks = '<p class="nnD">' + order.map(function (o, i) { return medal[i] + " " + esc(nm(o)); }).join(" · ") + "</p>";
+    } else {
+      var iLost = x === me, loser = nm(x);
+      var winners = pub.players.filter(function (pl) { return pl.p !== x; }).map(function (pl) { return esc(pl.name); }).join(", ");
+      big = iLost ? "😵" : "🎉";
+      title = fo ? esc(loser) + " " + REASON[last.reason] + " — ถือว่ายอมแพ้" : esc(loser) + " ทำกองเกิน " + pub.cap + "!";
+      msg = (iLost ? "คุณแพ้ในศึกนี้ ลองใหม่ได้เสมอค่ะ" : "คุณรอด! ผู้แพ้คือ " + esc(loser)) + " · 🏆 ผู้ชนะ: " + winners;
+    }
+    return '<div class="nnRes"><div class="big">' + big + "</div><h3>" + title + "</h3><p>" + msg + "</p>" + ranks + '<p class="nnD">รวม ' + (pub.turns != null ? pub.turns : pub.turn) + " ตา" +
       (!fo && last.n != null ? " · ไพ่ใบสุดท้าย: " + esc(cn(last.n)) : "") + " · เพดาน " + pub.cap + '</p><p class="nnD">โหมดออนไลน์ยังไม่มีรางวัลเหรียญ</p>' +
-      (host ? '<button type="button" class="nnBt" data-act="rematch"' + b + ">🔁 เล่นอีกครั้ง (Rematch)</button>" : '<p class="nnD">รอ Host กดเล่นอีกครั้ง…</p>') +
+      (host ? '<button type="button" class="nnBt" data-act="rematch"' + bd + ">🔁 เล่นอีกครั้ง (Rematch)</button>" : '<p class="nnD">รอ Host กดเล่นอีกครั้ง…</p>') +
       '<button type="button" class="nnBt alt" data-act="leave">🚪 ออกจากห้อง</button>' +
       (host ? '<button type="button" class="nnBt alt" data-act="close">ปิดห้อง</button>' : "") + "</div>";
   }
@@ -258,7 +276,8 @@
   /* ---------- วาด/อัปเดต (เรียกจาก online.js render) ---------- */
   function mount(root, g, pub, me) {
     var u = ui();
-    M.gid = g.id; M.n = pub.n; M.cap = pub.cap; M.two = pub.two; M.resultShown = false;
+    M.mode = pub.mode || "one_loser";
+    M.gid = g.id; M.n = pub.players.length; M.cap = pub.cap; M.two = pub.two; M.resultShown = false;
     M.myP = -1; pub.players.forEach(function (pl) { if (pl.seat === me.seat) M.myP = pl.p; });
     M.order = []; for (var i = 0; i < M.n; i++) M.order.push((M.myP + i) % M.n);
     M.names = pub.players.map(function (pl) { return pl.name; });

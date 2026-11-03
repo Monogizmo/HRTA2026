@@ -30,7 +30,6 @@ function makeDb() {
       if (!r) return { error: "room_not_found" };
       if (r.host_user_id !== a.p_host) return { error: "not_host" };
       if (r.status !== "lobby") return { error: "room_started" };
-      if (r.mode !== "one_loser") return { error: "mode_not_ready" };
       if (a.p_public.cap !== r.cap) return { error: "stale" };
       const ps = T.room_players.filter(p => p.room_id === r.id && !p.left_at);
       if (ps.length < 2 || ps.length > 4) return { error: "bad_player_count" };
@@ -88,10 +87,12 @@ function setup(n, cap = 150, mode = "one_loser", ready = true) {
     assert.ok(s.T.player_private_states.every(x => x.hand.length === 3));
     assert.strictEqual((await s.api.handle(s.users[0], { action: "start", room_id: s.rid })).error, "room_started");
     console.log("ok  start: host-only, all-ready, deals 3 cards each, double-start rejected"); }
-  { const s = setup(2, 150, "elimination");
-    assert.strictEqual((await s.api.handle(s.users[0], { action: "start", room_id: s.rid })).error, "mode_not_ready");
+  { const s = setup(3, 150, "elimination");
+    const ok = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+    assert.ok(ok.ok, JSON.stringify(ok)); assert.strictEqual(s.T.games[0].public_state.mode, "elimination");
+    assert.deepStrictEqual(s.T.games[0].public_state.alive, [0, 1, 2]);
     const one = setup(1); assert.strictEqual((await one.api.handle(one.users[0], { action: "start", room_id: one.rid })).error, "bad_player_count");
-    console.log("ok  start: elimination mode & 1 player rejected"); }
+    console.log("ok  start: elimination mode starts; 1 player rejected"); }
 
   // --- play: ความถูกต้อง/กันซ้ำ/กันชน ---
   { const s = setup(3);
@@ -192,6 +193,59 @@ function setup(n, cap = 150, mode = "one_loser", ready = true) {
     assert.strictEqual(rs.filter(x => x.state === "forfeited").length, 1, JSON.stringify(rs));
     assert.strictEqual(s.T.games[0].version, 1);
     console.log("ok  concurrent check: 3 clients, timeout applied exactly once"); }
+
+  // --- โหมดคัดออก ผ่าน API ---
+  { let games = 0;
+    for (const n of [3, 4]) for (let k = 0; k < 20; k++) {
+      const s = setup(n, [120, 150, 200][k % 3], "elimination");
+      const st = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+      const mv = prng(k * 313 + n); let guard = 0, elims = 0;
+      while (s.T.games[0].status === "playing") {
+        assert.ok(++guard < 5000);
+        const g = s.T.games[0], pub = g.public_state, cur = pub.cur;
+        assert.ok(pub.alive.includes(cur), "turn given to eliminated player");
+        const row = s.T.player_private_states.find(x => x.seat === pub.players[cur].seat);
+        let cand = row.hand.slice();
+        if (pub.force === cur) { const mx = Math.max(...cand.map(c => c.n)); cand = cand.filter(c => c.n === mx); }
+        const c = cand[Math.floor(mv() * cand.length)];
+        const before = pub.alive.length;
+        const r = await s.api.handle(row.user_id, { action: "play", game_id: st.game_id, card_id: c.id, request_id: uuid(), expected_version: g.version });
+        assert.ok(r.ok, JSON.stringify(r));
+        const p2 = s.T.games[0].public_state;
+        if (p2.alive.length < before) { elims++; assert.strictEqual(p2.total, 0, "pile not reset after elimination"); }
+      }
+      const g = s.T.games[0], pub = g.public_state;
+      assert.strictEqual(pub.out.length, n - 1); assert.strictEqual(pub.alive.length, 2);
+      assert.ok(pub.winner != null && !pub.out.includes(pub.winner), "winner must be the survivor");
+      assert.strictEqual(pub.over, pub.out[pub.out.length - 1]); assert.strictEqual(g.status, "finished"); assert.strictEqual(s.T.rooms[0].status, "finished");
+      assert.strictEqual(elims, n - 2, "eliminations before the final = n-2");
+      games++;
+    }
+    console.log(`ok  elimination via API: ${games} games (3-4 players) end with 1 winner, n-1 placements, pile reset on each elimination`); }
+
+  { // ยอมแพ้/หมดเวลาในโหมดคัดออก = ตกรอบแล้วเล่นต่อ จนเหลือ 2 คนถึงจบเกม
+    const s = setup(3, 150, "elimination");
+    const st = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+    const gid = st.game_id, g = () => s.T.games[0], pub = () => g().public_state;
+    const leaver = s.users[1];
+    let r = await s.api.handle(leaver, { action: "forfeit", game_id: gid });
+    assert.strictEqual(r.state, "eliminated", JSON.stringify(r)); assert.strictEqual(g().status, "playing");
+    assert.strictEqual(pub().alive.length, 2); assert.strictEqual(pub().two, true);
+    assert.deepStrictEqual(pub().out.length, 1);
+    assert.ok(pub().alive.includes(pub().cur));
+    assert.strictEqual(g().public_state.handCounts[pub().out[0]], 0);
+    assert.deepStrictEqual(s.T.player_private_states.find(x => x.user_id === leaver).hand, []);
+    assert.strictEqual((await s.api.handle(leaver, { action: "forfeit", game_id: gid })).state, "out");
+    assert.strictEqual((await s.api.handle(leaver, { action: "play", game_id: gid, card_id: 1, request_id: uuid(), expected_version: g().version })).error, "eliminated");
+    // เหลือ 2 คน: คนปัจจุบันหมดเวลา = เกมจบ อีกคนชนะ
+    s.T.games[0].turn_deadline_at = new Date(s.CLOCK.t - 1000).toISOString();
+    const curP = pub().cur, other = pub().alive.find(o => o !== curP);
+    s.T.player_heartbeats.push(...s.users.map(u => ({ room_id: s.rid, user_id: u, last_seen_at: new Date(s.CLOCK.t).toISOString() })));
+    const uidOf = p => s.T.player_private_states.find(x => x.seat === pub().players[p].seat).user_id;
+    r = await s.api.handle(uidOf(other), { action: "check", game_id: gid });
+    assert.strictEqual(r.state, "forfeited"); assert.strictEqual(g().status, "finished");
+    assert.strictEqual(pub().winner, other); assert.strictEqual(pub().over, curP);
+    console.log("ok  elimination forfeit: leaving = out & game continues; 2 left + timeout = game over, other wins"); }
 
   // --- เล่นจนจบเกมผ่าน API (2,3,4 คน หลายเกม) ---
   let finished = 0, plays = 0;
