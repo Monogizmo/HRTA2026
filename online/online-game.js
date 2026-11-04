@@ -9,7 +9,7 @@
   var M = {
     gid: null, n: 0, cap: 0, two: false, myP: -1, order: [], names: [], avatars: [], pile: [],
     shownSeq: -1, shownTotal: 0, capSeq: -2, queue: [], queued: {}, busy: false, sel: null, rc: null, sending: false,
-    ready: false, loading: false, tick: null, lastCheck: 0, resultShown: false, fs: false, mode: "one_loser"
+    ready: false, loading: false, tick: null, lastCheck: 0, resultShown: false, fs: false, mode: "one_loser", tgp: null
   };
 
   function ui() { return (window.__nn && window.__nn.ui) || null; }
@@ -37,6 +37,13 @@
     G.total = pub.total; G.prev = pub.prev;
     return G.opts(n);
   }
+  function optsOf(pub, n, me) { return pub.seal[me] ? [{ t: "+" + n + " (ถูกผนึก)", v: n }] : optsFor(pub, n); }
+  function optT(pub, o, me) {
+    var hh = o.fx === "world" ? 0 : (pub.calm[me] > 0 || (o.fx === "star" && pub.heat > 0)) ? 0 : pub.heat;
+    return (o.set != null ? o.set : Math.max(0, pub.total + o.v)) + hh;
+  }
+  function needsTg(fx) { return fx === "fool" || fx === "seal" || fx === "moon"; }
+  function actor(pub) { return pub.pend ? pub.pend.p : pub.cur; }
 
   /* ---------- ตัวเลข/กอง/คำบรรยาย (เหมือน setNum/paintPile/setCap ของออฟไลน์) ---------- */
   function setNum(v) {
@@ -67,25 +74,31 @@
   function nm(p) { return M.names[p] || "?"; }
   function extras(r) {
     var a = [];
+    if (r.interject) a.push("⚡ แทรกเทิร์น! ตาปกติถัดไปของ " + nm(r.p) + " จะไม่ลง แค่จั่ว 1 ใบ");
     if (r.heat) a.push("🔥 ไฟลามทุ่ง +" + r.heat);
+    if (r.sealed) a.push("🔒 ถูกผนึก ใช้พลังไม่ได้");
     if (r.saved) a.push("🛡️ โล่แตก! กองถูกกดเหลือ " + r.after);
     if (r.fx === "shield") a.push("🛡️ " + nm(r.p) + " ได้โล่ 1 ชั้น");
     if (r.fx === "all") a.push("ทุกคนทิ้งไพ่เลขสูงสุด จั่วใหม่");
-    if (r.fx === "swap") a.push("สลับมือกับ " + nm(r.nx));
+    if (r.fx === "fool") a.push("สลับมือกับ " + nm(r.tg));
+    if (r.fx === "seal") a.push("🔒 ผนึกไพ่ใบถัดไปของ " + nm(r.tg));
+    if (r.fx === "moon") a.push("🌙 หงายไพ่ของ " + nm(r.tg));
     if (r.fx === "devil") a.push(nm(r.nx) + " ต้องลงติดกัน 2 ใบ!");
     if (r.fx === "conj") a.push(nm(r.nx) + " โดนเสกไพ่ปีศาจใส่มือ!");
     if (r.fx === "rob") a.push(nm(r.nx) + " ถูกริบไพ่เลขต่ำสุด");
     if (r.fx === "force") a.push(nm(r.nx) + " ต้องลงใบเลขสูงสุด!");
-    if (r.fx === "skip") a.push("ข้าม " + nm(r.nx));
     if (r.fx === "rev") a.push("ย้อนทิศ!");
-    if (r.fx === "fool") a.push(M.two ? "รีเซ็ตมือ" : "รีเซ็ตทิศ");
-    if (r.fx === "again") a.push(nm(r.p) + " ลงซ้ำอีกใบ");
+    if (r.fx === "chariot") a.push("🛞 " + nm(r.p) + " ลงเพิ่มได้ 1 ใบ");
+    if (r.fx === "sun") a.push("☀️ " + nm(r.p) + " เปิดไพ่ 3 ใบเลือกเก็บ 1");
+    if (r.fx === "star") a.push("💧 ถ้าอยู่ในช่วงไฟลามทุ่ง ไฟไม่บวกให้ " + nm(r.p) + " 2 ตา");
     return a.join(" · ");
   }
   var REASON = { timeout: "หมดเวลา", disconnected: "หลุดการเชื่อมต่อนานเกินไป", left: "ออกจากเกม" };
   function setCap(r) {
     var e = Q("#nnCap"); if (!e) return;
-    if (r.forfeit) {
+    if (r.kind === "pass") e.innerHTML = "<div><b>" + esc(nm(r.p)) + "</b> ข้ามการลงเพิ่ม</div>";
+    else if (r.kind === "pick") e.innerHTML = "<div><b>" + esc(nm(r.p)) + "</b> เลือกไพ่ 1 ใบจาก The Sun</div>";
+    else if (r.forfeit) {
       e.innerHTML = "<div><b>" + esc(nm(r.p)) + "</b> " + REASON[r.reason] + " — ถือว่ายอมแพ้</div>";
     } else {
       var d = r.after - r.before, ex = extras(r);
@@ -114,81 +127,74 @@
     return h;
   }
   function rulesHTML(pub) {
-    var h = '<h3>📖 กติกา · พลังไพ่</h3><p class="nnD">ผู้เล่น 2–4 คนใช้พลังไพ่ชุดเดียวกัน · ลงไพ่แล้วจั่วคืนตามจำนวนที่ลง (ยกเว้น The Sun เลือก 1 ใบแทนการจั่วปกติ) · ลงหลายใบได้ไม่เกิน 2 ใบต่อเทิร์น · กองเกิน <b>' + pub.cap +
-      "</b> แพ้ · ตาละ 60 วินาทีรวมช่วงเลือก · โหมดคัดออก: ผู้แพ้ตกรอบและกองรีเซ็ต เล่นต่อจนเหลือคนสุดท้าย" + "</p>";
-    for (var n = 0; n < 22; n++) h += '<div class="nnRw"><img alt="" src="' + tsrc(n) + '"><b>' + n + "</b><div><u>" + esc(cn(n)) + "</u><br>" + esc(ui().desc(n, pub.two, pub.cap)) + "</div></div>";
+    var h = '<h3>📖 กติกา · พลังไพ่</h3><p class="nnD">แจกคนละ 3 ใบ ผลัดกันลง 1 ใบแล้วจั่ว 1 ใบ แต้มเท่าเลขบนไพ่ บวกเข้ากองกลาง ใครทำให้กองเกิน <b>' + pub.cap +
+      "</b> แพ้ · 🔥 ไฟลามทุ่ง: เมื่อเล่นไปนานกองจะเพิ่มเองทุกตา · ตาละ 60 วินาที หมดเวลา/หลุดนาน/ออกจากเกม = แพ้" + (pub.mode === "elimination" ? " · โหมดคัดออก: ใครทำกองเกินตกรอบ กองรีเซ็ต เล่นต่อจนเหลือคนสุดท้าย" : "") + "</p>";
+    for (var n = 0; n < 22; n++) h += '<div class="nnRw"><img alt="" src="' + tsrc(n) + '"><b>' + n + "</b><div><u>" + esc(cn(n)) + "</u><br>" + esc(ui().desc(n, null, pub.cap)) + "</div></div>";
     return h + '<button type="button" data-act="nrulesx">ปิด</button>';
   }
 
   /* ---------- มือไพ่ (เหมือน paintHand ของออฟไลน์) ---------- */
-  function myTurn(pub) { return pub.over < 0 && pub.cur === M.myP; }
+  function myTurn(pub) { return pub.over < 0 && actor(pub) === M.myP; }
+  function canInterject(pub) {
+    var me = M.myP, hand = X.S.hand;
+    if (!hand || pub.over >= 0 || pub.pend || pub.seq || pub.cur === me || isOut(pub, me) || pub.owe[me] || pub.seal[me] || (pub.dbl && pub.dbl.p === me)) return false;
+    var mx = -1; hand.forEach(function (c) { if (c.n > mx) mx = c.n; });
+    return hand.some(function (c) { return c.n === 3 && (pub.force !== me || c.n === mx); });
+  }
   function paintHand() {
-    var e = Q("#nnHand"), g = X.S.game, hand = X.S.hand;
-    if (!e || !g || !hand) return;
-    var u = ui(), pub = g.public_state, me = M.myP;
-    var alive = pub.alive || M.order, out = isOut(pub, me);
-    var ownTurn = myTurn(pub), sunPending = pub.pending && pub.pending.type === "sun" && pub.pending.p === me;
-    var chariotPending = pub.pending && pub.pending.type === "chariot" && pub.pending.p === me;
-    var can = ownTurn && !out && !M.busy && !M.sending && !X.S.busy;
-    var pic = M.avatars[me], forced = pub.force === me, mx = -1;
-    hand.forEach(function (c) { if (c.n > mx) mx = c.n; });
-    var canInterrupt = !ownTurn && !out && pub.over < 0 && pub.phase === "await_play" && !pub.pending &&
-      (!pub.turnState || pub.turnState.played === 0) && !(pub.skipDraw || [])[me] && !(pub.sealed || [])[me] &&
-      (!forced || mx === 3) && !M.busy && !M.sending && !X.S.busy && hand.some(function (c) { return c.n === 3; });
-    var status = pub.over >= 0 ? "จบเกม" : out ? "ตกรอบแล้ว — ดูเพื่อนเล่นต่อ" : sunPending ? "เลือกไพ่จาก The Sun" : chariotPending ? "เลือกลงใบที่สองหรือข้าม" : ownTurn ? (M.sending ? "กำลังลงไพ่…" : "ตาของคุณ") : canInterrupt ? "แทรกเทิร์นได้ด้วย Empress" : "รอ " + esc(nm(pub.cur)) + "…";
-    var hdr = '<div class="nnHdr">' + (pic ? '<img class="hav" alt="" src="' + esc(pic) + '"> ' : "🧑 ") + "<b>" + esc(nm(me)) + "</b>" + (pub.shield[me] ? " 🛡️" : "") + " · " + status +
-      (forced ? " · ⛓️ ถูกบังคับลงใบเลขสูงสุด" : "") + (pub.sealed && pub.sealed[me] ? " · 🔒 ไพ่ใบถัดไปถูกผนึก" : "") + (pub.devil && pub.devil[me] ? " · 😈 Devil บังคับลง 2 ใบ" : "") + "</div>";
-    if (sunPending) {
-      var opts = X.S.pending && X.S.pending.sunOptions || [];
-      var sunHtml = opts.length ? '<div class="nnAct nnChoices">' + opts.map(function (c, i) {
-        return '<button type="button" data-act="nsun" data-v="' + i + '"><img alt="" src="' + tsrc(c.n) + '" style="width:42px;vertical-align:middle;border-radius:6px"> เลือก ' + c.n + '</button>';
-      }).join("") + '</div>' : '<p class="nnD">กำลังโหลดตัวเลือกจาก The Sun…</p>';
-      e.innerHTML = hdr + '<div class="nnDs">The Sun: เลือกไพ่ 1 ใบจาก 3 ใบ อีก 2 ใบจะกลับไปใต้กองจั่ว</div>' + sunHtml;
+    var e = Q("#nnHand"), g = X.S.game, hand = X.S.hand; if (!e || !g || !hand) return;
+    var u = ui(), pub = g.public_state, me = M.myP, act = actor(pub), out = isOut(pub, me), pd = pub.pend;
+    var can = myTurn(pub) && !out && !M.busy && !M.sending && !X.S.busy;
+    var pic = M.avatars[me], forced = pub.force === me;
+    var ic = (pub.shield[me] ? " 🛡️" : "") + (pub.seal[me] ? " 🔒" : "") + (pub.owe[me] ? " ⏳" : "") + (pub.calm[me] > 0 ? " 💧" : "");
+    var status = pub.over >= 0 ? "จบเกม" : out ? "ตกรอบแล้ว — ดูเพื่อนเล่นต่อ" : myTurn(pub) ? (M.sending ? "กำลังส่ง…" :
+      pd && pd.t === "forced" ? "ลงใบที่ 2 (ต้องลง ไม่จั่วคั่น)" : pd && pd.t === "extra" ? "ลงเพิ่มอีก 1 ใบได้ (หรือข้าม)" : pd && pd.t === "pick" ? "เลือกไพ่ที่จะเก็บ 1 ใบ" : "ตาของคุณ") : "รอ " + esc(nm(act)) + "…";
+    var hdr = '<div class="nnHdr">' + (pic ? '<img class="hav" alt="" src="' + esc(pic) + '"> ' : "🧑 ") + "<b>" + esc(nm(me)) + "</b>" + ic + " · " + status +
+      (forced ? " · ⛓️ ถูกบังคับลงใบเลขสูงสุด" : "") + "</div>";
+    if (can && pd && pd.t === "pick") {
+      var cs = (X.S.extra && X.S.extra.pick) || [];
+      e.innerHTML = hdr + '<div class="nnDs">เปิดไพ่บนกองจั่ว 3 ใบ เลือกเก็บ 1 ใบ (อีก 2 ใบวางใต้กอง)</div><div class="nnRow"><div class="nnHd">' + cs.map(function (c, i) {
+        return '<button type="button" class="nnC" data-act="npk" data-v="' + i + '"><img alt="' + esc(cn(c.n)) + '" src="' + tsrc(c.n) + '"><b>' + c.n + "</b><small>" + esc(cn(c.n)) + "</small></button>";
+      }).join("") + "</div></div>";
       return;
     }
     var sel = null; hand.forEach(function (c) { if (c.id === M.sel) sel = c; });
-    if (M.sel != null && !sel) M.sel = null;
+    if (M.sel != null && !sel) { M.sel = null; M.tgp = null; }
+    var mx = -1; hand.forEach(function (c) { if (c.n > mx) mx = c.n; });
     var cardsH = '<div class="nnHd">' + hand.map(function (c) {
-      var lock = forced && c.n !== mx, canThis = (can && !lock) || (canInterrupt && c.n === 3), os = optsFor(pub, c.n).map(function (o) { return esc(o.t); }).join(" / ");
-      return '<button type="button" class="nnC' + (sel && sel.id === c.id ? " on" : "") + (canThis ? "" : " dim") + '" data-act="ncard" data-v="' + c.id + '"><img alt="' + esc(cn(c.n)) +
+      var lock = forced && c.n !== mx, os = optsOf(pub, c.n, me).map(function (o) { return esc(o.t); }).join(" / ");
+      return '<button type="button" class="nnC' + (sel && sel.id === c.id ? " on" : "") + ((can && !lock) ? "" : " dim") + '" data-act="ncard" data-v="' + c.id + '"><img alt="' + esc(cn(c.n)) +
         '" src="' + tsrc(c.n) + '"><b>' + c.n + "</b><small>" + os + "</small></button>";
     }).join("") + "</div>";
-    var act = "";
-    if (sel && canInterrupt && sel.n === 3) {
-      act = '<div class="nnAct"><button type="button" data-act="ninterrupt">👑 แทรกเทิร์นด้วย Empress (+3)</button></div>';
-    } else if (can && sel && !(forced && sel.n !== mx)) {
-      if ([0, 4, 18].indexOf(sel.n) >= 0 && !(pub.n === 2 && sel.n !== 18)) {
-        var targetAllowed = alive.filter(function (p) { return sel.n === 0 || p !== me; });
-        if (pub.n === 2 && (sel.n === 0 || sel.n === 4 || sel.n === 18)) targetAllowed = alive.filter(function (p) { return p !== me; });
-        act = '<div class="nnAct nnChoices">' + targetAllowed.map(function (p) {
-          return '<button type="button" data-act="ntarget" data-v="' + p + '">' + (p === me ? "ตัวเอง · " : "") + esc(nm(p)) + (sel.n === 0 && p === me ? " (เก็บมือเดิม)" : "") + '</button>';
-        }).join("") + '</div>';
-      } else if (sel.n === 17) {
-        act = '<div class="nnAct"><button type="button" data-act="nvalue" data-v="-17">−17</button><button type="button" data-act="nvalue" data-v="17">+17</button></div>';
-      } else {
-        act = '<div class="nnAct">' + optsFor(pub, sel.n).map(function (o, k) {
-          var heat = pub.heat || 0, t = (o.set != null ? o.set : Math.max(0, pub.total + o.v)) + heat, w = o.fx === "wheel", bad = !w && t > pub.cap && !pub.shield[me];
-          return '<button type="button" data-act="nopt" data-v="' + k + '" class="' + (bad ? "bad" : "") + '">' + esc(o.t) + ((o.set != null || w) ? "" : " → " + t) + (bad ? " 💥" : "") + "</button>";
-        }).join("") + '</div>';
-      }
+    var ok = !!sel && !(forced && sel.n !== mx), act2 = "";
+    if (can && M.tgp && sel) {
+      act2 = '<div class="nnAct">' + pub.alive.filter(function (o) { return o !== me; }).map(function (o) { return '<button type="button" data-act="ntg" data-v="' + o + '">' + esc(nm(o)) + "</button>"; }).join("") +
+        '<button type="button" data-act="ntgx" class="alt">ย้อนกลับ</button></div>';
+    } else if (can && ok) {
+      act2 = '<div class="nnAct">' + optsOf(pub, sel.n, me).map(function (o, k) {
+        var t = optT(pub, o, me), w = o.fx === "wheel", bad = !w && t > pub.cap && !pub.shield[me];
+        return '<button type="button" data-act="nopt" data-v="' + k + '" class="' + (bad ? "bad" : "") + '">' + esc(o.t) + ((o.set != null || w || o.t.indexOf("→") >= 0) ? "" : " → " + t) + (bad ? " 💥" : "") + "</button>";
+      }).join("") + "</div>";
     }
-    if (chariotPending && can) act += '<div class="nnAct"><button type="button" data-act="nskip">ข้ามการลงใบที่สอง</button></div>';
-    var ds = sel ? "<b>" + esc(cn(sel.n)) + "</b> · " + esc(u.desc(sel.n, pub.two, pub.cap)) + (!can && !(canInterrupt && sel.n === 3) ? "<br>ยังไม่ถึงเวลาลงไพ่" : "") +
-      (forced && sel.n !== mx ? "<br>⛓️ ใบนี้ลงไม่ได้ ต้องลงใบเลขสูงสุด" : "") : "แตะไพ่เพื่อดูพลังพิเศษ" + (can ? " แล้วเลือกลง" : "");
-    if (chariotPending) ds += "<br>🛞 ลงไพ่เพิ่มอีก 1 ใบ หรือกดข้ามเพื่อจบตา";
-    e.innerHTML = hdr + '<div class="nnDs">' + ds + '</div><div class="nnRow">' + cardsH + act + "</div>";
+    if (can && pd && pd.t === "extra" && !M.tgp) act2 += '<div class="nnAct"><button type="button" data-act="npass" class="alt">ข้าม ไม่ลงเพิ่ม</button></div>';
+    var ij = !can && !M.sending && !X.S.busy && canInterject(pub);
+    if (ij) act2 += '<div class="nnAct"><button type="button" data-act="nintj">👑 แทรก! The Empress +3 → ' + (pub.total + 3 + pub.heat) + "</button></div>";
+    var ds = M.tgp ? "เลือกผู้เล่น" : sel ? "<b>" + esc(cn(sel.n)) + "</b> · " + esc(u.desc(sel.n, null, pub.cap)) + (!ok ? "<br>⛓️ ใบนี้ลงไม่ได้ ต้องลงใบเลขสูงสุด" : "") :
+      (ij ? "แตะ \"แทรก\" เพื่อลง The Empress คั่นก่อนเขาลง" : "แตะไพ่เพื่อดูพลังพิเศษ" + (can ? " แล้วเลือกลง" : ""));
+    e.innerHTML = hdr + '<div class="nnDs">' + ds + '</div><div class="nnRow">' + cardsH + act2 + "</div>";
   }
 
   function paintSay(pub) {
     var g = X.S.game; if (!g) return;
     var i = Q("#nnSayI"), n = Q("#nnSayN"), t = Q("#nnSayT"); if (!i) return;
-    var p = pub.cur, over = pub.over >= 0;
+    var p = actor(pub), over = pub.over >= 0, pd = pub.pend;
     i.src = M.avatars[p] || ""; i.style.visibility = M.avatars[p] ? "visible" : "hidden";
     n.textContent = over ? "จบเกม" : nm(p) + (p === M.myP ? " (คุณ)" : "");
     var rem = Math.ceil((Date.parse(g.turn_deadline_at) - (Date.now() + X.skew())) / 1000), txt;
     if (over) txt = "";
     else {
-      txt = pub.pending && pub.pending.p === M.myP ? (pub.pending.type === "sun" ? "The Sun — เลือกไพ่ 1 ใบจาก 3 ใบ" : "The Chariot — ลงใบที่สองหรือข้าม") : (p === M.myP ? "ถึงตาคุณ — เลือกไพ่แล้วกดลง" : "กำลังคิดว่าจะลงใบไหน…");
+      var what = pd && pd.t === "forced" ? "ต้องลงใบที่ 2" : pd && pd.t === "extra" ? "ลงเพิ่มหรือข้าม" : pd && pd.t === "pick" ? "เลือกไพ่จาก The Sun" : null;
+      txt = p === M.myP ? (what ? "ถึงตาคุณ — " + what : "ถึงตาคุณ — เลือกไพ่แล้วกดลง") : (what ? what + "…" : "กำลังคิดว่าจะลงใบไหน…");
       if (isFinite(rem)) txt += " · ⏱ " + Math.max(0, rem) + " วิ";
       var rp = X.S.players.filter(function (x) { return x.seat === pub.players[p].seat; })[0];
       if (rp && rp.user_id !== X.S.uid && X.S.link === "ok" && Object.keys(X.S.online).length && !X.S.online[rp.user_id]) txt += " · 📴 หลุดการเชื่อมต่อ (รอได้สูงสุด 2 นาที)";
@@ -198,23 +204,25 @@
   function isFinal(l) { var g = X.S.game, pub = g && g.public_state; return !!(pub && pub.over >= 0 && pub.last && pub.last.seq === l.seq); }
   function isOut(pub, p) { return !!pub.alive && pub.alive.indexOf(p) < 0; }
   function paintAll(pub) {
-    var over = pub.over >= 0; M.two = pub.two;
+    var over = pub.over >= 0, act = actor(pub);
     for (var i = 1; i < M.n; i++) {
       var p = M.order[i], s = Q("#nnS" + i); if (!s) continue;
-      s.classList.toggle("act", pub.cur === p && !over && !isOut(pub, p));
-      s.classList.toggle("out", isOut(pub, p));
-      var tg = s.querySelector(".outTag"); if (isOut(pub, p) && !tg) { tg = document.createElement("em"); tg.className = "outTag"; tg.textContent = "ตกรอบ"; s.appendChild(tg); } else if (!isOut(pub, p) && tg) tg.remove();
-      s.querySelector(".sh").hidden = !pub.shield[p];
-      s.querySelector(".th").hidden = !(pub.cur === p && !over && !isOut(pub, p));
-      var visibleHand = pub.revealed === p ? (pub.revealedHand && pub.revealedHand[p] || []) : null;
-      s.querySelectorAll(".bk i").forEach(function (el, k) {
-        var c = visibleHand && visibleHand[k]; el.style.visibility = k < (visibleHand ? visibleHand.length : pub.handCounts[p]) ? "visible" : "hidden";
-        if (c) { el.classList.add("revealed"); el.style.backgroundImage = "url('" + tsrc(c.n) + "')"; el.title = "ไพ่ " + c.n; }
-        else { el.classList.remove("revealed"); el.style.backgroundImage = ""; el.title = ""; }
-      });
+      var out = isOut(pub, p);
+      s.classList.toggle("act", act === p && !over && !out);
+      s.classList.toggle("out", out);
+      var tg = s.querySelector(".outTag"); if (out && !tg) { tg = document.createElement("em"); tg.className = "outTag"; tg.textContent = "ตกรอบ"; s.appendChild(tg); } else if (!out && tg) tg.remove();
+      var ic = (pub.shield[p] ? "🛡️" : "") + (pub.seal[p] ? "🔒" : "") + (pub.owe[p] ? "⏳" : "") + (pub.calm[p] > 0 ? "💧" : ""), sh = s.querySelector(".sh");
+      sh.textContent = ic; sh.hidden = !ic;
+      s.querySelector(".th").hidden = !(act === p && !over && !out);
+      var bk = s.querySelector(".bk"), rv = (pub.rev || []).filter(function (r) { return r.p === p; })[0];
+      if (rv) { bk.classList.add("rv"); bk.innerHTML = rv.hand.map(function (c) { return "<i>" + c.n + "</i>"; }).join(""); }
+      else {
+        bk.classList.remove("rv"); bk.innerHTML = "<i></i><i></i><i></i>";
+        bk.querySelectorAll("i").forEach(function (el, k) { el.style.visibility = k < pub.handCounts[p] ? "visible" : "hidden"; });
+      }
     }
     setNum(pub.total); M.shownTotal = pub.total;
-    var d = Q("#nnCapN"); if (d) d.textContent = "/ " + pub.cap + (pub.n > 2 ? (pub.dir > 0 ? " ↻" : " ↺") : "") + (pub.heat ? " 🔥+" + pub.heat : "");
+    var d = Q("#nnCapN"); if (d) d.textContent = "/ " + pub.cap + (pub.alive.length > 2 ? (pub.dir > 0 ? " ↻" : " ↺") : "") + (pub.heat ? " 🔥+" + pub.heat : "");
     paintPile();
     if (pub.last && M.capSeq !== pub.last.seq) setCap(pub.last);
     paintSay(pub);
@@ -225,10 +233,12 @@
   function rnd(a) { return Math.round((Math.random() - .5) * a); }
   async function animate(l) {
     var u = ui(), p = l.p, i = M.order.indexOf(p);
+    if (l.kind === "pass" || l.kind === "pick") { setCap(l); await sl(700); return; }
     if (l.forfeit) {
       setCap(l); u.nsfx("boom"); u.banner("🏳️ " + nm(p) + (l.elim != null && M.mode === "elimination" ? " ตกรอบ" : " ยอมแพ้"), REASON[l.reason], 1800); u.shake();
       await sl(1700); return;
     }
+    if (l.interject) { u.banner("👑 " + nm(p) + " แทรกเทิร์น!", "The Empress +3", 1400); await sl(900); }
     setNum(l.before);
     var rc = (p === M.myP && M.rc) ? M.rc : (i > 0 && Q("#nnS" + i + " .av") ? u.rectOf(Q("#nnS" + i + " .av")) : u.rectOf(Q("#nnHand")));
     M.rc = null;
@@ -314,7 +324,7 @@
   function mount(root, g, pub, me) {
     var u = ui();
     M.mode = pub.mode || "one_loser";
-    M.gid = g.id; M.n = pub.players.length; M.cap = pub.cap; M.two = pub.two; M.resultShown = false;
+    M.gid = g.id; M.n = pub.players.length; M.cap = pub.cap; M.resultShown = false; M.tgp = null;
     M.myP = -1; pub.players.forEach(function (pl) { if (pl.seat === me.seat) M.myP = pl.p; });
     M.order = []; for (var i = 0; i < M.n; i++) M.order.push((M.myP + i) % M.n);
     M.names = pub.players.map(function (pl) { return pl.name; });
@@ -350,53 +360,46 @@
   }
 
   /* ---------- การกระทำ ---------- */
-  function sendAction(action, extra) {
+  function send(body, rc) {
     var S = X.S, g = S.game; if (!g || M.busy || M.sending || S.busy) return;
-    var req = X.uuid(); M.sending = true; paintHand();
+    M.rc = rc || null; M.sending = true; M.sel = null; M.tgp = null; paintHand();
+    var full = Object.assign({ game_id: g.id, request_id: X.uuid(), expected_version: g.version }, body);
     X.run(async function () {
       try {
-        var body = Object.assign({ action: action, game_id: g.id, request_id: req, expected_version: g.version }, extra || {});
         var res = null, tries = 0;
-        while (true) {
-          try { res = await X.callApi(body); break; }
+        while (true) {                 // เน็ตหลุดกลางทาง: ส่งซ้ำด้วย request_id เดิมได้ปลอดภัย (เซิร์ฟเวอร์กันซ้ำ)
+          try { res = await X.callApi(full); break; }
           catch (e) { if (++tries > 2) throw e; await new Promise(function (r) { setTimeout(r, 700 * tries); }); }
         }
         if (res.error === "stale") { await X.refetch(); throw new Error("stale"); }
         if (res.error) throw new Error(res.error);
         await X.refetch();
-      } finally { M.sending = false; paintHand(); }
+      } catch (e) { M.rc = null; throw e; }
+      finally { M.sending = false; paintHand(); }
     });
   }
-  function playSel(choice) {
-    var S = X.S, g = S.game; if (!g || M.sel == null || M.busy || M.sending) return;
-    var pub = g.public_state;
-    if (!myTurn(pub) || isOut(pub, M.myP)) return;
-    var el = Q("#nnHand .nnC.on"), id = M.sel;
-    M.rc = el ? ui().rectOf(el) : null; M.sel = null;
-    sendAction("play", { card_id: id, choice: choice || {} });
-  }
+  function selRect() { var el = Q("#nnHand .nnC.on"); return el ? ui().rectOf(el) : null; }
+
   function onClick(a, v) {
-    var u = ui();
-    if (a === "ncard") { var id = +v; M.sel = (M.sel === id ? null : id); paintHand(); return true; }
+    var u = ui(), g = X.S.game, pub = g && g.public_state;
+    if (a === "ncard") { var id = +v; M.sel = (M.sel === id ? null : id); M.tgp = null; paintHand(); return true; }
     if (a === "nopt") {
-      var g = X.S.game, hand = X.S.hand || [], c = hand.filter(function (x) { return x.id === M.sel; })[0];
-      if (!c) return true;
-      var o = optsFor(g.public_state, c.n)[+v] || {};
-      playSel(c.n === 17 ? { value: o.v } : {}); return true;
-    }
-    if (a === "nvalue") { playSel({ value: +v }); return true; }
-    if (a === "ntarget") { playSel({ target: +v }); return true; }
-    if (a === "nsun") { return (function () { sendAction("choose", { index: +v }); return true; })(); }
-    if (a === "nskip") { sendAction("skip", {}); return true; }
-    if (a === "ninterrupt") {
-      var c2 = (X.S.hand || []).filter(function (x) { return x.id === M.sel; })[0];
-      if (c2 && c2.n === 3) sendAction("interrupt", { card_id: c2.id });
+      if (!pub || !myTurn(pub) || M.sel == null) return true;
+      var c = null; (X.S.hand || []).forEach(function (x) { if (x.id === M.sel) c = x; });
+      var o = c && optsOf(pub, c.n, M.myP)[+v];
+      if (o && needsTg(o.fx) && pub.alive.length > 2 && !pub.seal[M.myP]) { M.tgp = { id: M.sel, k: +v }; paintHand(); }
+      else if (c) send({ action: "play", card_id: c.id, k: +v }, selRect());
       return true;
     }
-    if (a === "nrules") { var r = Q("#nnRules"), g2 = X.S.game; if (r && g2) { r.innerHTML = rulesHTML(g2.public_state); r.hidden = false; } return true; }
+    if (a === "ntg") { var t = M.tgp; if (t) send({ action: "play", card_id: t.id, k: t.k, tg: +v }, selRect()); return true; }
+    if (a === "ntgx") { M.tgp = null; paintHand(); return true; }
+    if (a === "npass") { send({ action: "pass" }); return true; }
+    if (a === "npk") { send({ action: "pick", idx: +v }); return true; }
+    if (a === "nintj") { send({ action: "interject" }, ui().rectOf(Q("#nnHand"))); return true; }
+    if (a === "nrules") { var r = Q("#nnRules"); if (r && g) { r.innerHTML = rulesHTML(g.public_state); r.hidden = false; } return true; }
     if (a === "nrulesx") { var r2 = Q("#nnRules"); if (r2) r2.hidden = true; return true; }
     if (a === "nspd") { var ks = ["slow", "norm", "fast"]; u.PF.spd = ks[(ks.indexOf(u.PF.spd) + 1) % 3]; u.save(); var b = Q("#nnSpd"); if (b) b.textContent = u.SPL[u.PF.spd]; return true; }
-    if (a === "nfs") { var t = Q("#nnT"); M.fs = !(t && t.classList.contains("fs")); u.setFs(M.fs); return true; }
+    if (a === "nfs") { var tt = Q("#nnT"); M.fs = !(tt && tt.classList.contains("fs")); u.setFs(M.fs); return true; }
     if (a === "nhide") { X.hide(); return true; }
     if (a === "rematch") { X.run(async function () { await X.rpc("nn_rematch", { p_room: X.S.rid }); await X.refetch(); }); return true; }
     return false;

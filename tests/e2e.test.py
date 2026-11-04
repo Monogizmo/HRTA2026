@@ -2,8 +2,7 @@
 # เล่นครบเกมใน Chromium ด้วยตรรกะเซิร์ฟเวอร์ตัวจริง + ฐานข้อมูลจำลอง + บอท 2 ตัว ทั้งโหมดแพ้ 1 คน และคัดออก
 from playwright.sync_api import sync_playwright
 import re, sys
-from pathlib import Path
-root=str(Path(__file__).resolve().parents[1])+'/'
+root='/home/claude/out/'
 mock=open(root+'tests/e2e/mock-supabase.js',encoding='utf-8').read()
 libs=''.join(open(root+'online/'+f,encoding='utf-8').read()+'\n' for f in ['nn-engine.js','nn-server.js','nn-api-core.js'])
 def check(c,msg):
@@ -28,7 +27,7 @@ def scenario(b, mode):
     pg.click('[data-act="start"]'); pg.wait_for_timeout(1200)
     check(pg.is_visible('#nnT'),tag+'offline-style table (#nnT) visible after start')
     check(pg.locator('#nnHand .nnC').count()==3,tag+'my hand has 3 cards (.nnC like offline)')
-    pub=pg.evaluate("JSON.stringify(HRTAOnline.state.game.public_state)")
+    pub=pg.evaluate("JSON.stringify(Object.assign({},HRTAOnline.state.game.public_state,{rev:[]}))")   # rev = ไพ่ที่ The Moon หงายให้ทุกคนเห็น (ตั้งใจให้เป็นสาธารณะ)
     check(not re.search(r'"hands?"|"deck"|"disc"',pub),tag+'public state has no hands/deck')
     check(pg.evaluate("HRTAOnline.state.game.public_state.mode")==mode,tag+'game mode = '+mode)
     plays=0; over=False; sawOut=False
@@ -36,14 +35,19 @@ def scenario(b, mode):
         pg.wait_for_timeout(250)
         if pg.locator('.nnRes').count(): over=True; break
         if pg.locator('.nnSeat.out').count(): sawOut=True
-        if pg.locator('#nnHand .nnHdr').count() and 'ตาของคุณ' in pg.inner_text('#nnHand .nnHdr'):
-            btns=pg.locator('#nnHand .nnC:not(.dim)')
-            if btns.count()==0: continue
-            btns.nth(0).click(); pg.wait_for_timeout(100)
-            pb=pg.locator('#nnHand .nnAct button')
-            if pb.count():
-                if plays==0: pg.screenshot(path='/tmp/game_%s.png'%mode)
-                pb.nth(0).click(); plays+=1; pg.wait_for_timeout(900)
+        hdr=pg.locator('#nnHand .nnHdr'); htxt=hdr.inner_text() if hdr.count() else ''
+        if pg.locator('#nnHand [data-act="nintj"]').count() and pg.evaluate("Math.random()")<.5: pg.click('#nnHand [data-act="nintj"]'); continue
+        if not any(k in htxt for k in ('ตาของคุณ','ลงใบที่ 2','ลงเพิ่ม','เลือกไพ่ที่จะเก็บ')): continue
+        if pg.locator('#nnHand [data-act="npk"]').count(): pg.click('#nnHand [data-act="npk"]:nth-child(1)'); continue
+        if pg.locator('#nnHand [data-act="ntg"]').count(): pg.click('#nnHand [data-act="ntg"]:nth-child(1)'); continue
+        if pg.locator('#nnHand [data-act="npass"]').count() and pg.evaluate("Math.random()")<.5: pg.click('#nnHand [data-act="npass"]'); continue
+        btns=pg.locator('#nnHand .nnC:not(.dim)')
+        if btns.count()==0: continue
+        btns.nth(0).click(); pg.wait_for_timeout(100)
+        pb=pg.locator('#nnHand [data-act="nopt"]')
+        if pb.count():
+            if plays==0: pg.screenshot(path='/tmp/game_%s.png'%mode)
+            pb.nth(0).click(); plays+=1; pg.wait_for_timeout(900)
     check(over,tag+'game reached result screen (plays by me: %d)'%plays)
     if over:
         pg.screenshot(path='/tmp/result_%s.png'%mode)

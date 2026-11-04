@@ -1,11 +1,10 @@
 # Changelog
-## v31 — Phase 5: Tarot powers + Stateful Turn Engine
-- ปรับพลังไพ่ 22 ใบเป็นชุดเดียวกันทุกโหมด/ทุกจำนวนผู้เล่น 2–4 คน: Fool สลับมือหลังจั่ว, Magician เสก Devil, Priestess สลับหลักสิบ/หน่วยแล้ว +2, Empress แทรกเทิร์น, Emperor ผนึกพลัง, Chariot ลงเพิ่ม/ข้าม, Star ±17 และป้องกัน Heat 2 ตาตัวเอง, Moon เปิดมือ, Sun เลือก 1 จาก 3, World เท่ากับเพดานและไม่รับ Heat
-- Shared Engine v3: เพิ่ม pending phases สำหรับ Sun/Chariot, Devil ลงสองใบรวด, Empress off-turn + draw-only next normal turn, Emperor seal, Star protection, Moon live reveal, Fool post-draw swap; เพิ่ม AI decisions และ authoritative server actions `interrupt` / `choose` / `skip`
-- Online: เพิ่ม private `pending` ให้ `player_private_states` (ตัวเลือก Sun ไม่ส่งใน public state), เปิด `revealedHand` เฉพาะ Moon, ทุก action ต่อเนื่องรีเฟรช deadline 60 วินาที; เพิ่ม SQL `005_tarot_abilities.sql`
-- Offline/ออนไลน์ใช้กติกาเดียวกัน; ซิงก์ inline engine ใน `index.html` จาก `online/nn-engine.js`; ปรับ prompt UI, ตัวเลือกเป้าหมาย/Star/Sun/Chariot/Empress และคำบรรยายพลัง
-- เพิ่ม/ปรับ automated tests: 900 elimination simulations, 75 complete API games, targeted tests สำหรับ Priestess, Heat/Star/World, Emperor, Chariot/Devil, Sun privacy, Empress interrupt, Moon live reveal และ card conservation ระหว่าง Sun forfeit
-- Service worker `v31`; ต้องรัน SQL 005 หลัง 001–004 และ Build/Deploy Edge Function ใหม่
+## v31 — พลังไพ่ชุดใหม่ (engine + ออฟไลน์ + ออนไลน์)
+- engine ใหม่: Fool สลับมือกับคนที่เลือก · Priestess สลับหลัก +2 · Empress แทรกเทิร์น · Emperor ผนึกไพ่ใบถัดไปของเป้าหมาย · Chariot ลงเพิ่ม 1 ใบ · Temperance ย้อนทิศ+ปัดขึ้น · Devil ไม่จั่วคั่น · Star ±17 + ดับไฟลามทุ่ง 2 ตา · Moon หงายไพ่คนที่เลือก · Sun เปิด 3 เลือก 1 · World = เพดาน ไฟไม่มีผล (ดู `docs/CARD_POWERS.md`)
+- ออฟไลน์: เลือกเป้าหมาย / เลือกไพ่ Sun / ข้าม Chariot / แทรก Empress (โหมดเล่นกับ AI) / แสดงไพ่ที่ถูกหงาย / ไอคอนสถานะ 🛡️🔒⏳💧 · AI เล่นพลังใหม่ได้ · ข้อความพลังไพ่และบทพูด AI อัปเดต
+- ออนไลน์: action ใหม่ `pass` `pick` `interject` + `tg`/`k` ใน `play` · `supabase/migrations/005_new_card_powers.sql` (คอลัมน์ `pend`, `extra`) · ไพ่ที่ Moon หงายอยู่ในข้อมูลสาธารณะ · ไพ่ 3 ใบของ Sun เห็นเฉพาะผู้เลือก
+- เทสต์ใหม่: `engine-cards` (ทีละใบ + จำลอง AI 1,350 เกม), `engine-parity` เขียนใหม่ (เซิร์ฟเวอร์ = engine ทุก action 1,080 เกม), `offline-e2e`
+- `sw.js` v31
 ## v30 — Phase 4: โหมดคัดออก + ตัดข้อความกติกา + เวลานอน
 - โหมดออนไลน์ **คัดออก** (4→3→2 เหลือผู้ชนะ 1 คน; กองรีเซ็ตเมื่อตกรอบ; เหลือ 2 คนใช้พลังไพ่แบบ 2 คน; หมดเวลา/ออก = ตกรอบ) — `nn-server.js` ใช้ดัชนีผู้เล่นเดิมคงที่ + `alive/out/winner`, `supabase/migrations/004_phase4_elimination.sql`, หน้าจอที่นั่งคนตกรอบ/อันดับ
 - ตัดข้อความอธิบายกติกาให้กระชับทุกเกม (เลขเพดาน พลังไพ่ สงครามไพ่ เลี้ยงน้องเบสท์ เกมวิ่ง จับคู่ไพ่) · เอา "(99 ปรับเพดานได้)" ออก · ลบคำอธิบายเรื่องชื่อ/พี่/AI และหัวข้อ "ทำไมปรับสมดุล" ของสงครามไพ่
