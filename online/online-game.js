@@ -219,6 +219,11 @@
       var tg = s.querySelector(".outTag"); if (isOut(pub, p) && !tg) { tg = document.createElement("em"); tg.className = "outTag"; tg.textContent = "ตกรอบ"; s.appendChild(tg); } else if (!isOut(pub, p) && tg) tg.remove();
       s.querySelector(".sh").hidden = !pub.shield[p];
       s.querySelector(".th").hidden = !(pub.cur === p && !over && !isOut(pub, p));
+      var moonTag = s.querySelector(".moonTag");
+      if (pub.revealed === p && !isOut(pub, p)) {
+        if (!moonTag) { moonTag = document.createElement("span"); moonTag.className = "moonTag"; s.appendChild(moonTag); }
+        moonTag.textContent = "🌙 เปิดมือ · เหลือ " + Math.max(1, Number(pub.revealTurnsLeft || 2)) + " ตา";
+      } else if (moonTag) moonTag.remove();
       var visibleHand = pub.revealed === p ? (pub.revealedHand && pub.revealedHand[p] || []) : null;
       s.querySelectorAll(".bk i").forEach(function (el, k) {
         var c = visibleHand && visibleHand[k]; el.style.visibility = k < (visibleHand ? visibleHand.length : pub.handCounts[p]) ? "visible" : "hidden";

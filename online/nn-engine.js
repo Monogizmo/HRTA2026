@@ -15,7 +15,7 @@
     var G = {
       cap: cap, n: n, two: n === 2, hands: [], deck: [], disc: [], total: 0, prev: 0,
       dir: 1, cur: 0, over: -1, turn: 0, heatAt: Math.round(cap / 6),
-      shield: [], force: -1, sealed: [], revealed: -1, revealedHand: {},
+      shield: [], force: -1, sealed: [], revealed: -1, revealedHand: {}, revealTurnsLeft: 0,
       devil: [], skipDraw: [], starSafe: [], sunOptions: {}, pending: null,
       phase: "await_play", turnState: { p: 0, kind: "normal", played: 0, need: 1, sunChosen: false, postDraw: [] }
     };
@@ -33,7 +33,7 @@
       var d = []; for (var k = 0; k < 2; k++) for (var c = 0; c < 22; c++) d.push({ n: c, id: k * 22 + c });
       G.deck = shuffle(d); G.disc = []; G.hands = []; G.shield = []; G.sealed = []; G.skipDraw = []; G.starSafe = []; G.devil = [];
       for (var p = 0; p < G.n; p++) { G.hands.push(G.deck.splice(0, 3)); G.shield.push(false); G.sealed.push(false); G.skipDraw.push(false); G.starSafe.push(0); G.devil.push(false); }
-      G.cur = 0; G.turn = 0; G.total = 0; G.prev = 0; G.dir = 1; G.over = -1; G.force = -1; G.revealed = -1; G.revealedHand = {}; G.sunOptions = {}; G.pending = null; G.phase = "await_play";
+      G.cur = 0; G.turn = 0; G.total = 0; G.prev = 0; G.dir = 1; G.over = -1; G.force = -1; G.revealed = -1; G.revealedHand = {}; G.revealTurnsLeft = 0; G.sunOptions = {}; G.pending = null; G.phase = "await_play";
       G.turnState = { p: G.cur, kind: "normal", played: 0, need: 1, sunChosen: false, postDraw: [] };
     };
     G.draw = function (p) { ensureDeck(1); if (G.deck.length) G.hands[p].push(G.deck.shift()); };
@@ -86,7 +86,7 @@
         8: "คูณสอง", 9: "+9 รับโล่ 1 ชั้น", 10: "สุ่ม −15 ถึง +25", 11: "กองเหลือครึ่งเดียว ปัดลง",
         12: "กองใหม่ = เพดาน − กองเดิม", 13: "ย้อนคะแนนก่อนหน้า 1 ใบ", 14: "ดันครึ่งทางสู่เพดาน ปัดขึ้น และย้อนทิศ",
         15: "+15 คนถัดไปต้องลง 2 ใบติดกัน", 16: "ล้างกองเป็น 0", 17: "เลือก −17 หรือ +17",
-        18: "+0 เปิดมือผู้เล่นอื่น", 19: "+19 เลือก 1 จาก 3 ใบแทนการจั่วปกติ", 20: "+20 ทุกคนทิ้งไพ่สูงสุดแล้วจั่วใหม่", 21: "กองเท่ากับเพดานทันที"
+        18: "+0 เปิดมือผู้เล่นอื่น 2 ตา", 19: "+19 เลือก 1 จาก 3 ใบแทนการจั่วปกติ", 20: "+20 ทุกคนทิ้งไพ่สูงสุดแล้วจั่วใหม่", 21: "กองเท่ากับเพดานทันที"
       };
       return map[n] || ("+" + n);
     }
@@ -103,12 +103,17 @@
       G.drawMany(p, draws);
       (ts.postDraw || []).forEach(function (fx) { if (fx.type === "swap") swapHands(p, fx.target); });
       if (G.starSafe[p] > 0) G.starSafe[p] = Math.max(0, G.starSafe[p] - 1);
+      // The Moon lasts until the revealed player completes two of their own play turns.
+      // Count a whole turn once, not each card in Devil/Chariot, and do not count Empress skip-draw turns.
+      if (G.revealed === p && ts.played > 0) {
+        G.revealTurnsLeft = Math.max(0, Number(G.revealTurnsLeft || 0) - 1);
+        if (G.revealTurnsLeft === 0) { G.revealed = -1; G.revealedHand = {}; }
+      }
       updateReveal();
       var from = p, guard = 0, next = G.next(from);
       G.pending = null; G.phase = "await_play";
       while (guard++ < G.n * 3) {
         G.cur = next;
-        if (G.revealed === next) { G.revealed = -1; delete G.revealedHand[next]; }
         if (G.devil[next]) {
           G.devil[next] = false;
           // A rare hand-size edge case (e.g. a prior Empress interruption) must not deadlock a forced Devil turn.
@@ -140,7 +145,7 @@
       else if (fx === "devil") addDevil(nx);
       else if (fx === "temperance") G.dir = -G.dir;
       else if (fx === "star") { if (G.turn - 1 >= G.heatAt) G.starSafe[p] = 2; }
-      else if (fx === "moon") { G.revealed = target; updateReveal(); }
+      else if (fx === "moon") { G.revealed = target; G.revealTurnsLeft = 2; G.revealedHand = {}; updateReveal(); }
       else if (fx === "sun") {
         var opts = G.drawThree(p); G.pending = { type: "sun", p: p }; G.phase = "await_sun";
         return { pending: { type: "sun", p: p, count: opts.length }, sunOptions: opts };
@@ -309,8 +314,14 @@
     };
     return G;
   }
-  var KEYS = ["cap", "n", "two", "hands", "deck", "disc", "total", "prev", "dir", "cur", "over", "turn", "heatAt", "shield", "force", "sealed", "revealed", "revealedHand", "devil", "skipDraw", "starSafe", "sunOptions", "pending", "phase", "turnState"];
+  var KEYS = ["cap", "n", "two", "hands", "deck", "disc", "total", "prev", "dir", "cur", "over", "turn", "heatAt", "shield", "force", "sealed", "revealed", "revealedHand", "revealTurnsLeft", "devil", "skipDraw", "starSafe", "sunOptions", "pending", "phase", "turnState"];
   function exportState(G) { var s = {}; KEYS.forEach(function (k) { s[k] = G[k]; }); return clone(s); }
-  function importState(s, rnd) { var G = nnEngine({ cap: s.cap, n: s.n }, rnd), c = clone(s); KEYS.forEach(function (k) { if (c[k] !== undefined) G[k] = c[k]; }); return G; }
+  function importState(s, rnd) {
+    var G = nnEngine({ cap: s.cap, n: s.n }, rnd), c = clone(s);
+    KEYS.forEach(function (k) { if (c[k] !== undefined) G[k] = c[k]; });
+    // Backward compatibility for a game state created before the two-turn Moon rule.
+    if (G.revealTurnsLeft == null) G.revealTurnsLeft = G.revealed >= 0 ? 1 : 0;
+    return G;
+  }
   return { engine: nnEngine, exportState: exportState, importState: importState };
 });

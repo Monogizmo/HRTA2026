@@ -329,8 +329,8 @@
     }).join("") + "</div>";
   }
   function formTop(withAv) {
-    return '<div class="lb">ชื่อผู้เล่น</div><input class="onlIn" id="onlName" maxlength="12" autocomplete="off" value="' + esc(S.name) + '" placeholder="เช่น เบล, เจน, ปีเตอร์">' +
-      (withAv ? '<div class="lb">เลือกรูปของคุณ</div>' + avGrid() : "");
+    return '<div class="onlFormProfile"><div class="onlNameField"><div class="lb">ชื่อผู้เล่น</div><input class="onlIn" id="onlName" maxlength="12" autocomplete="off" value="' + esc(S.name) + '" placeholder="เช่น เบล, เจน, ปีเตอร์"></div>' +
+      (withAv ? '<div class="onlAvatarField"><div class="lb">เลือกรูปของคุณ</div>' + avGrid() + '</div>' : "") + '</div>';
   }
   function top(title, backTo) {
     return '<div class="onlTop">' + (backTo ? '<button type="button" class="onlX" data-act="go" data-v="' + backTo + '" aria-label="ย้อนกลับ">‹ กลับ</button>' : "") +
@@ -349,16 +349,18 @@
       '<p class="onlHint">ยังไม่มีรางวัลเหรียญในโหมดออนไลน์</p>';
   }
   function viewCreate() {
-    return top("➕ สร้างห้อง", "menu") + formTop(true) +
+    return top("➕ สร้างห้อง", "menu") +
+      '<div class="onlCreateGrid"><div class="onlProfileCol">' + formTop(true) + '</div><div class="onlOptionsCol">' +
       '<div class="lb">เพดาน (เกินแล้วแพ้)</div>' + seg("cap", [[120, "120 · สบาย"], [150, "150 · กลาง"], [200, "200 · ยาว"]], S.cap) +
       '<div class="lb">โหมดจบเกม</div>' + seg("mode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], S.mode) +
-      '<p class="onlSub" id="onlModeD">' + MODE_TXT[S.mode] + "</p>" +
-      '<button type="button" class="onlBtn pri" data-act="create"' + (S.busy ? " disabled" : "") + ">สร้างห้อง</button>";
+      '<p class="onlSub" id="onlModeD">' + MODE_TXT[S.mode] + "</p></div></div>" +
+      '<div class="onlActionBar"><button type="button" class="onlBtn pri" data-act="create"' + (S.busy ? " disabled" : "") + ">สร้างห้อง</button></div>";
   }
   function viewJoin() {
-    return top("🔑 เข้าร่วมห้อง", "menu") + formTop(true) +
-      '<div class="lb">รหัสห้อง 6 ตัว</div><input class="onlIn code" id="onlCode" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(S.code) + '" placeholder="······">' +
-      '<button type="button" class="onlBtn pri" data-act="join"' + (S.busy ? " disabled" : "") + ">เข้าห้อง</button>";
+    return top("🔑 เข้าร่วมห้อง", "menu") +
+      '<div class="onlCreateGrid"><div class="onlProfileCol">' + formTop(true) + '</div><div class="onlOptionsCol">' +
+      '<div class="lb">รหัสห้อง 6 ตัว</div><input class="onlIn code" id="onlCode" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(S.code) + '" placeholder="······"></div></div>' +
+      '<div class="onlActionBar"><button type="button" class="onlBtn pri" data-act="join"' + (S.busy ? " disabled" : "") + ">เข้าห้อง</button></div>";
   }
   function seatHTML(p) {
     var me = p.user_id === S.uid;

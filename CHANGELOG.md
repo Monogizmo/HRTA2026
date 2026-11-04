@@ -54,3 +54,17 @@
 - `index.html`: เพิ่ม link/script ของ online (ไม่แก้ engine, AI, โหมดเพื่อนเดิม)
 - `sw.js`: v27, เพิ่มไฟล์ online ใน cache, เพิ่ม cdn.jsdelivr.net ใน KEEP_HOSTS
 ## v26 — แยกรูป base64 48 รูปออกจาก index.html ไปไว้ใน img/ (10.7 MB → ~0.5 MB)
+
+
+## v35 — Moon two-turn reveal + desktop responsive audit
+
+- The Moon now reveals the chosen player's live hand until that player completes two of their own full turns.
+- Countdown is per completed turn, not per card; Devil/Chariot multi-card turns count once, and Empress draw-only skip turns do not count.
+- Reveal duration is persisted in public game state v4 and preserved across server state export/import and player elimination; no SQL migration is needed because the field lives in JSON state.
+- Online game UI shows the remaining Moon reveal turns beside the targeted player's seat.
+- Create/join screens use a desktop two-column layout, wider responsive container, a sticky primary action, and a single outer scroll container.
+- Avatar picker no longer traps wheel/touch scrolling in a nested scroll panel.
+- Lobby seats use four columns on wide displays; online game desktop width is constrained for readability.
+- Web app manifest allows portrait/landscape rotation; service worker cache bumped to v35.
+- Offline inline engine synchronized with shared online/server engine.
+- Rebuilt Supabase `nn-api` Edge Function; deploy the new Edge Function together with the GitHub files.

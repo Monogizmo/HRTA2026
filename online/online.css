@@ -3,10 +3,11 @@
 .onlEntry button{width:100%;font:inherit;font-weight:700;padding:11px 12px;border:0;border-radius:12px;background:var(--olive,#4F6B3A);color:#fff;cursor:pointer}
 .onlEntry .nnD{margin:6px 2px 0}
 
-#onl{position:fixed;inset:0;z-index:200;background:var(--sand,#F6F1E6);color:var(--ink,#2E2A24);overflow-y:auto;-webkit-overflow-scrolling:touch;
+#onl{position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:0;z-index:200;background:var(--sand,#F6F1E6);color:var(--ink,#2E2A24);
+  display:block;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 14px calc(env(safe-area-inset-bottom,0px) + 18px);font-family:inherit}
 #onl[hidden]{display:none}
-#onl .onlWrap{max-width:460px;margin:0 auto}
+#onl .onlWrap{width:100%;max-width:460px;min-height:100%;margin:0 auto;padding-bottom:8px}
 #onl h2{font-size:19px;margin:6px 0 4px}
 #onl p{margin:6px 0;line-height:1.5}
 #onl .onlSub{font-size:13px;color:var(--muted,#6E655A)}
@@ -25,7 +26,7 @@
 #onl .onlSeg button.on{background:var(--olive,#4F6B3A);color:#fff;border-color:transparent}
 #onl .onlSeg button:disabled{opacity:.6}
 
-#onl .onlAvG{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;max-height:190px;overflow-y:auto;padding:4px}
+#onl .onlAvG{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;max-height:none;overflow:visible;padding:4px;overscroll-behavior: auto}
 #onl .onlAvG button{border:2px solid transparent;border-radius:12px;background:#fff;padding:3px;cursor:pointer;font:inherit;font-size:11px;color:inherit}
 #onl .onlAvG button.on{border-color:var(--olive,#4F6B3A);background:var(--hi,#F6E4B0)}
 #onl .onlAvG img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;display:block}
@@ -77,7 +78,10 @@
 
 /* Online game: landscape layout matches the offline table on short/wide screens. */
 @media (orientation:landscape) and (max-height:650px){
-  #onl{padding:4px max(8px,env(safe-area-inset-left,0px)) 4px max(8px,env(safe-area-inset-right,0px));overflow:hidden}
+  /* Keep the dialog scrollable on short desktop windows and landscape create/join screens.
+     The game table itself is sized to the viewport below; the old overflow:hidden here
+     accidentally disabled scrolling for every online screen in landscape <=650px tall. */
+  #onl{padding:4px max(8px,env(safe-area-inset-left,0px)) 4px max(8px,env(safe-area-inset-right,0px));overflow-x:hidden;overflow-y:auto}
   #onl .onlWrap.onlGame{display:flex;flex-direction:column;max-width:none;width:100%;height:calc(100dvh - 8px);margin:0;padding:0}
   #onl .onlWrap.onlGame #onlGBody{flex:1;min-height:0;height:100%}
   #onl .onlWrap.onlGame #onlGBody #nnT:not(.fs){width:100%;height:100%;aspect-ratio:auto;border-radius:12px}
@@ -92,3 +96,42 @@
 #onl .nnChoiceTitle{font-size:12px;font-weight:800;line-height:1.35;color:var(--ink,#2E2A24);padding:2px 4px;text-align:center}
 #onl .nnChariotChoice{border-top:1px solid var(--line,#E8DFCC);padding-top:7px;margin-top:5px}
 #onl .nnAct button:disabled{opacity:.45;cursor:wait}
+
+
+/* v35: create/join screens use a responsive layout and never trap page scrolling
+   inside the avatar picker (the outer #onl dialog is the single scroll container). */
+#onl .onlCreateGrid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+#onl .onlFormProfile{display:flex;flex-direction:column;gap:8px;min-width:0}
+#onl .onlProfileCol,#onl .onlOptionsCol{min-width:0}
+#onl .onlActionBar{position:sticky;bottom:0;z-index:8;margin:10px -2px 0;padding:9px 2px calc(env(safe-area-inset-bottom,0px) + 8px);background:linear-gradient(180deg,rgba(246,241,230,0),rgba(246,241,230,.96) 22%,rgba(246,241,230,.99));backdrop-filter:blur(8px)}
+#onl .onlActionBar .onlBtn{margin:0;box-shadow:0 3px 12px rgba(46,42,36,.12)}
+#onl .onlAvatarField .lb{margin-top:8px}
+#onl .onlAvG button{min-width:0}
+#onl .onlAvG img{width:100%;height:auto;aspect-ratio:1;object-fit:cover}
+#onl .nnSeat .moonTag{display:inline-block;margin-top:2px;padding:1px 7px;border:1px solid #ffe8a3;border-radius:999px;background:#2b1d0e;color:#ffe8a3;font-size:clamp(9px,2.2cqmin,11px);line-height:1.3;text-shadow:none;white-space:nowrap}
+@media (min-width:760px){
+  #onl{padding:22px clamp(22px,4vw,64px) 24px}
+  #onl .onlWrap{max-width:1040px}
+  #onl .onlWrap:not(.onlGame){padding:12px 18px 18px}
+  #onl .onlWrap:not(.onlGame) > .onlTop{margin-bottom:14px}
+  #onl .onlCreateGrid{grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr);gap:clamp(22px,3vw,42px)}
+  #onl .onlProfileCol{padding:12px 16px;border:1px solid var(--line,#E8DFCC);border-radius:18px;background:rgba(255,255,255,.58)}
+  #onl .onlOptionsCol{padding:14px 16px;border:1px solid var(--line,#E8DFCC);border-radius:18px;background:rgba(255,255,255,.58)}
+  #onl .onlAvG{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:9px;padding:6px 2px}
+  #onl .onlAvG button{font-size:12px;padding:4px}
+  #onl .onlSeats{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  #onl .onlSeat{min-height:158px;padding:14px 8px}
+  #onl .onlActionBar{margin-top:14px}
+}
+@media (max-width:759px){
+  #onl .onlWrap{max-width:560px}
+  #onl .onlAvG{grid-template-columns:repeat(auto-fill,minmax(54px,1fr))}
+}
+@media (min-width:760px) and (min-height:700px){
+  /* Desktop/tablet: keep the portrait game table centered and constrained by both width and height.
+     A 760px-wide 3:5.2 table would exceed a typical laptop viewport vertically. */
+  #onl .onlWrap.onlGame{max-width:760px;height:calc(100dvh - 44px);min-height:0;display:flex;flex-direction:column;margin:0 auto}
+  #onl .onlWrap.onlGame #onlGBody{display:flex;flex:1;min-height:0;justify-content:center;align-items:center;width:100%}
+  #onl .onlWrap.onlGame #nnT:not(.fs){width:min(100%,460px,calc((100dvh - 130px)*3/5.2));max-width:460px;height:auto;flex:none;margin:0 auto;aspect-ratio:3/5.2}
+  #onl .onlWrap.onlGame #onlGFoot{flex:none;max-width:460px;width:100%;margin:0 auto}
+}

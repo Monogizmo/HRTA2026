@@ -105,6 +105,37 @@ function play(G, p, n, choice = {}, i = 0) { G.cur = p; G.turnState.p = p; retur
   G = mk(3); card(G, 0, 18); r = G.play(0, 0, 0, { target: 2 }); assert.strictEqual(G.revealed, 2); assert.ok(G.revealedHand[2]);
   console.log("ok  Rebirth, Temperance, Hermit shield, Emperor target, Fool swap, Moon reveal smoke tests");
 }
+// Moon reveal: in a 2-player game the hand remains visible through two complete turns of the target.
+{
+  const G = mk(2); card(G, 0, 18); card(G, 1, 1); card(G, 1, 2);
+  let r = play(G, 0, 18, { target: 1 });
+  assert.ok(!r.error, r.error); assert.strictEqual(G.cur, 1); assert.strictEqual(G.revealed, 1);
+  assert.strictEqual(G.revealTurnsLeft, 2); assert.strictEqual(G.revealedHand[1].length, G.hands[1].length);
+  play(G, 1, 1); // target's first completed turn
+  assert.strictEqual(G.revealed, 1); assert.strictEqual(G.revealTurnsLeft, 1);
+  assert.deepStrictEqual(G.revealedHand[1], G.hands[1]);
+  play(G, 0, 1);
+  assert.strictEqual(G.revealed, 1); assert.strictEqual(G.revealTurnsLeft, 1);
+  play(G, 1, 2); // target's second completed turn -> reveal expires
+  assert.strictEqual(G.revealed, -1); assert.strictEqual(G.revealTurnsLeft, 0);
+  assert.deepStrictEqual(G.revealedHand, {});
+  console.log("ok  Moon: target hand stays public for two complete target turns in 2-player game");
+}
+// A forced two-card Devil turn counts as one Moon turn; a draw-only Empress skip does not count.
+{
+  let G = mk(2); card(G, 0, 18); G.devil[1] = true;
+  play(G, 0, 18, { target: 1 });
+  assert.strictEqual(G.turnState.kind, "devil");
+  play(G, 1, 1); assert.strictEqual(G.revealTurnsLeft, 2); // still mid-turn
+  play(G, 1, 2); assert.strictEqual(G.revealTurnsLeft, 1); // only one decrement
+  G = mk(2); card(G, 0, 18); G.skipDraw[1] = true;
+  play(G, 0, 18, { target: 1 });
+  assert.strictEqual(G.revealed, 1); assert.strictEqual(G.revealTurnsLeft, 2);
+  assert.strictEqual(G.cur, 0); // target's draw-only skip passed without reducing Moon
+  play(G, 0, 1); assert.strictEqual(G.revealTurnsLeft, 2);
+  play(G, 1, 1); assert.strictEqual(G.revealTurnsLeft, 1);
+  console.log("ok  Moon edge cases: Devil multi-card counts once; draw-only skip does not count");
+}
 
 // Server public state never contains Sun options; Moon's exposed hand is deliberately public.
 {
@@ -122,11 +153,36 @@ function play(G, p, n, choice = {}, i = 0) { G.cur = p; G.turnState.p = p; retur
   const sunSnap = { pub: res.pub, secret: res.secret, hands: Object.assign({}, snap.hands, res.hands),
     private: Object.assign({}, snap.private, res.private), uids: snap.uids };
   const choice = SV.applyChoose(sunSnap, uid, 0, prng(4)); assert.ok(!choice.error, choice.error);
-  const moonSnap = { pub: S0.pub, secret: S0.secret, hands: Object.assign({}, S0.hands), private: S0.private, uids: S0.uids };
+  const moonStart = SV.startGame(players.slice(0, 2), 150, prng(125), "one_loser");
+  const moonSnap = { pub: moonStart.pub, secret: moonStart.secret, hands: Object.assign({}, moonStart.hands), private: moonStart.private, uids: moonStart.uids };
   const mu = moonSnap.uids[moonSnap.pub.cur], mp = moonSnap.pub.cur, target = moonSnap.pub.alive.find(x => x !== mp);
   moonSnap.hands[mu] = [{ n: 18, id: 800 }, { n: 3, id: 801 }, { n: 4, id: 802 }];
   res = SV.applyPlay(moonSnap, mu, 800, prng(5), { target }); assert.ok(!res.error, res.error);
   assert.deepStrictEqual(res.pub.revealedHand[target], moonSnap.hands[moonSnap.uids[target]]);
+  assert.strictEqual(res.pub.revealTurnsLeft, 2, "public state must preserve Moon's two-turn duration");
+  // Complete target turn one through the authoritative server adapter.
+  let live = { pub: res.pub, secret: res.secret, hands: Object.assign({}, moonSnap.hands, res.hands),
+    private: Object.assign({}, moonSnap.private, res.private), uids: moonSnap.uids };
+  let currentUid = live.uids[live.pub.cur];
+  live.hands[currentUid] = [{ n: 1, id: 810 }, { n: 2, id: 811 }, { n: 3, id: 812 }];
+  let turn1 = SV.applyPlay(live, currentUid, 810, prng(6), {});
+  assert.ok(!turn1.error, turn1.error); assert.strictEqual(turn1.pub.revealTurnsLeft, 1);
+  live = { pub: turn1.pub, secret: turn1.secret, hands: Object.assign({}, live.hands, turn1.hands),
+    private: Object.assign({}, live.private, turn1.private), uids: live.uids };
+  // Caster's turn must leave the one remaining target turn intact.
+  currentUid = live.uids[live.pub.cur];
+  let casterHand = live.hands[currentUid] || [];
+  let casterCard = casterHand.find(c => c.id === 801) || casterHand.find(c => c.n < 7);
+  let casterTurn = SV.applyPlay(live, currentUid, casterCard.id, prng(7), {});
+  assert.ok(!casterTurn.error, casterTurn.error); assert.strictEqual(casterTurn.pub.revealTurnsLeft, 1);
+  live = { pub: casterTurn.pub, secret: casterTurn.secret, hands: Object.assign({}, live.hands, casterTurn.hands),
+    private: Object.assign({}, live.private, casterTurn.private), uids: live.uids };
+  // Target's second complete turn closes the public reveal.
+  currentUid = live.uids[live.pub.cur];
+  let targetHand = live.hands[currentUid] || [];
+  let targetCard = targetHand.find(c => c.id === 811) || targetHand.find(c => c.n < 7);
+  let turn2 = SV.applyPlay(live, currentUid, targetCard.id, prng(8), {});
+  assert.ok(!turn2.error, turn2.error); assert.strictEqual(turn2.pub.revealTurnsLeft, 0); assert.strictEqual(turn2.pub.revealed, -1);
   console.log("ok  server privacy: Sun options only in actor private state; Moon reveal is public and scoped");
   // A live Moon reveal must refresh if a later effect changes the exposed player's hand.
   const G = mk(4); card(G, 0, 18); G.play(0, 0, 0, { target: 3 });

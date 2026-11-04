@@ -30,12 +30,13 @@
       postDraw: (ts.postDraw || []).map(function (x) { return { type: x.type, target: mapLocalToOriginal(x.target, alive) }; })
     };
     return {
-      v: 3, mode: meta.mode, np: np, alive: alive.slice(), out: meta.out.slice(),
+      v: 4, mode: meta.mode, np: np, alive: alive.slice(), out: meta.out.slice(),
       cap: G.cap, n: G.n, two: G.two, heatAt: G.heatAt, total: G.total, prev: G.prev,
       dir: G.dir, cur: mapLocalToOriginal(G.cur, alive), turn: G.turn, heat: G.heat(),
       seq: meta.seq, turns: meta.turns, shield: shield, sealed: sealed, skipDraw: skipDraw,
       starSafe: starSafe, devil: devil, force: G.force < 0 ? -1 : mapLocalToOriginal(G.force, alive),
       revealed: G.revealed < 0 ? -1 : mapLocalToOriginal(G.revealed, alive), revealedHand: revealedHand,
+      revealTurnsLeft: G.revealed < 0 ? 0 : Math.max(0, Number(G.revealTurnsLeft || 0)),
       pending: pending, phase: G.phase, turnState: turnState,
       over: meta.over, winner: meta.winner, handCounts: hc, players: meta.players,
       last: meta.last || null, log: meta.log || []
@@ -71,6 +72,7 @@
       devil: alive.map(function (o) { return !!(pub.devil || [])[o]; }),
       force: pub.force < 0 ? -1 : local[pub.force],
       revealed: pub.revealed < 0 ? -1 : local[pub.revealed], revealedHand: {},
+      revealTurnsLeft: pub.revealed < 0 ? 0 : (Number.isInteger(pub.revealTurnsLeft) ? pub.revealTurnsLeft : 1),
       pending: pub.pending ? { type: pub.pending.type, p: local[pub.pending.p] } : null,
       phase: pub.phase || "await_play",
       turnState: pub.turnState ? {
@@ -108,7 +110,7 @@
     if (wasCur) s.cur = s.dir === 1 ? idx % s.n : (idx - 1 + s.n) % s.n;
     else if (s.cur > idx) s.cur -= 1;
     if (s.force === idx) s.force = -1; else if (s.force > idx) s.force -= 1;
-    if (s.revealed === idx) { s.revealed = -1; s.revealedHand = {}; }
+    if (s.revealed === idx) { s.revealed = -1; s.revealedHand = {}; s.revealTurnsLeft = 0; }
     else if (s.revealed > idx) s.revealed -= 1;
     var rh = {}; Object.keys(s.revealedHand || {}).forEach(function (k) { var x = Number(k); if (x !== idx) rh[x > idx ? x - 1 : x] = s.revealedHand[k]; }); s.revealedHand = rh;
     // If the Sun chooser is forfeited, none of the revealed options was selected;
