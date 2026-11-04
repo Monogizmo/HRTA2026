@@ -39,7 +39,8 @@ function makeDb() {
       const gid = uuid(), rno = T.games.filter(g => g.room_id === r.id).length + 1;
       T.games.push(clone({ id: gid, room_id: r.id, round_no: rno, status: "playing", version: 0, public_state: a.p_public, cur_p: a.p_cur, turn_deadline_at: a.p_deadline, updated_at: new Date().toISOString() }));
       T.game_secrets.push(clone({ game_id: gid, deck: a.p_secret.deck, disc: a.p_secret.disc }));
-      ps.forEach(p => T.player_private_states.push(clone({ game_id: gid, user_id: p.user_id, seat: p.seat, hand: a.p_hands[p.user_id] })));
+      ps.forEach(p => T.player_private_states.push(clone({ game_id: gid, user_id: p.user_id, seat: p.seat,
+        hand: a.p_hands[p.user_id], pending: null })));
       r.status = "playing";
       return { game_id: gid, round: rno };
     },
@@ -52,13 +53,45 @@ function makeDb() {
       g.version++; g.public_state = clone(a.p_public); g.cur_p = a.p_cur; g.turn_deadline_at = a.p_deadline; g.updated_at = new Date(CLOCK.t).toISOString();
       if (a.p_over >= 0) { g.status = "finished"; g.loser_p = a.p_over; T.rooms.find(x => x.id === g.room_id).status = "finished"; }
       const s = T.game_secrets.find(x => x.game_id === g.id); s.deck = clone(a.p_secret.deck); s.disc = clone(a.p_secret.disc);
-      Object.keys(a.p_hands).forEach(u => { T.player_private_states.find(x => x.game_id === g.id && x.user_id === u).hand = clone(a.p_hands[u]); });
+      Object.keys(a.p_hands).forEach(u => {
+        const row = T.player_private_states.find(x => x.game_id === g.id && x.user_id === u);
+        const value = a.p_hands[u];
+        row.hand = clone(Array.isArray(value) ? value : value.hand);
+        row.pending = clone(Array.isArray(value) ? null : (value.pending || null));
+      });
       T.game_actions.push({ game_id: g.id, seq: g.version, user_id: a.p_user, request_id: a.p_request });
       return { ok: true, version: g.version };
     }
   };
   const admin = { from: builder, rpc: (n, a) => Promise.resolve({ data: clone(rpcs[n](clone(a))), error: null }) };
   return { T, admin, CLOCK };
+}
+
+
+function choiceFor(card, p, n, rnd) {
+  if (!card) return {};
+  if (card.n === 17) return { value: rnd() < 0.5 ? -17 : 17 };
+  if (card.n === 0 && n > 2) return { target: Math.floor(rnd() * n) };
+  if ((card.n === 4 || card.n === 18) && n > 2) {
+    let t = Math.floor(rnd() * (n - 1)); if (t >= p) t++;
+    return { target: t };
+  }
+  return {};
+}
+async function resolvePendingApi(s, gameId, rnd) {
+  const g = s.T.games.find(x => x.id === gameId), pub = g.public_state;
+  if (!pub.pending) return false;
+  const orig = pub.pending.p;
+  const row = s.T.player_private_states.find(x => x.game_id === gameId && x.seat === pub.players[orig].seat);
+  let body;
+  if (pub.pending.type === 'sun') {
+    const opts = row.pending && row.pending.sunOptions || [];
+    body = { action: 'choose', index: opts.length ? Math.floor(rnd() * opts.length) : 0 };
+  } else if (pub.pending.type === 'chariot') body = { action: 'skip' };
+  else throw new Error('unknown pending: ' + pub.pending.type);
+  const result = await s.api.handle(row.user_id, Object.assign(body, { game_id: gameId, request_id: uuid(), expected_version: g.version }));
+  assert.ok(result.ok, JSON.stringify(result));
+  return true;
 }
 
 function setup(n, cap = 150, mode = "one_loser", ready = true) {
@@ -101,16 +134,16 @@ function setup(n, cap = 150, mode = "one_loser", ready = true) {
     const uidOfP = p => s.T.player_private_states.find(x => x.seat === game().public_state.players[p].seat).user_id;
     const handOf = u => s.T.player_private_states.find(x => x.user_id === u).hand;
     const cur = game().public_state.cur, curU = uidOfP(cur), otherU = uidOfP((cur + 1) % 3);
-    const card = handOf(curU)[0].id, req = uuid();
+    const firstCard = handOf(curU)[0], card = firstCard.id, choice = choiceFor(firstCard, cur, 3, prng(17)), req = uuid();
     assert.strictEqual((await s.api.handle(otherU, { action: "play", game_id: gid, card_id: handOf(otherU)[0].id, request_id: uuid(), expected_version: 0 })).error, "not_your_turn");
     assert.strictEqual((await s.api.handle(uuid(), { action: "play", game_id: gid, card_id: card, request_id: uuid(), expected_version: 0 })).error, "not_in_game");
     assert.strictEqual((await s.api.handle(curU, { action: "play", game_id: gid, card_id: card, request_id: uuid(), expected_version: 7 })).error, "stale");
     assert.strictEqual((await s.api.handle(curU, { action: "play", game_id: gid, card_id: "x", request_id: uuid(), expected_version: 0 })).error, "bad_request");
-    const r1 = await s.api.handle(curU, { action: "play", game_id: gid, card_id: card, request_id: req, expected_version: 0 });
+    const r1 = await s.api.handle(curU, { action: "play", game_id: gid, card_id: card, choice, request_id: req, expected_version: 0 });
     assert.ok(r1.ok && r1.version === 1, JSON.stringify(r1));
     const afterOnce = JSON.stringify([game().public_state, s.T.player_private_states, s.T.game_secrets]);
     // ส่งซ้ำ request_id เดิม (เช่น กดซ้ำ/เน็ตส่งซ้ำ) → ไม่ลงไพ่ซ้ำ
-    const r2 = await s.api.handle(curU, { action: "play", game_id: gid, card_id: card, request_id: req, expected_version: 0 });
+    const r2 = await s.api.handle(curU, { action: "play", game_id: gid, card_id: card, choice, request_id: req, expected_version: 0 });
     assert.ok(r2.ok && r2.dup, JSON.stringify(r2));
     assert.strictEqual(JSON.stringify([game().public_state, s.T.player_private_states, s.T.game_secrets]), afterOnce);
     assert.strictEqual(s.T.game_actions.length, 1);
@@ -122,13 +155,35 @@ function setup(n, cap = 150, mode = "one_loser", ready = true) {
     const g = s.T.games[0], cur = g.public_state.cur;
     const u = s.T.player_private_states.find(x => x.seat === g.public_state.players[cur].seat);
     const [a, b] = await Promise.all([
-      s.api.handle(u.user_id, { action: "play", game_id: st.game_id, card_id: u.hand[0].id, request_id: uuid(), expected_version: 0 }),
-      s.api.handle(u.user_id, { action: "play", game_id: st.game_id, card_id: u.hand[1].id, request_id: uuid(), expected_version: 0 })]);
+      s.api.handle(u.user_id, { action: "play", game_id: st.game_id, card_id: u.hand[0].id, choice: choiceFor(u.hand[0], cur, 2, prng(1)), request_id: uuid(), expected_version: 0 }),
+      s.api.handle(u.user_id, { action: "play", game_id: st.game_id, card_id: u.hand[1].id, choice: choiceFor(u.hand[1], cur, 2, prng(2)), request_id: uuid(), expected_version: 0 })]);
     const oks = [a, b].filter(x => x.ok).length;
     assert.strictEqual(oks, 1, JSON.stringify([a, b]));
     assert.strictEqual([a, b].find(x => !x.ok).error === "stale" || [a, b].find(x => !x.ok).error === "not_your_turn", true);
     assert.strictEqual(s.T.games[0].version, 1);
     console.log("ok  concurrency: two simultaneous plays on the same version -> exactly one applied"); }
+
+  // --- Tarot actions: interrupt is an authoritative off-turn action; next own turn is draw-only ---
+  { const s = setup(3, 150, "one_loser");
+    const st = await s.api.handle(s.users[0], { action: "start", room_id: s.rid });
+    const g = s.T.games[0], pub = g.public_state, cur = pub.cur, target = (cur + 1) % 3;
+    const row = s.T.player_private_states.find(x => x.seat === pub.players[target].seat);
+    row.hand = [{ n: 3, id: 990 }, { n: 8, id: 991 }, { n: 9, id: 992 }];
+    const it = await s.api.handle(row.user_id, { action: "interrupt", game_id: st.game_id, card_id: 990,
+      request_id: uuid(), expected_version: 0 });
+    assert.ok(it.ok, JSON.stringify(it));
+    assert.strictEqual(g.public_state.cur, cur); assert.strictEqual(g.public_state.last.interrupt, true);
+    assert.strictEqual(g.public_state.skipDraw[target], true);
+    assert.strictEqual(Date.parse(g.turn_deadline_at), s.CLOCK.t + 60000, "choice/action must refresh the shared 60-second deadline");
+    const cr = s.T.player_private_states.find(x => x.seat === pub.players[cur].seat);
+    cr.hand = [{ n: 1, id: 993 }, { n: 2, id: 994 }, { n: 5, id: 995 }];
+    const pr = await s.api.handle(cr.user_id, { action: "play", game_id: st.game_id, card_id: 993,
+      request_id: uuid(), expected_version: 1 });
+    assert.ok(pr.ok, JSON.stringify(pr));
+    assert.strictEqual(g.public_state.cur, (cur + 2) % 3);
+    assert.strictEqual(g.public_state.skipDraw[target], false);
+    assert.strictEqual(g.public_state.handCounts[target], 3);
+    console.log("ok  Tarot API: off-turn Empress is server-validated; next own turn draws one and is skipped"); }
 
   // --- Phase 3: timeout / หลุด / ยอมแพ้ ---
   { const s = setup(3);
@@ -203,13 +258,19 @@ function setup(n, cap = 150, mode = "one_loser", ready = true) {
       while (s.T.games[0].status === "playing") {
         assert.ok(++guard < 5000);
         const g = s.T.games[0], pub = g.public_state, cur = pub.cur;
+        if (pub.pending) { await resolvePendingApi(s, st.game_id, mv); continue; }
         assert.ok(pub.alive.includes(cur), "turn given to eliminated player");
         const row = s.T.player_private_states.find(x => x.seat === pub.players[cur].seat);
         let cand = row.hand.slice();
         if (pub.force === cur) { const mx = Math.max(...cand.map(c => c.n)); cand = cand.filter(c => c.n === mx); }
         const c = cand[Math.floor(mv() * cand.length)];
         const before = pub.alive.length;
-        const r = await s.api.handle(row.user_id, { action: "play", game_id: st.game_id, card_id: c.id, request_id: uuid(), expected_version: g.version });
+        const choice = {};
+        if (c.n === 17) choice.value = mv() < 0.5 ? -17 : 17;
+        if (c.n === 0) choice.target = pub.alive[Math.floor(mv() * pub.alive.length)];
+        if (c.n === 4 || c.n === 18) { const ts = pub.alive.filter(x => x !== cur); choice.target = ts[Math.floor(mv() * ts.length)]; }
+        const r = await s.api.handle(row.user_id, { action: "play", game_id: st.game_id, card_id: c.id,
+          choice, request_id: uuid(), expected_version: g.version });
         assert.ok(r.ok, JSON.stringify(r));
         const p2 = s.T.games[0].public_state;
         if (p2.alive.length < before) { elims++; assert.strictEqual(p2.total, 0, "pile not reset after elimination"); }
@@ -257,12 +318,14 @@ function setup(n, cap = 150, mode = "one_loser", ready = true) {
     while (s.T.games[0].status === "playing") {
       assert.ok(++guard < 3000);
       const g = s.T.games[0], cur = g.public_state.cur;
+      if (g.public_state.pending) { await resolvePendingApi(s, st.game_id, mv); continue; }
       const row = s.T.player_private_states.find(x => x.seat === g.public_state.players[cur].seat);
       // เลือกไพ่ที่ถูกกติกา (ถ้าถูกบังคับ ต้องใบสูงสุด)
       let cand = row.hand.slice();
       if (g.public_state.force === cur) { const mx = Math.max(...cand.map(c => c.n)); cand = cand.filter(c => c.n === mx); }
       const c = cand[Math.floor(mv() * cand.length)];
-      const r = await s.api.handle(row.user_id, { action: "play", game_id: st.game_id, card_id: c.id, request_id: uuid(), expected_version: g.version });
+      const r = await s.api.handle(row.user_id, { action: "play", game_id: st.game_id, card_id: c.id,
+          choice: choiceFor(c, cur, g.public_state.np, mv), request_id: uuid(), expected_version: g.version });
       assert.ok(r.ok, JSON.stringify(r)); plays++;
     }
     const g = s.T.games[0];

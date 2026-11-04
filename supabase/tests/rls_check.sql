@@ -11,8 +11,9 @@ begin;
 
   -- 1) มือของคนอื่นต้องอ่านไม่ได้
   select count(*) as other_hands_visible from public.player_private_states where user_id <> '<USER_A>'::uuid;   -- ต้องเป็น 0
-  -- 2) มือของตัวเองอ่านได้
+  -- 2) มือและตัวเลือกส่วนตัว (รวม Sun pending) ของตัวเองอ่านได้
   select count(*) as my_hands from public.player_private_states where user_id = '<USER_A>'::uuid;               -- >= 1
+  select pending as my_private_pending from public.player_private_states where user_id = '<USER_A>'::uuid;       -- อ่านได้เฉพาะแถวของตัวเอง
   -- 3) สำรับ/กองทิ้ง ต้องอ่านไม่ได้เลย
   select * from public.game_secrets;                                  -- ต้อง error: permission denied
 rollback;
@@ -39,6 +40,7 @@ begin;
   select set_config('request.jwt.claims', '{"sub":"<USER_A>","role":"authenticated"}', true);
   set local role authenticated;
   update public.player_private_states set hand = '[]'::jsonb;         -- ต้อง error: permission denied
+  update public.player_private_states set pending = '{}'::jsonb;      -- ต้อง error: permission denied (Sun options are private too)
 rollback;
 
 -- 5) client เรียกฟังก์ชัน commit ของเซิร์ฟเวอร์เองไม่ได้
