@@ -1,8 +1,9 @@
 # รัน (ต้องมี playwright + เปิด http server ที่โฟลเดอร์โปรเจกต์ พอร์ต 8765):  python3 tests/e2e.test.py
 # เล่นครบเกมใน Chromium ด้วยตรรกะเซิร์ฟเวอร์ตัวจริง + ฐานข้อมูลจำลอง + บอท 2 ตัว ทั้งโหมดแพ้ 1 คน และคัดออก
 from playwright.sync_api import sync_playwright
-import re, sys
-root='/home/claude/out/'
+import re, sys, shutil
+from pathlib import Path
+root=str(Path(__file__).resolve().parents[1])+'/'
 mock=open(root+'tests/e2e/mock-supabase.js',encoding='utf-8').read()
 libs=''.join(open(root+'online/'+f,encoding='utf-8').read()+'\n' for f in ['nn-engine.js','nn-server.js','nn-api-core.js'])
 def check(c,msg):
@@ -27,6 +28,53 @@ def scenario(b, mode):
     pg.click('[data-act="start"]'); pg.wait_for_timeout(1200)
     check(pg.is_visible('#nnT'),tag+'offline-style table (#nnT) visible after start')
     check(pg.locator('#nnHand .nnC').count()==3,tag+'my hand has 3 cards (.nnC like offline)')
+    if mode == 'one_loser':
+        check(pg.locator('[data-act="nfs"]').count()==1,tag+'fullscreen/landscape toggle is available')
+        # Fool: show a target button for every live player and submit the selected card ID.
+        pg.evaluate('window.__forceCardTurn(0)'); pg.wait_for_timeout(450)
+        pg.click('#nnHand .nnC[data-v="100000"]'); pg.wait_for_timeout(150)
+        check(pg.locator('#nnHand [data-act="ntarget"]').count()==3,tag+'Fool exposes all 3 live target choices')
+        target=2
+        pg.click('#nnHand [data-act="ntarget"][data-v="%d"]'%target); pg.wait_for_timeout(2200)
+        check(pg.evaluate('HRTAOnline.state.game.public_state.last.nx')==target,tag+'Fool target reaches server with correct player ID')
+        # Emperor: only opponents are selectable; chosen opponent becomes sealed.
+        pg.evaluate('window.__forceCardTurn(4)'); pg.wait_for_timeout(450)
+        pg.click('#nnHand .nnC[data-v="100040"]'); pg.wait_for_timeout(150)
+        check(pg.locator('#nnHand [data-act="ntarget"]').count()==2,tag+'Emperor exposes the 2 opponent choices')
+        target=1
+        pg.click('#nnHand [data-act="ntarget"][data-v="%d"]'%target); pg.wait_for_timeout(2200)
+        check(pg.evaluate('HRTAOnline.state.game.public_state.sealed[%d]'%target),tag+'Emperor seals the chosen opponent')
+        # Moon: select a non-current, non-next opponent so the live reveal remains visible.
+        pg.evaluate('window.__forceCardTurn(18)'); pg.wait_for_timeout(450)
+        pg.click('#nnHand .nnC[data-v="100180"]'); pg.wait_for_timeout(100)
+        check(pg.locator('#nnHand [data-act="ntarget"]').count()==2,tag+'Moon exposes opponent-only target choices')
+        target=2
+        pg.click('#nnHand [data-act="ntarget"][data-v="%d"]'%target); pg.wait_for_timeout(2200)
+        check(pg.evaluate('HRTAOnline.state.game.public_state.revealed')==target,tag+'Moon reveal reaches public state for selected opponent')
+        # Chariot: after landing, both continue-with-card and skip paths must be available.
+        pg.evaluate('window.__forceCardTurn(7)'); pg.wait_for_timeout(450)
+        pg.click('#nnHand .nnC[data-v="100070"]'); pg.wait_for_timeout(100)
+        pg.click('#nnHand [data-act="nopt"][data-card-id="100070"]'); pg.wait_for_timeout(2200)
+        check(pg.evaluate("HRTAOnline.state.game.public_state.pending.type")=='chariot',tag+'Chariot enters explicit pending-choice state')
+        check(pg.locator('#nnHand [data-act="nskip"]').count()==1,tag+'Chariot skip button is visible')
+        pg.click('#nnHand .nnC[data-v="100071"]'); pg.wait_for_timeout(100)
+        check(pg.locator('#nnHand [data-act="nopt"][data-card-id="100071"]').count()==1,tag+'Chariot second-card play option is visible')
+        pg.click('#nnHand [data-act="nopt"][data-card-id="100071"]'); pg.wait_for_timeout(2200)
+        check(pg.evaluate("HRTAOnline.state.game.public_state.pending===null && HRTAOnline.state.game.public_state.last.n===1"),tag+'Chariot second-card action resolves')
+        # Check skip path in a separate forced Chariot turn.
+        pg.evaluate('window.__forceCardTurn(7)'); pg.wait_for_timeout(450)
+        pg.click('#nnHand .nnC[data-v="100070"]'); pg.wait_for_timeout(100)
+        pg.click('#nnHand [data-act="nopt"][data-card-id="100070"]'); pg.wait_for_timeout(2200)
+        check(pg.locator('#nnHand [data-act="nskip"]').count()==1,tag+'Chariot skip stays available after a fresh first card')
+        pg.click('#nnHand [data-act="nskip"]'); pg.wait_for_timeout(1200)
+        check(pg.evaluate("HRTAOnline.state.game.public_state.pending===null"),tag+'Chariot skip resolves and clears pending state')
+        # Star: signed value selection is bound to the physical card ID.
+        pg.evaluate('window.__forceStarTurn(-17)'); pg.wait_for_timeout(450)
+        pg.click('#nnHand .nnC[data-v="17017"]'); pg.wait_for_timeout(120)
+        check(pg.locator('#nnHand [data-act="nvalue"]').count()==2,tag+'Star exposes both -17/+17 choices')
+        pg.click('#nnHand [data-act="nvalue"][data-v="-17"]'); pg.wait_for_timeout(1500)
+        check(pg.evaluate('HRTAOnline.state.game.public_state.last.n')==17,tag+'Star choice reaches online server')
+        check(pg.evaluate('HRTAOnline.state.game.public_state.total')==83,tag+'online Star -17 resolves to expected score')
     pub=pg.evaluate("JSON.stringify(HRTAOnline.state.game.public_state)")
     check(not re.search(r'"hands?"|"deck"|"disc"',pub),tag+'public state has no hands/deck')
     check(pg.evaluate("HRTAOnline.state.game.public_state.mode")==mode,tag+'game mode = '+mode)
@@ -59,7 +107,9 @@ def scenario(b, mode):
     ctx.close()
 
 with sync_playwright() as p:
-    b=p.chromium.launch()
+    system_chromium = shutil.which('chromium') or shutil.which('chromium-browser') or shutil.which('google-chrome')
+    launch = {'executable_path': system_chromium, 'args': ['--no-sandbox']} if system_chromium else {}
+    b=p.chromium.launch(**launch)
     scenario(b,'one_loser'); scenario(b,'elimination')
     b.close()
 sys.exit(1 if check.bad else 0)

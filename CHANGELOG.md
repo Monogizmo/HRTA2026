@@ -1,4 +1,30 @@
 # Changelog
+## v34 — Online target-choice & Chariot UI fixes (2026-11-04)
+- Bound Fool / Emperor / Moon target buttons and Empress interrupt to the exact selected card ID; target submissions no longer depend on the volatile selection state `M.sel`.
+- Added explicit target prompt labels for hand swap, Emperor seal, and Moon reveal.
+- In a two-player state, Fool / Emperor / Moon now show the sole opponent as an explicit automatic target instead of a generic `+0` / `+4` play button.
+- Chariot's skip action remains visible throughout its pending phase; it is disabled during animation/submission rather than disappearing. The second-card play options now carry their own card ID.
+- Added API regression coverage for 3-player target mapping, 2-player automatic targeting, and Chariot skip flow, plus UI contract tests and focused Playwright scenarios.
+- Service worker cache version bumped to `v34`. No schema or migration change; Edge Function logic is unchanged.
+
+## v33 — Online Star choice & landscape polish (2026-11-04)
+- Hardened the Star ±17 UI action: each choice carries the exact selected card ID, and a failed request restores the card selection so the player can retry.
+- Added API regression tests for both Star values through the authoritative online server/engine path.
+- Added regression coverage for same-turn deadline preservation across Chariot and Empress follow-up actions.
+- Emperor-sealed cards now show only a printed-value play action online; special prompts such as Star ±17 are suppressed while sealed.
+- Added the full-screen / landscape control to two-player online tables and responsive sizing for short landscape screens.
+- Preserved the current 60-second deadline through sub-actions and off-turn Empress interrupts; a new active player's turn gets a fresh deadline.
+- Updated the E2E mock to support private `{hand,pending}` state, Star choices, and pending bot actions. Browser E2E remains to be run on a local machine because this build environment blocks localhost navigation.
+
+## v32 — Online Star & landscape fixes (2026-11-04)
+- Hardened online Star choice submission by carrying the exact selected card ID in the ±17 action buttons; failed validation keeps the card selected for retry.
+- Added authoritative API regression cases for both Star values.
+- Fixed Emperor-sealed cards in online UI: all sealed cards now expose only their printed face value (including Star), with no target/effect choice.
+- Added full-screen / landscape toggle for 2-player games as well as 3–4 player games.
+- Added responsive landscape sizing for the online table.
+- Kept the same 60-second deadline through multi-action turns and off-turn Empress interrupts; a new player's turn receives a fresh deadline.
+- Updated E2E Supabase mock to store `{hand,pending}` private payloads and handle bot Star/target/Sun/Chariot actions.
+
 ## v31 — Phase 5: Tarot powers + Stateful Turn Engine
 - ปรับพลังไพ่ 22 ใบเป็นชุดเดียวกันทุกโหมด/ทุกจำนวนผู้เล่น 2–4 คน: Fool สลับมือหลังจั่ว, Magician เสก Devil, Priestess สลับหลักสิบ/หน่วยแล้ว +2, Empress แทรกเทิร์น, Emperor ผนึกพลัง, Chariot ลงเพิ่ม/ข้าม, Star ±17 และป้องกัน Heat 2 ตาตัวเอง, Moon เปิดมือ, Sun เลือก 1 จาก 3, World เท่ากับเพดานและไม่รับ Heat
 - Shared Engine v3: เพิ่ม pending phases สำหรับ Sun/Chariot, Devil ลงสองใบรวด, Empress off-turn + draw-only next normal turn, Emperor seal, Star protection, Moon live reveal, Fool post-draw swap; เพิ่ม AI decisions และ authoritative server actions `interrupt` / `choose` / `skip`

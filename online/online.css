@@ -70,3 +70,25 @@
 /* โหมดคัดออก: ที่นั่งคนตกรอบ */
 #onl .nnSeat.out{opacity:.4;filter:grayscale(1)}
 #onl .nnSeat .outTag{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font-style:normal;font-size:11px;font-weight:700;background:#b3412a;color:#fff;border-radius:99px;padding:1px 8px}
+
+/* ไพ่ที่เปิดโดย The Moon: ใช้ภาพหน้าไพ่แบบเต็มกรอบ */
+#onl .nnSeat .bk i.revealed{background-size:cover;background-position:center;background-repeat:no-repeat;border-color:#ffe8a3}
+
+
+/* Online game: landscape layout matches the offline table on short/wide screens. */
+@media (orientation:landscape) and (max-height:650px){
+  #onl{padding:4px max(8px,env(safe-area-inset-left,0px)) 4px max(8px,env(safe-area-inset-right,0px));overflow:hidden}
+  #onl .onlWrap.onlGame{display:flex;flex-direction:column;max-width:none;width:100%;height:calc(100dvh - 8px);margin:0;padding:0}
+  #onl .onlWrap.onlGame #onlGBody{flex:1;min-height:0;height:100%}
+  #onl .onlWrap.onlGame #onlGBody #nnT:not(.fs){width:100%;height:100%;aspect-ratio:auto;border-radius:12px}
+  #onl .onlWrap.onlGame #onlGFoot{flex:none;margin:0;padding:0 4px}
+  #onl .onlWrap.onlGame #onlGFoot .onlX.lv{margin:3px auto 0;padding:4px 10px;font-size:12px}
+}
+@media (orientation:landscape) and (max-height:650px) and (max-width:900px){
+  #onl .onlWrap.onlGame #nnT:not(.fs) .nnCtl{right:max(8px,env(safe-area-inset-right,0px));top:4px}
+}
+
+/* Clear, durable choice prompts for Tarot cards that need a target or a follow-up action. */
+#onl .nnChoiceTitle{font-size:12px;font-weight:800;line-height:1.35;color:var(--ink,#2E2A24);padding:2px 4px;text-align:center}
+#onl .nnChariotChoice{border-top:1px solid var(--line,#E8DFCC);padding-top:7px;margin-top:5px}
+#onl .nnAct button:disabled{opacity:.45;cursor:wait}

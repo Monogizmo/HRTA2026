@@ -8,23 +8,42 @@ for (const n of [3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1; se
   const rnd = prng(seed * 977 + n), mv = prng(seed * 31 + cap);
   const players = Array.from({ length: n }, (_, i) => ({ user_id: "u" + i, seat: i + 1, name: "P" + i, avatar: "" }));
   const S0 = SV.startGame(players, cap, rnd, "elimination");
-  let snap = { pub: S0.pub, secret: S0.secret, hands: S0.hands, uids: S0.uids };
+  let snap = { pub: S0.pub, secret: S0.secret, hands: S0.hands, private: S0.private, uids: S0.uids };
   let guard = 0, prevAlive = n;
   while (snap.pub.over < 0) {
     assert.ok(++guard < 6000, "no end");
     const pub = snap.pub, cur = pub.cur;
     assert.ok(pub.alive.includes(cur), "turn to eliminated");
+    if (pub.pending) {
+      const actor = pub.pending.p, uid = snap.uids[actor];
+      let result;
+      if (pub.pending.type === "sun") {
+        const options = snap.private[uid] && snap.private[uid].pending && snap.private[uid].pending.sunOptions || [];
+        result = SV.applyChoose(snap, uid, options.length ? Math.floor(mv() * options.length) : 0, rnd);
+      } else if (pub.pending.type === "chariot") result = SV.applySkip(snap, uid, rnd);
+      else throw new Error("unexpected pending " + pub.pending.type);
+      assert.ok(!result.error, result.error);
+      snap = Object.assign({}, snap, { pub: result.pub, secret: result.secret,
+        hands: Object.assign({}, snap.hands, result.hands), private: Object.assign({}, snap.private, result.private || {}) });
+      continue;
+    }
     const uid = snap.uids[cur], hand = snap.hands[uid];
     assert.ok(hand.length > 0, "current player has no cards");
     let cand = hand.slice();
     if (pub.force === cur) { const mx = Math.max(...cand.map(c => c.n)); cand = cand.filter(c => c.n === mx); }
     const c = cand[Math.floor(mv() * cand.length)];
-    const res = SV.applyPlay(snap, uid, c.id, rnd);
+    const choice = {};
+    if (c.n === 17) choice.value = mv() < 0.5 ? -17 : 17;
+    if (c.n === 0) choice.target = pub.alive[Math.floor(mv() * pub.alive.length)];
+    if (c.n === 4 || c.n === 18) { const ts = pub.alive.filter(x => x !== cur); choice.target = ts[Math.floor(mv() * ts.length)]; }
+    const res = SV.applyPlay(snap, uid, c.id, rnd, choice);
     assert.ok(!res.error, res.error);
-    snap = { pub: res.pub, secret: res.secret, hands: Object.assign({}, snap.hands, res.hands), uids: snap.uids };
+    snap = { pub: res.pub, secret: res.secret, hands: Object.assign({}, snap.hands, res.hands),
+      private: Object.assign({}, snap.private, res.private || {}), uids: snap.uids };
     const p = snap.pub;
     // ไพ่ต้นฉบับ 44 ใบ (id<900) ต้องครบไม่ซ้ำเสมอ รวมมือคนตกรอบที่ถูกย้ายลงกองทิ้ง
-    const all = [].concat(...snap.uids.map(u => snap.hands[u]), snap.secret.deck, snap.secret.disc);
+    const sunCards = Object.values(snap.private || {}).flatMap(x => x && x.pending && x.pending.sunOptions || []);
+    const all = [].concat(...snap.uids.map(u => snap.hands[u]), snap.secret.deck, snap.secret.disc, sunCards);
     const base = all.filter(x => x.id < 900).map(x => x.id).sort((a, b) => a - b);
     assert.strictEqual(base.length, 44); assert.strictEqual(new Set(base).size, 44);
     // ผู้เล่นที่ตกรอบ: ไม่มีไพ่ ไม่มีโล่ ไม่ถูกบังคับ
@@ -34,7 +53,7 @@ for (const n of [3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1; se
       assert.ok(p.alive.every(o => !p.out.includes(o)));
       assert.strictEqual(p.two, p.alive.length === 2);
       assert.strictEqual(p.handCounts.reduce((a, b) => a + b, 0), p.alive.reduce((a, o) => a + snap.hands[snap.uids[o]].length, 0));
-      if (p.alive.length < prevAlive) { elims++; assert.strictEqual(p.total, 0); assert.strictEqual(p.force, -1); assert.strictEqual(p.dbl, null); if (p.alive.length === 2) twoSwitch++; prevAlive = p.alive.length; }
+      if (p.alive.length < prevAlive) { elims++; assert.strictEqual(p.total, 0); assert.strictEqual(p.force, -1); assert.strictEqual(p.pending, null); if (p.alive.length === 2) twoSwitch++; prevAlive = p.alive.length; }
     }
   }
   const p = snap.pub;
