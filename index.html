@@ -3479,316 +3479,75 @@ var nnApi={};window.__nn=nnApi;
 (function(){
 var Q=function(q){return document.querySelector(q)};
 var RES=[0,9,11,12,13,16,17,18,20];
-function nnEngine(o,rnd){
-    function clone(x){return JSON.parse(JSON.stringify(x));}
-  rnd = rnd || Math.random;
-  var n = Number(o.n), cap = Number(o.cap);
-  var G = {
-    cap: cap, n: n, two: n === 2, hands: [], deck: [], disc: [], total: 0, prev: 0,
-    dir: 1, cur: 0, over: -1, turn: 0, heatAt: Math.round(cap / 6),
-    shield: [], force: -1, sealed: [], revealed: -1, revealedHand: {}, revealTurnsLeft: 0,
-    devil: [], skipDraw: [], starSafe: [], sunOptions: {}, pending: null,
-    phase: "await_play", turnState: { p: 0, kind: "normal", played: 0, need: 1, sunChosen: false, postDraw: [] }
-  };
-  G.heat = function () { return G.turn >= G.heatAt ? 1 + Math.floor((G.turn - G.heatAt) / 6) : 0; };
-  G.heatFor = function (p, cardN) {
-    if (cardN === 21) return 0;
-    if (G.starSafe[p] > 0 || cardN === 17) return 0;
-    return G.heat();
-  };
-  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  function ensureDeck(count) {
-    if (G.deck.length < count && G.disc.length) G.deck = shuffle(G.deck.concat(G.disc.splice(0)));
-  }
-  G.deal = function () {
-    var d = []; for (var k = 0; k < 2; k++) for (var c = 0; c < 22; c++) d.push({ n: c, id: k * 22 + c });
-    G.deck = shuffle(d); G.disc = []; G.hands = []; G.shield = []; G.sealed = []; G.skipDraw = []; G.starSafe = []; G.devil = [];
-    for (var p = 0; p < G.n; p++) { G.hands.push(G.deck.splice(0, 3)); G.shield.push(false); G.sealed.push(false); G.skipDraw.push(false); G.starSafe.push(0); G.devil.push(false); }
-    G.cur = 0; G.turn = 0; G.total = 0; G.prev = 0; G.dir = 1; G.over = -1; G.force = -1; G.revealed = -1; G.revealedHand = {}; G.revealTurnsLeft = 0; G.sunOptions = {}; G.pending = null; G.phase = "await_play";
-    G.turnState = { p: G.cur, kind: "normal", played: 0, need: 1, sunChosen: false, postDraw: [] };
-  };
-  G.draw = function (p) { ensureDeck(1); if (G.deck.length) G.hands[p].push(G.deck.shift()); };
-  G.drawMany = function (p, count) { for (var x = 0; x < count; x++) G.draw(p); };
-  G.drawThree = function (p) { ensureDeck(3); var out = []; for (var x = 0; x < 3 && G.deck.length; x++) out.push(G.deck.shift()); G.sunOptions[p] = out; return out; };
-  G.low = function (p) { var h = G.hands[p], m = 0; if (!h.length) return -1; h.forEach(function (c, i) { if (c.n < h[m].n) m = i; }); return m; };
-  G.dump = function (p) { var h = G.hands[p]; if (!h.length) return; var m = 0; h.forEach(function (c, i) { if (c.n > h[m].n) m = i; }); G.disc.push(h.splice(m, 1)[0]); G.draw(p); };
-  G.dumpLow = function (p) { var h = G.hands[p], m = G.low(p); if (m < 0) return; G.disc.push(h.splice(m, 1)[0]); G.draw(p); };
-  G.next = function (p) { return ((p + G.dir) % G.n + G.n) % G.n; };
-  G.legal = function (p) {
-    var h = G.hands[p], out = [], mx = -1; h.forEach(function (c) { if (c.n > mx) mx = c.n; });
-    h.forEach(function (c, i) { if (G.force !== p || c.n === mx) out.push(i); }); return out;
-  };
-  function swapHands(a, b) { var x = G.hands[a]; G.hands[a] = G.hands[b]; G.hands[b] = x; }
-  function addDevil(p) { if (p >= 0 && p < G.n) G.devil[p] = true; }
-  function validTarget(p, target, allowSelf) { return Number.isInteger(target) && target >= 0 && target < G.n && (allowSelf || target !== p); }
-  function scoreFor(c, choice, p, before, rollback) {
-    var n = c.n, set = null, v = n, fx = "";
-    switch (n) {
-      case 0: fx = "fool"; v = 0; break;
-      case 1: fx = "conj"; v = 1; break;
-      case 2: set = Math.floor(before / 100) * 100 + (before % 10) * 10 + Math.floor((before % 100) / 10) + 2; fx = "priestess"; break;
-      case 3: v = 3; fx = "empress"; break;
-      case 4: v = 4; fx = "emperor"; break;
-      case 5: v = 5; fx = "rob"; break;
-      case 6: v = 6; fx = "force"; break;
-      case 7: v = 7; fx = "chariot"; break;
-      case 8: set = before * 2; fx = "strength"; break;
-      case 9: v = 9; fx = "shield"; break;
-      case 10: v = Math.floor(rnd() * 41) - 15; fx = "wheel"; break;
-      case 11: set = Math.floor(before / 2); fx = "justice"; break;
-      case 12: set = Math.max(0, G.cap - before); fx = "hanged"; break;
-      case 13: set = Math.max(0, rollback); fx = "rebirth"; break;
-      case 14: set = Math.ceil((before + G.cap) / 2); fx = "temperance"; break;
-      case 15: v = 15; fx = "devil"; break;
-      case 16: set = 0; fx = "tower"; break;
-      case 17: v = choice && choice.value === -17 ? -17 : 17; fx = "star"; break;
-      case 18: v = 0; fx = "moon"; break;
-      case 19: v = 19; fx = "sun"; break;
-      case 20: v = 20; fx = "judgement"; break;
-      case 21: set = G.cap; fx = "world"; break;
-    }
-    return { set: set, v: v, fx: fx };
-  }
-  function optsText(n) {
-    var map = {
-      0: "+0 เลือกผู้เล่นแล้วสลับมือหลังจั่ว", 1: "+1 เปลี่ยนไพ่ต่ำสุดของคนถัดไปเป็น Devil 15",
-      2: "สลับหลักสิบ/หน่วย แล้ว +2", 3: "+3", 4: "+4 ผนึกพลังไพ่ของเป้าหมาย",
-      5: "+5 ริบไพ่ต่ำสุดของคนถัดไป", 6: "+6 บังคับคนถัดไปลงใบสูงสุด", 7: "+7 เลือกลงเพิ่มอีก 1 ใบหรือข้าม",
-      8: "คูณสอง", 9: "+9 รับโล่ 1 ชั้น", 10: "สุ่ม −15 ถึง +25", 11: "กองเหลือครึ่งเดียว ปัดลง",
-      12: "กองใหม่ = เพดาน − กองเดิม", 13: "ย้อนคะแนนก่อนหน้า 1 ใบ", 14: "ดันครึ่งทางสู่เพดาน ปัดขึ้น และย้อนทิศ",
-      15: "+15 คนถัดไปต้องลง 2 ใบติดกัน", 16: "ล้างกองเป็น 0", 17: "เลือก −17 หรือ +17",
-      18: "+0 เปิดมือผู้เล่นอื่น 2 ตา", 19: "+19 เลือก 1 จาก 3 ใบแทนการจั่วปกติ", 20: "+20 ทุกคนทิ้งไพ่สูงสุดแล้วจั่วใหม่", 21: "กองเท่ากับเพดานทันที"
-    };
-    return map[n] || ("+" + n);
-  }
-  G.opts = function (n) {
-    if (n === 17) return [{ t: "−17", v: -17 }, { t: "+17", v: 17 }];
-    return [{ t: optsText(n), v: n, fx: n === 7 ? "chariot" : undefined }];
-  };
-  function updateReveal() {
-    if (G.revealed >= 0) G.revealedHand[G.revealed] = clone(G.hands[G.revealed] || []);
-  }
-  function finishTurn() {
-    var ts = G.turnState, p = ts.p;
-    var draws = Math.max(0, ts.played - (ts.sunChosen ? 1 : 0));
-    G.drawMany(p, draws);
-    (ts.postDraw || []).forEach(function (fx) { if (fx.type === "swap") swapHands(p, fx.target); });
-    if (G.starSafe[p] > 0) G.starSafe[p] = Math.max(0, G.starSafe[p] - 1);
-    // The Moon lasts until the revealed player completes two of their own play turns.
-    // Count a whole turn once, not each card in Devil/Chariot, and do not count Empress skip-draw turns.
-    if (G.revealed === p && ts.played > 0) {
-      G.revealTurnsLeft = Math.max(0, Number(G.revealTurnsLeft || 0) - 1);
-      if (G.revealTurnsLeft === 0) { G.revealed = -1; G.revealedHand = {}; }
-    }
-    updateReveal();
-    var from = p, guard = 0, next = G.next(from);
-    G.pending = null; G.phase = "await_play";
-    while (guard++ < G.n * 3) {
-      G.cur = next;
-      if (G.devil[next]) {
-        G.devil[next] = false;
-        // A rare hand-size edge case (e.g. a prior Empress interruption) must not deadlock a forced Devil turn.
-        while (G.hands[next].length < 2 && (G.deck.length || G.disc.length)) G.draw(next);
-        G.turnState = { p: next, kind: "devil", played: 0, need: Math.min(2, G.hands[next].length), sunChosen: false, postDraw: [] };
-        if (G.turnState.need < 1) { G.draw(next); G.turnState.need = Math.min(1, G.hands[next].length); }
-        updateReveal(); return;
-      }
-      if (G.skipDraw[next]) {
-        G.skipDraw[next] = false; G.draw(next);
-        if (G.starSafe[next] > 0) G.starSafe[next] = Math.max(0, G.starSafe[next] - 1);
-        updateReveal(); from = next; next = G.next(from); continue;
-      }
-      G.turnState = { p: next, kind: "normal", played: 0, need: 1, sunChosen: false, postDraw: [] };
-      updateReveal(); return;
-    }
-    G.over = -2; G.phase = "game_over";
-  }
-  function applyEffect(p, c, fx, choice) {
-    var nx = G.next(p), target = choice && choice.target;
-    if (fx === "fool") G.turnState.postDraw.push({ type: "swap", target: target });
-    else if (fx === "conj") {
-      var h = G.hands[nx], m = G.low(nx);
-      if (m >= 0) { G.disc.push(h[m]); h[m] = { n: 15, id: 900 + G.turn }; }
-    } else if (fx === "emperor") G.sealed[target] = true;
-    else if (fx === "rob") G.dumpLow(nx);
-    else if (fx === "force") G.force = nx;
-    else if (fx === "shield") G.shield[p] = true;
-    else if (fx === "devil") addDevil(nx);
-    else if (fx === "temperance") G.dir = -G.dir;
-    else if (fx === "star") { if (G.turn - 1 >= G.heatAt) G.starSafe[p] = 2; }
-    else if (fx === "moon") { G.revealed = target; G.revealTurnsLeft = 2; G.revealedHand = {}; updateReveal(); }
-    else if (fx === "sun") {
-      var opts = G.drawThree(p); G.pending = { type: "sun", p: p }; G.phase = "await_sun";
-      return { pending: { type: "sun", p: p, count: opts.length }, sunOptions: opts };
-    } else if (fx === "judgement") {
-      for (var q = 0; q < G.n; q++) G.dump(q);
-    }
-    return null;
-  }
-  G.play = function (p, i, k, choice) {
-    choice = choice || {};
-    if (G.over >= 0 || G.phase === "game_over") return { error: "game_over" };
-    var isChariotSecond = G.pending && G.pending.type === "chariot";
-    if (G.pending && !isChariotSecond) return { error: "choice_pending" };
-    if (p !== G.cur || p !== G.turnState.p) return { error: "not_your_turn" };
-    if (!Number.isInteger(i) || i < 0 || i >= G.hands[p].length) return { error: "bad_card_index" };
-    var card = G.hands[p][i], sealed = !!G.sealed[p];
-    if (G.legal(p).indexOf(i) < 0) return { error: "illegal_card" };
-    var baseFx = sealed ? "sealed" : (card.n === 0 ? "fool" : card.n === 1 ? "conj" : card.n === 2 ? "priestess" : card.n === 3 ? "empress" : card.n === 4 ? "emperor" : card.n === 5 ? "rob" : card.n === 6 ? "force" : card.n === 7 ? "chariot" : card.n === 8 ? "strength" : card.n === 9 ? "shield" : card.n === 10 ? "wheel" : card.n === 11 ? "justice" : card.n === 12 ? "hanged" : card.n === 13 ? "rebirth" : card.n === 14 ? "temperance" : card.n === 15 ? "devil" : card.n === 16 ? "tower" : card.n === 17 ? "star" : card.n === 18 ? "moon" : card.n === 19 ? "sun" : card.n === 20 ? "judgement" : "world");
-    // Explicit choices are validated before mutating state.
-    var nx = G.next(p);
-    if (!sealed && card.n === 17 && ![-17, 17].includes(choice.value)) return { error: "choice_required", choice: "star" };
-    if (!sealed && (card.n === 0 || card.n === 4 || card.n === 18)) {
-      var selfOk = card.n === 0;
-      var target = choice.target;
-      if (card.n === 0 && G.n === 2) target = nx;
-      if ((card.n === 4 || card.n === 18) && G.n === 2) target = nx;
-      if (!validTarget(p, target, selfOk)) return { error: "choice_required", choice: card.n === 0 ? "fool_target" : card.n === 4 ? "emperor_target" : "moon_target" };
-      choice.target = target;
-    }
-    if (isChariotSecond) { G.pending = null; G.phase = "await_play"; G.turnState.need = 2; }
-    if (G.force === p) G.force = -1; // บังคับเฉพาะไพ่ใบแรกที่ลง
-    if (sealed) G.sealed[p] = false;
-    G.hands[p].splice(i, 1);
-    var before = G.total, rollback = G.prev, fx = sealed ? "sealed" : baseFx;
-    var score = sealed ? { set: null, v: card.n, fx: "sealed" } : scoreFor(card, choice, p, before, rollback);
-    var nextTotal = score.set != null ? score.set : Math.max(0, before + score.v);
-    var heat = G.heatFor(p, sealed ? -1 : card.n);
-    nextTotal = Math.max(0, nextTotal + heat);
-    // World always lands exactly on cap and ignores Heat; Star ignores Heat on its own card.
-    if (card.n === 21 && !sealed) nextTotal = G.cap;
-    var saved = false;
-    if (nextTotal > G.cap && G.shield[p]) { G.shield[p] = false; saved = true; nextTotal = Math.max(0, G.cap - 15); }
-    G.total = nextTotal; G.prev = before; G.turn++; G.disc.push(card);
-    G.turnState.played++;
-    var bust = nextTotal > G.cap;
-    var r = { p: p, c: card, o: { t: optsText(card.n) }, before: before, after: nextTotal, heat: heat, fx: fx,
-      nx: [0, 4, 18].indexOf(card.n) >= 0 && !sealed ? choice.target : nx, target: choice.target == null ? null : choice.target,
-      saved: saved, bust: bust, sealed: sealed, pending: null };
-    if (bust) { G.over = p; G.pending = null; G.phase = "game_over"; return r; }
-    if (!sealed) {
-      var pend = applyEffect(p, card, fx, choice);
-      if (pend) { r.pending = pend.pending; r.sunOptions = pend.sunOptions; }
-    }
-    // Moon exposes a live hand snapshot: keep it in sync with steals, mass discards,
-    // replacements, and other effects even during a multi-card / pending turn.
-    updateReveal();
-    if (card.n === 17 && !sealed && G.turn - 1 >= G.heatAt) G.starSafe[p] = Math.max(G.starSafe[p], 2);
-    if (r.pending) return r;
-    if (!isChariotSecond && card.n === 7 && G.turnState.kind === "normal" && G.turnState.played === 1) {
-      G.pending = { type: "chariot", p: p }; G.phase = "await_chariot"; r.pending = { type: "chariot", p: p };
-      return r;
-    }
-    if (G.turnState.played < G.turnState.need) return r; // Devil: must play second card without drawing.
-    finishTurn();
-    return r;
-  };
-  G.choose = function (p, choice) {
-    choice = choice || {};
-    if (!G.pending || G.pending.p !== p) return { error: "no_pending_choice" };
-    if (G.pending.type === "sun") {
-      var opts = G.sunOptions[p] || [], index = choice.index;
-      if (!Number.isInteger(index) || index < 0 || index >= opts.length) return { error: "bad_choice" };
-      var selected = opts.splice(index, 1)[0];
-      // Two unselected cards go to the bottom of the deck, in their reveal order.
-      opts.forEach(function (c) { G.deck.push(c); });
-      G.hands[p].push(selected); delete G.sunOptions[p];
-      G.turnState.sunChosen = true; G.pending = null; G.phase = "await_play";
-      if (G.turnState.played >= G.turnState.need) finishTurn();
-      return { ok: true, chosen: selected };
-    }
-    return { error: "bad_choice" };
-  };
-  G.skip = function (p) {
-    if (!G.pending || G.pending.type !== "chariot" || G.pending.p !== p) return { error: "no_pending_choice" };
-    G.pending = null; G.phase = "await_play"; finishTurn(); return { ok: true };
-  };
-  G.interrupt = function (p, i) {
-    if (G.phase !== "await_play" || G.pending || p === G.cur || G.over >= 0 || G.turnState.played > 0) return { error: "interrupt_closed" };
-    if (p < 0 || p >= G.n || G.skipDraw[p] || G.sealed[p]) return { error: "interrupt_unavailable" };
-    if (!Number.isInteger(i) || i < 0 || i >= G.hands[p].length || G.hands[p][i].n !== 3 || G.legal(p).indexOf(i) < 0) return { error: "not_empress" };
-    if (G.force === p) G.force = -1;
-    var card = G.hands[p].splice(i, 1)[0], before = G.total, heat = G.heatFor(p, 3), after = Math.max(0, before + 3 + heat), saved = false;
-    if (after > G.cap && G.shield[p]) { G.shield[p] = false; saved = true; after = Math.max(0, G.cap - 15); }
-    G.total = after; G.prev = before; G.turn++; G.disc.push(card);
-    var bust = after > G.cap;
-    if (!bust) G.skipDraw[p] = true; else { G.over = p; G.phase = "game_over"; }
-    updateReveal();
-    return { p: p, c: card, before: before, after: after, heat: heat, fx: "interrupt", nx: G.cur, saved: saved, bust: bust, interrupt: true };
-  };
-  G.canInterrupt = function (p) { return Number.isInteger(p) && p >= 0 && p < G.n && G.phase === "await_play" && !G.pending && G.turnState.played === 0 && p !== G.cur && !G.skipDraw[p] && !G.sealed[p] && G.hands[p].some(function (c, i) { return c.n === 3 && G.legal(p).indexOf(i) >= 0; }); };
-  function aiTarget(p, mode) {
-    var choices = [];
-    for (var q = 0; q < G.n; q++) if (q !== p) {
-      var h = G.hands[q] || [], sum = h.reduce(function (a, c) { return a + c.n; }, 0), hi = h.reduce(function (a, c) { return Math.max(a, c.n); }, 0);
-      choices.push({ p: q, score: mode === "fool" ? sum : mode === "emperor" ? hi * 3 + sum : G.next(p) === q ? 100 : sum });
-    }
-    choices.sort(function (a, b) { return b.score - a.score; });
-    return choices.length ? choices[0].p : p;
-  }
-  G.ai = function (p) {
-    var best = null, bs = -1e9, heat = G.heatFor(p, -1), legal = G.legal(p);
-    legal.forEach(function (i) {
-      var c = G.hands[p][i], variants = c.n === 17 ? [-17, 17] : [null];
-      variants.forEach(function (v) {
-        var before = G.total, base = c.n === 21 ? G.cap : c.n === 8 ? before * 2 : c.n === 11 ? Math.floor(before / 2) : c.n === 12 ? Math.max(0, G.cap - before) : c.n === 13 ? G.prev : c.n === 14 ? Math.ceil((before + G.cap) / 2) : c.n === 16 ? 0 : c.n === 17 ? Math.max(0, before + v) : Math.max(0, before + c.n);
-        var h = c.n === 21 || c.n === 17 || G.starSafe[p] > 0 ? 0 : G.heat(), t = Math.max(0, base + h), s;
-        if (t > G.cap) s = G.shield[p] ? G.cap - 45 : -1000 - (t - G.cap) * 5;
-        else { s = t + rnd() * 8; if (RES.indexOf(c.n) >= 0 && t < G.cap - 25) s -= 12; if (c.n === 21) s += 3; if (c.n === 17 && v === -17) s += 5; }
-        if (s > bs) {
-          bs = s; var choice = {};
-          if (c.n === 17) choice.value = v;
-          if (c.n === 0) choice.target = G.n === 2 ? G.next(p) : aiTarget(p, "fool");
-          if (c.n === 4) choice.target = aiTarget(p, "emperor");
-          if (c.n === 18) choice.target = G.next(p);
-          best = { i: i, k: 0, choice: choice };
-        }
-      });
-    });
-    return best || { i: 0, k: 0, choice: {} };
-  };
-  G.aiChooseSun = function (p) {
-    var a = G.sunOptions[p] || []; if (!a.length) return 0;
-    var best = 0, score = -1e9, t = G.total, capLeft = G.cap - t;
-    a.forEach(function (c, i) {
-      var v = c.n, s = 0;
-      if (c.n === 16) s = t > 35 ? 35 : 9;
-      else if (c.n === 13) s = G.prev < t ? 28 : 2;
-      else if (c.n === 11) s = t > 55 ? 30 : 8;
-      else if (c.n === 12) s = capLeft < 50 ? 27 : 5;
-      else if (c.n === 21) s = capLeft <= 25 ? 32 : 12;
-      else if (c.n === 9) s = capLeft <= 35 ? 24 : 10;
-      else if (c.n === 17) s = G.heat() ? 22 : 8;
-      else if (c.n === 8) s = t < capLeft ? t / 4 : -5;
-      else if (c.n === 14) s = capLeft < 45 ? 18 : 5;
-      else s = Math.max(0, 16 - v) - (v + G.heat() > capLeft ? 18 : 0);
-      s += rnd() * 1.5; if (s > score) { score = s; best = i; }
-    });
-    return best;
-  };
-  G.aiChariot = function (p) {
-    var a = G.ai(p), c = G.hands[p][a.i]; if (!c) return { skip: true };
-    var before = G.total, base;
-    if (c.n === 8) base = before * 2;
-    else if (c.n === 11) base = Math.floor(before / 2);
-    else if (c.n === 12) base = Math.max(0, G.cap - before);
-    else if (c.n === 13) base = G.prev;
-    else if (c.n === 14) base = Math.ceil((before + G.cap) / 2);
-    else if (c.n === 16) base = 0;
-    else if (c.n === 21) base = G.cap;
-    else if (c.n === 17) base = Math.max(0, before + a.choice.value);
-    else if (c.n === 10) base = Math.max(0, before + 5);
-    else base = Math.max(0, before + c.n);
-    var heat = G.heatFor(p, c.n), total = c.n === 21 ? G.cap : Math.max(0, base + heat);
-    if (total > G.cap && !G.shield[p]) return { skip: true };
-    return a;
-  };
-  return G;
-}
+function nnEngine(o,rnd){rnd=rnd||Math.random;
+ var G={cap:o.cap,n:o.n,two:o.n===2,hands:[],deck:[],disc:[],total:0,prev:0,dir:1,cur:0,over:-1,turn:0,band:9,shield:[],dbl:null,force:-1,heatAt:Math.round(o.cap/6)};
+ G.heat=function(){return G.turn>=G.heatAt?1+Math.floor((G.turn-G.heatAt)/6):0};
+ var shuf=function(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
+ var scr=function(t){return Math.floor(t/100)*100+(t%10)*10+Math.floor((t%100)/10)};
+ G.deal=function(){var d=[];for(var k=0;k<2;k++)for(var n=0;n<22;n++)d.push({n:n,id:k*22+n});G.deck=shuf(d);G.disc=[];G.hands=[];G.shield=[];for(var p=0;p<G.n;p++){G.hands.push(G.deck.splice(0,3));G.shield.push(false)}};
+ G.draw=function(p){if(!G.deck.length)G.deck=shuf(G.disc.splice(0));if(G.deck.length)G.hands[p].push(G.deck.shift())};
+ G.low=function(p){var h=G.hands[p],m=0;h.forEach(function(c,i){if(c.n<h[m].n)m=i});return m};
+ G.dump=function(p){var h=G.hands[p];if(!h.length)return;var m=0;h.forEach(function(c,i){if(c.n>h[m].n)m=i});G.disc.push(h.splice(m,1)[0]);G.draw(p)};
+ G.dumpLow=function(p){var h=G.hands[p];if(!h.length)return;G.disc.push(h.splice(G.low(p),1)[0]);G.draw(p)};
+ G.next=function(p){return((p+G.dir)%G.n+G.n)%G.n};
+ G.legal=function(p){var h=G.hands[p],ix=[],mx=-1;h.forEach(function(c){if(c.n>mx)mx=c.n});h.forEach(function(c,i){if(G.force!==p||c.n===mx)ix.push(i)});return ix};
+ /* พลังไพ่ (2 คน กับ 3-4 คน ต่างกันที่ 0, 3, 4, 7, 21) */
+ G.opts=function(n){var two=G.two,c=G.cap,t=G.total,hf=t+Math.floor((c-t)/2);switch(n){
+  case 0:return[{t:two?"+0 รีเซ็ตมือ":"+0 รีเซ็ตทิศ",v:0,fx:"fool"}];
+  case 1:return[{t:"+1 เสกไพ่ปีศาจ",v:1,fx:"conj"}];
+  case 2:return[{t:"ปั่นเลข → "+scr(t),set:scr(t)}];
+  case 3:return[two?{t:"+3",v:3}:{t:"+3 ข้ามคน",v:3,fx:"skip"}];
+  case 4:return[two?{t:"+4",v:4}:{t:"+0 ย้อนทิศ",v:0,fx:"rev"}];
+  case 5:return[{t:"+5 ริบไพ่ต่ำสุด",v:5,fx:"rob"}];
+  case 6:return[{t:"+6 บังคับใบสูงสุด",v:6,fx:"force"}];
+  case 7:return[two?{t:"+7",v:7}:{t:"+7 ย้อนทิศ",v:7,fx:"rev"}];
+  case 8:return[{t:"คูณสอง → "+t*2,set:t*2}];
+  case 9:return[{t:"+9 รับโล่",v:9,fx:"shield"}];
+  case 10:return[{t:"ปั่นวงล้อ −15…+25",v:0,fx:"wheel"}];
+  case 11:return[{t:"เฉือนครึ่ง → "+Math.floor(t/2),set:Math.floor(t/2)}];
+  case 12:return[{t:"กลับกอง → "+Math.max(0,c-t),set:Math.max(0,c-t)}];
+  case 13:return[{t:"ย้อนเวลา → "+G.prev,set:G.prev}];
+  case 14:return[{t:"ดันครึ่งทาง → "+hf,set:hf}];
+  case 15:return[{t:"+15 คนต่อไปลง 2",v:15,fx:"devil"}];
+  case 16:return[{t:"ล้างกอง → 0",set:0}];
+  case 17:return[{t:"−10",v:-10}];
+  case 18:return[{t:"+0 สลับมือ",v:0,fx:"swap"}];
+  case 19:return[{t:"+19 ลงซ้ำ",v:19,fx:"again"}];
+  case 20:return[{t:"+20 ทุกคนล้างไพ่",v:20,fx:"all"}];
+  case 21:return[{t:"ดันเป็น "+(two?c-10:c),set:two?c-10:c}];
+  default:return[{t:"+"+n,v:n}]}};
+ G.play=function(p,i,k){if(G.force===p)G.force=-1;
+  var c=G.hands[p].splice(i,1)[0],o=G.opts(c.n)[k],b=G.total,fx=o.fx||"",saved=false,nx=G.next(p);
+  var t=o.set!=null?o.set:Math.max(0,b+o.v);if(fx==="wheel")t=Math.max(0,b+Math.floor(rnd()*41)-15);
+  var hh=G.heat();t+=hh;
+  if(t>G.cap&&G.shield[p]){G.shield[p]=false;saved=true;t=Math.max(0,G.cap-15)}
+  G.total=t;G.prev=b;G.disc.push(c);G.turn++;
+  var r={heat:hh,p:p,c:c,o:o,before:b,after:t,fx:fx,nx:nx,saved:saved,bust:t>G.cap};
+  if(r.bust){G.over=p;return r}
+  var nd=1;
+  if(fx==="rev")G.dir=-G.dir;
+  if(fx==="shield")G.shield[p]=true;
+  if(fx==="fool"){if(G.two){G.disc.push.apply(G.disc,G.hands[p].splice(0));nd=3}else G.dir=1}
+  if(fx==="all")for(var q=0;q<G.n;q++)G.dump(q);
+  if(fx==="rob")G.dumpLow(nx);
+  if(fx==="force")G.force=nx;
+  if(fx==="conj"){var h2=G.hands[nx],m=G.low(nx);G.disc.push(h2[m]);h2[m]={n:15,id:900+G.turn}}
+  for(var j=0;j<nd;j++)G.draw(p);
+  if(fx==="swap"){var tmp=G.hands[p];G.hands[p]=G.hands[nx];G.hands[nx]=tmp}
+  if(fx==="devil")G.dbl={p:nx,left:2};
+  var st=fx==="skip"?2:fx==="again"?0:1;
+  if(G.dbl&&G.dbl.p===p&&fx!=="devil"){G.dbl.left--;if(G.dbl.left>0)st=0;else G.dbl=null}
+  G.cur=((G.cur+G.dir*st)%G.n+G.n)%G.n;return r};
+ G.ai=function(p){var best=null,bs=-1e9,hh=G.heat();
+  G.legal(p).forEach(function(i){var c=G.hands[p][i];G.opts(c.n).forEach(function(o,k){var w=o.fx==="wheel",t=(o.set!=null?o.set:w?G.total+5:Math.max(0,G.total+o.v))+hh,s;
+   if(t>G.cap){s=G.shield[p]?G.cap-15-30+rnd()*4:-1000-(t-G.cap)}
+   else{s=t+rnd()*7;if(RES.indexOf(c.n)>=0&&t<G.cap-25)s-=16;if(c.n===21)s+=4;if(w&&G.total+25+hh>G.cap)s-=40}
+   if(s>bs){bs=s;best={i:i,k:k}}})});return best};
+ return G}
 nnApi.engine=nnEngine;
 var S=ST.nn;S.day=S.day||"";S.n=(S.n&&typeof S.n==="object")?S.n:{f:0,d:0};
 var PF=Object.assign({mode:"clone",n:3,cap:120,spd:"norm",names:["ผู้เล่น 1","ผู้เล่น 2","ผู้เล่น 3","ผู้เล่น 4"]},S.pref||{});
-var B=Q("#nnB"),G=null,st="setup",sel=-1,reveal=false,busy=false,thinking=-1,say0="",tk=0,TH={},names=[],lastR=null,PL=[],intQueue=[],intPrompt=-1,intCheckedState=null;
+var B=Q("#nnB"),G=null,st="setup",sel=-1,reveal=false,busy=false,thinking=-1,say0="",tk=0,TH={},names=[],lastR=null,PL=[];
 var CH=[{n:"เบสท์ AI",k:"เบสท์"},{n:"จ๊ะเอ๋ AI",k:"จ๊ะเอ๋"},{n:"เบียร์ AI",k:"เบียร์"}],sayK="เบสท์";
 function photoFor(n){n=String(n||"").trim();var k=n.replace(/^(พี่|น้อง)/,"").replace(/\s*AI$/,"");try{return PHOTOS[n]||PHOTOS[k]||""}catch(e){return""}}
 function sp(p){if(PF.mode==="clone"&&p>0)return p===1?"น้องเบสท์":"พี่"+CH[p-1].k;return callName(names[p])}
@@ -3811,53 +3570,35 @@ var T={
 /* สคริปต์พี่จ๊ะเอ๋ (ผู้อาวุโส ไม่เรียกใครว่าพี่) และเบียร์ (ไม่เรียกชื่อใคร) */
 var SC={"จ๊ะเอ๋":{play:["เอ้า ลงใบนี้ก็แล้วกัน","เดินหมากแบบผู้ใหญ่ ใจเย็น ๆ","เก๋าเกมแล้ว ไม่ตื่นเต้นหรอก","ตานี้ไม่มีอะไรหรอก แค่ลงไพ่","อายุเยอะ ไพ่ในมือก็ต้องเยอะหน่อยนะ"],big:["เอ้า {y} เตรียมใจไว้นะ ใบนี้ไม่ธรรมดา","ผู้ใหญ่ใจดีนะ แต่ไพ่ใบนี้ไม่ใจดีด้วย","ขอโทษที ใบนี้แรงไปหน่อย"],save:["รอดไปอีกตา ประสบการณ์ล้วน ๆ","ลดลงหน่อย ไม่ต้องรีบจบ","เดินช้า ๆ ก็ถึงเหมือนกันแหละ"],near:["ใกล้เพดานแล้ว หายใจลึก ๆ นะ","เหลือน้อยแล้ว ใครมือสั่นก็ถือไพ่ให้ดี ๆ","สมัยก่อนเล่นแบบนี้ ใจเย็นกว่านี้อีก"],self:["โอเค… ไม่เป็นไร ผู้ใหญ่ก็พลาดได้","เอาล่ะ แพ้ก็แพ้ ไปหาอะไรกินกัน","พลาดแล้วนะ วันนี้สายตาไม่ดีเอง"],win:["เห็นไหม บอกแล้วว่าให้ใจเย็น ๆ","เกมนี้สอนให้รู้จักพอ","ประสบการณ์บอกว่าต้องจบแบบนี้แหละ"]},
 "เบียร์":{play:["ลงใบนี้ครับ ลุ้น ๆ","ผมไม่เก่งหรอกครับ แค่โชคดี","เล่นเอาสนุกครับ","จังหวะนี้ ผมขอเสี่ยงหน่อยครับ","ผมเคยชนะเกมนี้… ครั้งนึงครับ"],big:["ใบนี้แรงครับ คนต่อไปเตรียมตัวนะครับ 😈","ขอโทษที่ต้องแกล้งครับ ผมไม่ได้ตั้งใจ (นิดเดียว)","รับไปเลยครับ 💥"],save:["รอดแล้วครับ หัวใจเกือบหยุด","ลดหน่อยครับ ผมยังไม่อยากแพ้","โอ้ ช่วยชีวิตผมไว้ได้พอดี"],near:["ใกล้เพดานแล้วครับ มือผมเริ่มสั่น","เหลือนิดเดียวครับ ใครถือไพ่ใหญ่ ขอให้โชคดีครับ","ลุ้นหนักมากครับตอนนี้"],self:["โอ๊ย ผมเองครับที่ทำเกิน 😭","แพ้แล้วครับ ผู้สร้างเกมแพ้เองซะงั้น","เอาเถอะครับ เกมนี้ผมสร้างเอง ผมแพ้เองก็ได้"],win:["รอดครับ! ผมรอดแล้ว","เกมนี้ผมสร้างเอง แต่ไม่ได้โกงนะครับ","โล่งอกครับ ไม่ใช่ผม"]}};
-var LN={
- 0:["The Fool ไม่เพิ่มคะแนน แต่เลือกคนหนึ่งแล้วสลับมือหลังจั่วคืนค่ะ 🃏","ไพ่ใบนี้ไม่ได้เปลี่ยนกอง แต่เปลี่ยนชะตาในมือได้ค่ะ"],
- 1:["The Magician เปลี่ยนไพ่ต่ำสุดของคนถัดไปเป็น Devil 15 ค่ะ 🎩"],
- 2:["The High Priestess สลับหลักสิบกับหลักหน่วยก่อนบวก 2 ค่ะ 🔮"],
- 3:["The Empress เพิ่ม 3 แต้ม หรือแทรกเทิร์นได้เมื่อถึงจังหวะค่ะ 👑"],
- 4:["The Emperor ผนึกพลังของไพ่ใบถัดไปของผู้เล่นที่เลือกค่ะ 🔒"],
- 5:["The Hierophant ริบไพ่เลขต่ำสุดของคนถัดไป แล้วให้จั่วทดแทนค่ะ 📜"],
- 6:["The Lovers บังคับคนถัดไปลงไพ่เลขสูงสุดค่ะ 💞"],
- 7:["The Chariot เปิดโอกาสให้ลงไพ่ใบที่สอง หรือเลือกข้ามค่ะ 🛞"],
- 9:["The Hermit มอบโล่ 1 ชั้น ถ้าเกินเพดานครั้งหน้า กองจะเหลือเพดาน −15 ค่ะ 🛡️"],
- 10:["วงล้อหมุนสุ่มคะแนนตั้งแต่ −15 ถึง +25 ค่ะ 🎡"],
- 11:["Justice เฉือนคะแนนกองกลางเหลือครึ่งเดียว ปัดลงค่ะ ⚖️"],
- 12:["The Hanged Man พลิกกองเป็นเพดานลบคะแนนเดิมค่ะ 🙃"],
- 13:["Rebirth ย้อนเฉพาะคะแนนกลับไปก่อนหน้าไพ่ใบล่าสุดค่ะ ⏪"],
- 14:["Temperance ดันกองไปครึ่งทางสู่เพดาน ปัดขึ้น พร้อมย้อนทิศค่ะ 🧪"],
- 15:["The Devil บังคับคนถัดไปลงสองใบติดกัน ห้ามจั่วคั่นค่ะ 😈"],
- 16:["The Tower ล้างกองกลับเป็นศูนย์ค่ะ ⚡"],
- 17:["The Star เลือก −17 หรือ +17 และอาจป้องกัน Heat สองตาของตัวเองค่ะ ✨"],
- 18:["The Moon เปิดเผยไพ่จริงในมือของผู้เล่นที่เลือก จนกว่าเขาจะลงไพ่ครบ 2 ตาของตัวเองค่ะ 🌙"],
- 19:["The Sun ให้เลือกไพ่หนึ่งใบจากสามใบมาแทนการจั่วปกติค่ะ ☀️"],
- 20:["Judgement ให้ทุกคนทิ้งไพ่เลขสูงสุด แล้วจั่วใหม่ค่ะ 📯"],
- 21:["The World ทำให้กองเท่ากับเพดานทันที โดยไม่รับ Heat ค่ะ 🌍"]};
-function desc(n,two0,cap0){var c=cap0!=null?cap0:PF.cap;return[
-"+0 · เลือกผู้เล่นที่ยังอยู่ในเกม แล้วสลับมือทั้งหมดหลังจั่วคืน (2 คนเลือกคู่แข่งอัตโนมัติ)",
-"+1 · เปลี่ยนไพ่เลขต่ำสุดของคนถัดไปเป็นไพ่ Devil 15 พร้อมพลัง 15",
-"สลับหลักสิบกับหลักหน่วยของกองก่อน แล้ว +2 เช่น 47 → 76 · 120 → 104",
-"+3 · ถ้าลงในตาตัวเองเป็นการลงปกติ ถ้าลงแทรกจะไม่เสียตาของคนที่กำลังเล่น และตาปกติถัดไปของผู้แทรกจะจั่วอย่างเดียว",
-"+4 · เลือกผู้เล่น 1 คน ไพ่ใบถัดไปของเขาจะถูกผนึกและใช้ได้เฉพาะเลขหน้าไพ่ (2 คนเลือกคู่แข่งอัตโนมัติ)",
+var LN={0:["The Fool! ไม่เพิ่มแต้ม แถมรีเซ็ตด้วยค่ะ 🃏","คนโง่ไม่มีอะไรจะเสีย แต้มเลยไม่ขยับค่ะ"],1:["Magician เสกได้ทั้ง +1 และ +11 เลยค่ะ 🎩"],2:["นักบวชหญิงปัดเป่าไพ่ร้ายออกจากมือค่ะ 🔮"],3:["Empress สั่งข้ามคนถัดไปค่ะ 👑"],4:["Emperor ประกาศ เปลี่ยนทิศการเล่นค่ะ 🔄"],7:["Chariot ซิ่งย้อนทิศค่ะ! 🛞"],9:["The Hermit! ได้โล่กันซวย 1 ชั้นค่ะ 🛡️ ระวังถูกอิจฉานะคะ"],10:["วงล้อหมุนไปทางไหนขึ้นกับคนลงค่ะ 🎡"],
+ 11:["ตาชั่งเฉือนกองเหลือครึ่งเดียว! ⚖️ คนที่ถือไพ่ใหญ่ถอนหายใจเฮือก","Justice! ตัดกองทิ้งครึ่งหนึ่ง ความยุติธรรมมาแล้วค่ะ"],12:["กลับหัวกลับหาง! 🙃 คนเคยปลอดภัยอาจกลายเป็นอันตรายแทน","The Hanged Man พลิกกองกลับด้าน โลกทั้งใบหมุนกลับหัวค่ะ!"],
+ 13:["Death! ย้อนเวลากลับไปก่อนเกิดเรื่องค่ะ ⏪💀","ความตายไม่ได้น่ากลัวเสมอไป บางทีมันคือปุ่มรีเซ็ตค่ะ"],14:["Temperance ถ้ากลัวก็ลบ ถ้ากล้าก็บวกค่ะ 🧪"],
+ 15:["ปีศาจกวนตีน! 😈 คนถัดไปต้องลงสองใบติดกัน ขอให้โชคดีค่ะ","The Devil ปล่อยของ! ไพ่สองใบรวด คนต่อไปมือสั่นแน่ ๆ"],
+ 16:["The Tower! ฟ้าผ่ากองกลางจนเหลือ 0 ทุกคนถอนหายใจ ⚡","หอคอยถล่ม! ล้างความตึงเครียดกลับไปเริ่มใหม่ค่ะ"],17:["The Star ไพ่ประจำตัวน้องเบสท์เอง! ✨ ขอบคุณที่ลงมาช่วยลดกองค่ะ"],
+ 18:["The Moon! สลับไพ่ในมือกับคนถัดไป ไพ่ดีไพ่ร้ายเปลี่ยนมือหมดค่ะ 🌙"],19:["The Sun! แสงสว่างให้ลงไพ่ซ้ำอีกใบค่ะ ☀️"],20:["Judgement! วันพิพากษา ทุกคนทิ้งไพ่ใบใหญ่สุดแล้วจั่วใหม่ค่ะ 📯"],21:["The World! ดันกองไปที่เพดานทันที ใครเป็นคนต่อไปเตรียมใจ 🌍"]};
+function desc(n,two0,cap0){var two=two0!=null?two0:PF.n===2,c=cap0!=null?cap0:PF.cap;return[
+two?"ไม่เพิ่มแต้ม · รีเซ็ตมือ: ทิ้งไพ่ทั้งมือ จั่วใหม่ 3 ใบ":"ไม่เพิ่มแต้ม · รีเซ็ตทิศกลับเป็นปกติ",
+"+1 · เสกไพ่ปีศาจ (15) แทนใบต่ำสุดของคนถัดไป",
+"สลับหลักสิบกับหลักหน่วยของกอง เช่น 47 → 74",
+two?"+3 (3-4 คน: ข้ามคนถัดไปด้วย)":"+3 · ข้ามคนถัดไป",
+two?"+4 (3-4 คน: +0 และย้อนทิศ)":"+0 · ย้อนทิศ",
 "+5 · ริบไพ่เลขต่ำสุดของคนถัดไป ให้จั่วใหม่",
-"+6 · บังคับคนถัดไปให้ลงไพ่เลขสูงสุดในมือ",
-"+7 · ลงเพิ่มได้อีก 1 ใบติดกัน หรือเลือกข้าม แล้วจั่วคืนตามจำนวนที่ลง (สูงสุด 2 ใบต่อเทิร์น)",
-"คูณสอง · คะแนนกองกลางเพิ่มเป็น 2 เท่า",
-"+9 · ได้โล่ 1 ชั้น ถ้าการลงครั้งถัดไปทำให้เกินเพดาน กองจะเหลือ " + (c-15) + " แล้วโล่แตก",
-"สุ่ม −15 ถึง +25 · คะแนนต่ำสุดไม่ต่ำกว่า 0",
+"+6 · คนถัดไปต้องลงใบเลขสูงสุด",
+two?"+7 (3-4 คน: ย้อนทิศด้วย)":"+7 · ย้อนทิศ",
+"คูณสอง: กองเพิ่มเป็น 2 เท่า",
+"+9 · ได้โล่ 1 ชั้น: ถ้าลงแล้วกองเกิน กองถูกกดเหลือ "+(c-15)+" แล้วโล่แตก",
+"กองเปลี่ยนแบบสุ่ม −15 ถึง +25",
 "กองเหลือครึ่งเดียว (ปัดลง)",
 "กองใหม่ = เพดาน − กองเดิม",
-"ย้อนคะแนนกลับเป็นค่าก่อนหน้าไพ่ใบล่าสุด · ไม่ย้อนมือหรือสถานะอื่น",
-"ดันกองไปครึ่งทางสู่เพดาน (ปัดขึ้น) และย้อนทิศ",
-"+15 · คนถัดไปต้องลง 2 ใบติดกัน ห้ามจั่วคั่น แล้วจั่วคืน 2 ใบ",
+"กองกลับเป็นค่าก่อนไพ่ใบล่าสุด",
+"กองใหม่ = กอง + ครึ่งหนึ่งของที่เหลือถึงเพดาน",
+"+15 · คนถัดไปต้องลง 2 ใบติด",
 "ล้างกองเป็น 0",
-"เลือก −17 หรือ +17 · ถ้าลงในช่วงไฟลามทุ่ง จะไม่รับ Heat ในไพ่ใบนี้และอีก 1 ตาปกติถัดไปของตัวเอง",
-"+0 · เลือกผู้เล่นคนอื่น 1 คน เปิดไพ่จริงในมือให้ทุกคนเห็นจนกว่าเขาจะลงไพ่ครบ 2 ตาของตัวเอง (2 คนเลือกคู่แข่งอัตโนมัติ)",
-"+19 · เปิดไพ่ 3 ใบ เลือกเก็บ 1 ใบแทนการจั่วปกติ อีก 2 ใบวางใต้กองจั่ว",
-"+20 · ทุกคนทิ้งไพ่เลขสูงสุด 1 ใบ แล้วจั่วใหม่",
-"กอง = เพดานทันที · ไม่รับ Heat"
-][n]}
-
+"ลบ 10",
+"+0 · สลับมือกับคนถัดไป",
+"+19 · ลงซ้ำอีกใบ",
+"+20 · ทุกคนทิ้งใบเลขสูงสุด จั่วใหม่",
+two?"กองเป็นเพดาน −10 (3-4 คน: เพดานเต็ม)":"กองเป็นเพดานทันที"][n]}
 function cn(n){var c=window.fzCards?window.fzCards()[n]:null;return c?c.n:"เลข "+n}
 function loadThumbs(){var src=window.fzCards?window.fzCards():[];return Promise.all(src.map(function(c,i){return new Promise(function(res){if(TH[i]||!c.img){res();return}var im=new Image();im.onload=function(){try{var w=170,h=Math.round(w*im.naturalHeight/im.naturalWidth),cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(im,0,0,w,h);TH[i]=cv.toDataURL("image/jpeg",.8)}catch(e){TH[i]=c.img}res()};im.onerror=res;im.src=c.img})}))}
 function nsfx(k){var c=ga();if(!c||!vis("#gNn"))return;var t=c.currentTime+.01;
@@ -3873,13 +3614,13 @@ function cleanN(s,d){s=String(s||"").replace(/\s+/g," ").trim().slice(0,12);retu
 function save2(){S.pref=PF;save()}
 function seg(a,vals,cur){return'<div class="nnO">'+vals.map(function(v){return'<button type="button" data-a="'+a+'" data-v="'+v[0]+'" class="'+(String(cur)===String(v[0])?"on":"")+'">'+v[1]+'</button>'}).join("")+'</div>'}
 function rulesRows(){var h="";for(var n=0;n<22;n++)h+='<div class="nnRw">'+(TH[n]?'<img alt="" src="'+TH[n]+'">':"")+'<b>'+n+'</b><div><u>'+esc(cn(n))+'</u><br>'+esc(desc(n))+'</div></div>';return h}
-function rulesHead(){return'<p class="nnD">แจกคนละ 3 ใบ ลงไพ่แล้วคำนวณคะแนนและ Heat ก่อนตรวจแพ้ จากนั้นใช้พลังและจั่วคืน · กองเกิน <b>'+PF.cap+'</b> แพ้ทันที (ยกเว้นโล่ Hermit) · ลงหลายใบได้สูงสุด 2 ใบต่อเทิร์น · กติกาและพลังไพ่เหมือนกันทั้ง 2–4 คน</p>'}
+function rulesHead(){return'<p class="nnD">แจกคนละ 3 ใบ ผลัดกันลง 1 ใบแล้วจั่ว 1 ใบ แต้มเท่าเลขบนไพ่ บวกเข้ากองกลาง ใครทำให้กองเกิน <b>'+PF.cap+'</b> แพ้ · พลังไพ่ด้านล่างเป็นของโหมด '+PF.n+' คน</p>'}
 /* ---------- หน้าตั้งค่า ---------- */
 function setupUI(){var fr=PF.mode==="friend",ins="";
  for(var i=0;i<(fr?PF.n:1);i++)ins+='<input class="nnIn" data-i="'+i+'" maxlength="12" value="'+esc(PF.names[i])+'" aria-label="ชื่อผู้เล่น '+(i+1)+'">';
  B.innerHTML='<h3>🎯 เกมเลขเพดาน</h3><p class="nnD">ผลัดกันลงไพ่ทาโรต์บวกเลขเข้ากองกลาง ใครทำให้เกินเพดานแพ้!</p>'+
  '<div class="lb">① เล่นกับใคร</div>'+seg("mode",[["clone","🤖 น้องเบสท์ + ทีมงาน"],["friend","👫 เพื่อน (ส่งเครื่องกัน)"]],PF.mode)+'<p class="nnD">'+(fr?"ส่งมือถือต่อกัน มีหน้าจอบังไพ่ก่อนถึงตาแต่ละคน":"2 คน: คุณ vs เบสท์ AI · 3 คน: เพิ่มจ๊ะเอ๋ AI · 4 คน: เพิ่มเบียร์ AI")+'</p>'+
- '<div class="lb">② จำนวนผู้เล่น</div>'+seg("n",[[2,"2 คน"],[3,"3 คน"],[4,"4 คน"]],PF.n)+'<p class="nnD">'+(PF.n===2?"โต๊ะแนวตั้ง · ใช้พลังไพ่ชุดเดียวกับ 3–4 คน":"โต๊ะแนวนอนเต็มจอ · ใช้พลังไพ่ชุดเดียวกันทุกจำนวนผู้เล่น")+'</p>'+
+ '<div class="lb">② จำนวนผู้เล่น</div>'+seg("n",[[2,"2 คน"],[3,"3 คน"],[4,"4 คน"]],PF.n)+'<p class="nnD">'+(PF.n===2?"โต๊ะแนวตั้ง · ไพ่ 0, 3, 4, 7, 21 มีพลังต่างจากโหมด 3-4 คน":"โต๊ะแนวนอนเต็มจอ · มีย้อนทิศและข้ามคน")+'</p>'+
  '<div class="lb">③ เพดาน (เกินแล้วแพ้)</div>'+seg("cap",[[120,"120 · สบาย"],[150,"150 · กลาง"],[200,"200 · ยาว"]],PF.cap)+
  '<div class="lb">④ ความเร็วเกม</div>'+seg("spd",[["slow","🐢 ช้า (ดูชัด)"],["norm","🚶 ปกติ"],["fast","🐇 เร็ว"]],PF.spd)+
  '<div class="lb">⑤ ชื่อผู้เล่น</div>'+ins+'<p class="nnD">ใส่ชื่อเพื่อนร่วมทริปเพื่อแสดงรูปบนโต๊ะ</p>'+'<button type="button" class="nnBt" data-a="go">🎯 เริ่มเกม</button>'+
@@ -3898,33 +3639,18 @@ function buildTable(){var n=G.n,h='<div class="nnT n'+n+'" id="nnT"><div class="
 function setNum(v){var e=Q("#nnNum");if(!e)return;e.textContent=Math.round(v);var pc=Math.min(100,v/G.cap*100),b=Q("#nnBarI");b.style.width=pc+"%";b.style.background=pc<60?"#6aa84f":pc<85?"#e0a020":"#d04a2a";Q("#nnNumW").classList.toggle("hot",G.cap-v<=15)}
 function countTo(a,b,dur){return new Promise(function(res){var t0=performance.now(),last=-1;(function f(t){var k=Math.min(1,(t-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,v=a+(b-a)*e;setNum(v);if(Math.round(v)!==last&&k<1){last=Math.round(v);if(!(last%3))nsfx("tick")}if(k<1)requestAnimationFrame(f);else{setNum(b);res()}})(t0)})}
 function paintPile(){var e=Q("#nnPile");if(!e)return;e.innerHTML=PL.length?PL.map(function(c){return'<img alt="" src="'+(TH[c.n]||"")+'" style="transform:rotate('+c.r+'deg) translate('+c.x+'px,0)">'}).join(""):'<div class="em"></div>'}
-function paintHand(){
- var e=Q("#nnHand");if(!e||!G)return;
- var fr=PF.mode==="friend",p=G.cur,me=fr?(intPrompt>=0?intPrompt:p):0;
- var can=isHuman(p)&&!busy&&G.over<0&&p===G.cur,canInt=!fr&&p!==0&&G.over<0&&G.canInterrupt(0)&&(busy?thinking>0:true);
- var h=G.hands[me]||[],lg=G.legal(me),sunPending=G.pending&&G.pending.type==="sun"&&G.pending.p===me;
- var chariotPending=G.pending&&G.pending.type==="chariot"&&G.pending.p===me;
- var forced=G.force===me,pic=photoFor(names[me]);
- var hdr='<div class="nnHdr">'+(pic?'<img class="hav" alt="" src="'+pic+'"> ':(fr?"📱 ":"🧑 "))+'<b>'+esc(names[me])+'</b>'+(G.shield[me]?" 🛡️":"")+' · '+(intPrompt>=0?"ตรวจสอบสิทธิ์แทรกเทิร์น":sunPending?"เลือกไพ่จาก The Sun":chariotPending?"เลือกลงใบที่สองหรือข้าม":can?"ตาของคุณ":canInt?"คุณแทรกเทิร์นได้ด้วย Empress":(G.over>=0?"จบเกม":"รอ "+esc(names[p])+"…"))+(forced?" · ⛓️ ถูกบังคับลงใบเลขสูงสุด":"")+(G.sealed[me]?" · 🔒 ไพ่ใบถัดไปถูกผนึก":"")+(G.devil[me]?" · 😈 Devil บังคับลง 2 ใบ":"")+'</div>';
- if(intPrompt>=0){var ix=h.findIndex(function(c){return c.n===3;});e.innerHTML=hdr+'<div class="nnCov"><b>📱 ส่งเครื่องให้ '+esc(names[intPrompt])+'</b><br>มี Empress สำหรับแทรกก่อน '+esc(names[G.cur])+' ลงไพ่หรือไม่?<div class="nnAct">'+(ix>=0?'<button type="button" data-a="intUse">👑 แทรกเทิร์นด้วย Empress (+3)</button>':'')+'<button type="button" data-a="intPass">ไม่มี / ผ่าน</button></div></div>';return}
+function paintHand(){var e=Q("#nnHand");if(!e||!G)return;var p=G.cur,fr=PF.mode==="friend",can=isHuman(p)&&!busy&&G.over<0,me=fr?p:0,h="";
+ var pic=photoFor(names[me]),forced=G.force===me;
+ var hdr='<div class="nnHdr">'+(pic?'<img class="hav" alt="" src="'+pic+'"> ':(fr?"📱 ":"🧑 "))+'<b>'+esc(names[me])+'</b>'+(G.shield[me]?" 🛡️":"")+' · '+(can?"ตาของคุณ":(G.over>=0?"จบเกม":"รอ "+esc(names[p])+"…"))+(forced?" · ⛓️ ถูกบังคับลงใบเลขสูงสุด":"")+'</div>';
  if(fr&&(busy||G.over>=0)){e.innerHTML=hdr;return}
- if(fr&&!reveal){e.innerHTML=hdr+'<div class="nnCov"><b>📱 ถึงตา '+esc(names[p])+'</b><br>ส่งเครื่องให้ '+esc(names[p])+' แล้วแตะเพื่อดูไพ่<br><button type="button" data-a="show">👀 แตะเพื่อดูไพ่</button></div>';return}
- if(sunPending){var opts=G.sunOptions[me]||[];e.innerHTML=hdr+'<div class="nnDs">The Sun: เลือกไพ่ 1 ใบจาก '+opts.length+' ใบ อีก '+Math.max(0,opts.length-1)+' ใบจะวางใต้กองจั่ว</div><div class="nnAct">'+opts.map(function(c,i){return'<button type="button" data-a="sun" data-v="'+i+'"><img alt="" src="'+(TH[c.n]||"")+'" style="width:44px;vertical-align:middle;border-radius:6px"> เลือก '+c.n+'</button>'}).join("")+'</div>';return}
- if(sel>=h.length)sel=-1;
- var cards='<div class="nnHd">'+h.map(function(c,i){var legal=lg.indexOf(i)>=0,canThis=(can&&legal)||(canInt&&c.n===3);return'<button type="button" class="nnC'+(i===sel?" on":"")+(canThis?"":" dim")+'" data-a="card" data-v="'+i+'"><img alt="'+esc(cn(c.n))+'" src="'+(TH[c.n]||"")+'"><b>'+c.n+'</b><small>'+G.opts(c.n).map(function(o){return esc(o.t)}).join(" / ")+'</small></button>'}).join('')+'</div>';
+ if(fr&&!reveal){e.innerHTML='<div class="nnCov"><b>📱 ถึงตา '+esc(names[p])+'</b><br>ส่งเครื่องให้ '+esc(names[p])+' แล้วแตะเพื่อดูไพ่<br><button type="button" data-a="show">👀 แตะเพื่อดูไพ่</button></div>';return}
+ var hand=G.hands[me],lg=G.legal(me);if(sel>=hand.length)sel=-1;
+ var cards='<div class="nnHd">'+hand.map(function(c,i){var lock=forced&&lg.indexOf(i)<0;return'<button type="button" class="nnC'+(i===sel?" on":"")+((can&&!lock)?"":" dim")+'" data-a="card" data-v="'+i+'"><img alt="'+esc(cn(c.n))+'" src="'+(TH[c.n]||"")+'"><b>'+c.n+'</b><small>'+G.opts(c.n).map(function(o){return esc(o.t)}).join(" / ")+'</small></button>'}).join("")+'</div>';
  var ok=sel>=0&&lg.indexOf(sel)>=0,act="";
- if(sel>=0&&canInt&&h[sel]&&h[sel].n===3){act='<div class="nnAct"><button type="button" data-a="intUse">👑 แทรกเทิร์นด้วย Empress (+3)</button></div>'}
- else if(can&&ok){var n=h[sel].n;
-  if([0,4,18].indexOf(n)>=0&&G.n!==2){var targets=[];for(var q=0;q<G.n;q++)if(n===0||q!==me)targets.push(q);act='<div class="nnAct">'+targets.map(function(q){return'<button type="button" data-a="target" data-v="'+q+'">'+(q===me?"ตัวเอง · ":"")+esc(names[q])+'</button>'}).join('')+'</div>'}
-  else if(n===17){act='<div class="nnAct"><button type="button" data-a="value" data-v="-17">−17</button><button type="button" data-a="value" data-v="17">+17</button></div>'}
-  else{act='<div class="nnAct">'+G.opts(n).map(function(o,k){var heat=G.heatFor(me,n),t=(o.set!=null?o.set:Math.max(0,G.total+o.v))+heat,w=o.fx==="wheel",bad=!w&&t>G.cap&&!G.shield[me];return'<button type="button" data-a="opt" data-v="'+k+'" class="'+(bad?"bad":"")+'">'+esc(o.t)+((o.set!=null||w)?"":" → "+t)+(bad?" 💥":"")+'</button>'}).join('')+'</div>'}
- }
- if(chariotPending&&can)act+='<div class="nnAct"><button type="button" data-a="skip">ข้ามการลงใบที่สอง</button></div>';
- var ds=sel>=0?'<b>'+esc(cn(h[sel].n))+'</b> · '+esc(desc(h[sel].n,G.two,G.cap))+(sel>=0&&!ok&&!canInt?"<br>⛓️ ใบนี้ลงไม่ได้ ต้องลงใบเลขสูงสุด":""):(canInt?"AI กำลังคิดอยู่ — คุณสามารถแทรกด้วย Empress ได้":"แตะไพ่เพื่อดูพลังพิเศษ"+(can?" แล้วเลือกลง":""));
- if(chariotPending)ds+="<br>🛞 ลงไพ่เพิ่มอีก 1 ใบ หรือกดข้ามเพื่อจบตา";
- e.innerHTML=hdr+'<div class="nnDs">'+ds+'</div><div class="nnRow">'+cards+act+'</div>'
-}
-function paint(){if(!G)return;for(var p=1;p<G.n;p++){var s=Q("#nnS"+p);if(!s)continue;s.classList.toggle("act",G.cur===p&&G.over<0);s.querySelector(".sh").hidden=!G.shield[p];s.querySelector(".th").hidden=thinking!==p;s.querySelectorAll(".bk i").forEach(function(e,i){var rh=G.revealed===p?G.revealedHand[p]||[]:null,c=rh&&rh[i];e.style.visibility=i<(rh?rh.length:G.hands[p].length)?"visible":"hidden";if(c){e.classList.add("revealed");e.style.backgroundImage="url('"+(TH[c.n]||"")+"')";e.title="ไพ่ "+c.n}else{e.classList.remove("revealed");e.style.backgroundImage="";e.title=""}})}
+ if(can&&ok)act='<div class="nnAct">'+G.opts(hand[sel].n).map(function(o,k){var t=(o.set!=null?o.set:Math.max(0,G.total+o.v))+G.heat(),w=o.fx==="wheel",bad=!w&&t>G.cap&&!G.shield[me];return'<button type="button" data-a="opt" data-v="'+k+'" class="'+(bad?"bad":"")+'">'+esc(o.t)+((o.set!=null||w)?"":" → "+t)+(bad?" 💥":"")+'</button>'}).join("")+'</div>';
+ var ds=sel>=0?'<b>'+esc(cn(hand[sel].n))+'</b> · '+esc(desc(hand[sel].n))+(sel>=0&&!ok?"<br>⛓️ ใบนี้ลงไม่ได้ ต้องลงใบเลขสูงสุด":""):"แตะไพ่เพื่อดูพลังพิเศษ"+(can?" แล้วเลือกลง":"");
+ e.innerHTML=hdr+'<div class="nnDs">'+ds+'</div><div class="nnRow">'+cards+act+'</div>'}
+function paint(){if(!G)return;for(var p=1;p<G.n;p++){var s=Q("#nnS"+p);if(!s)continue;s.classList.toggle("act",G.cur===p&&G.over<0);s.querySelector(".sh").hidden=!G.shield[p];s.querySelector(".th").hidden=thinking!==p;s.querySelectorAll(".bk i").forEach(function(e,i){e.style.visibility=i<G.hands[p].length?"visible":"hidden"})}
  var d=Q("#nnCapN");if(d)d.textContent="/ "+G.cap+(G.n>2?(G.dir>0?" ↻":" ↺"):"")+(G.heat()?" 🔥+"+G.heat():"");paintHand()}
 /* ---------- เอฟเฟกต์ ---------- */
 function fxl(){return Q("#nnFx")}
@@ -3955,9 +3681,23 @@ function pre(r){var n=r.c.n;
  if(n===2){burst("🔮",6);return 200}
  if(n===4||n===3||n===7){burst(n===3?"👑":n===4?"🔄":"🛞",5);return 100}
  return 0}
-function extras(r){var a=[],nm=names;if(r.heat)a.push("🔥 ไฟลามทุ่ง +"+r.heat);if(r.saved)a.push("🛡️ โล่แตก! กองถูกกดเหลือ "+r.after);if(r.fx==="shield")a.push(nm[r.p]+" ได้โล่ 1 ชั้น");if(r.fx==="judgement")a.push("ทุกคนทิ้งไพ่เลขสูงสุดแล้วจั่วใหม่");if(r.fx==="fool")a.push("สลับมือกับ "+nm[r.nx]);if(r.fx==="devil")a.push(nm[r.nx]+" ต้องลงติดกัน 2 ใบ!");if(r.fx==="conj")a.push(nm[r.nx]+" ถูกเปลี่ยนไพ่ต่ำสุดเป็น Devil 15");if(r.fx==="rob")a.push(nm[r.nx]+" ถูกริบไพ่เลขต่ำสุด");if(r.fx==="force")a.push(nm[r.nx]+" ต้องลงใบเลขสูงสุด!");if(r.fx==="temperance")a.push("ย้อนทิศ!");if(r.fx==="emperor")a.push("ผนึกพลังไพ่ของ "+nm[r.target]);if(r.fx==="moon")a.push("เปิดมือของ "+nm[r.target]);if(r.fx==="star")a.push("Star ป้องกัน Heat ให้ผู้เล่นคนนี้ 2 ตา");if(r.fx==="sun")a.push("เลือกไพ่แทนการจั่วปกติ");if(r.fx==="interrupt")a.push("แทรกเทิร์นสำเร็จ · ตาปกติถัดไปจั่วอย่างเดียว");if(r.sealed)a.push("ไพ่ถูกผนึก: ใช้เฉพาะเลขหน้าไพ่");return a.join(" · ")}
+function extras(r){var a=[],nm=names;
+ if(r.heat)a.push("🔥 ไฟลามทุ่ง +"+r.heat);
+ if(r.saved)a.push("🛡️ โล่แตก! กองถูกกดเหลือ "+r.after);
+ if(r.fx==="shield")a.push("🛡️ "+nm[r.p]+" ได้โล่ 1 ชั้น");
+ if(r.fx==="all")a.push("ทุกคนทิ้งไพ่เลขสูงสุด จั่วใหม่");
+ if(r.fx==="swap")a.push("สลับมือกับ "+nm[r.nx]);
+ if(r.fx==="devil")a.push(nm[r.nx]+" ต้องลงติดกัน 2 ใบ!");
+ if(r.fx==="conj")a.push(nm[r.nx]+" โดนเสกไพ่ปีศาจใส่มือ!");
+ if(r.fx==="rob")a.push(nm[r.nx]+" ถูกริบไพ่เลขต่ำสุด");
+ if(r.fx==="force")a.push(nm[r.nx]+" ต้องลงใบเลขสูงสุด!");
+ if(r.fx==="skip")a.push("ข้าม "+nm[r.nx]);
+ if(r.fx==="rev")a.push("ย้อนทิศ!");
+ if(r.fx==="fool")a.push(G.two?"รีเซ็ตมือ":"รีเซ็ตทิศ");
+ if(r.fx==="again")a.push(nm[r.p]+" ลงซ้ำอีกใบ");
+ return a.join(" · ")}
 function setCap(r){var e=Q("#nnCap");if(!e)return;var d=r.after-r.before,ex=extras(r);
- e.innerHTML='<div><b>'+esc(names[r.p])+'</b> ลง <b>'+esc(cn(r.c.n))+'</b> ('+r.c.n+')</div><div><span class="chip '+(d>0?"up":d<0?"dn":"")+'">'+(d>=0?"+":"−")+Math.abs(d)+'</span> '+esc(r.o&&r.o.t|| (r.interrupt?'แทรกเทิร์น Empress':'พลังไพ่'))+' · กอง '+r.before+' → <b>'+r.after+'</b></div>'+(ex?'<div class="ex">'+esc(ex)+'</div>':"");
+ e.innerHTML='<div><b>'+esc(names[r.p])+'</b> ลง <b>'+esc(cn(r.c.n))+'</b> ('+r.c.n+')</div><div><span class="chip '+(d>0?"up":d<0?"dn":"")+'">'+(d>=0?"+":"−")+Math.abs(d)+'</span> '+esc(r.o.t)+' · กอง '+r.before+' → <b>'+r.after+'</b></div>'+(ex?'<div class="ex">'+esc(ex)+'</div>':"");
  e.classList.remove("pulse");void e.offsetWidth;e.classList.add("pulse")}
 function lineFor(r){var g=G.cap-G.total,n=r.c.n,p=r.p,ai=PF.mode==="clone"&&p>0?CH[p-1].k:"",d=r.after-r.before,sc=SC[ai],v={x:sp(p),y:sp(0),g:g,cap:G.cap,t:G.total};
  if(r.bust){nsfx("boom");if(sc)return[pick(sc.self,v),ai];
@@ -3971,64 +3711,23 @@ function lineFor(r){var g=G.cap-G.total,n=r.c.n,p=r.p,ai=PF.mode==="clone"&&p>0?
  if(LN[n]&&Math.random()<.85)return[pick(LN[n],v),"เบสท์"];
  if(Math.random()<.2)return[pick(T.fill,v),"เบสท์"];
  return null}
-async function animateResult(my,r,rc){
- lastR=r;var n=r.c.n,spc=[0,1,2,4,5,6,8,9,10,11,12,13,14,15,16,17,18,19,20,21].indexOf(n)>=0||r.saved||r.bust||r.interrupt;
- var from=rc||(Q("#nnS"+r.p+" .av")?rectOf(Q("#nnS"+r.p+" .av")):rectOf(Q("#nnHand")));
- paint();await fly(from,r.c,800);if(my!==tk)return;
+async function doPlay(my,p,i,k,rc){busy=true;thinking=-1;sel=-1;var r=G.play(p,i,k);lastR=r;var n=r.c.n,spc=[0,1,2,5,6,8,9,10,11,12,13,14,15,16,17,18,19,20,21].indexOf(n)>=0||r.saved||r.bust;
+ paint();
+ await fly(rc,r.c,800);if(my!==tk)return;
  PL.push({n:n,r:Math.round((Math.random()-.5)*20),x:Math.round((Math.random()-.5)*6)});if(PL.length>3)PL.shift();paintPile();setCap(r);nsfx(spc?"pow":"play");
  var w=pre(r);if(w)await sl(w);if(my!==tk)return;
  var d=r.after-r.before;pop((d>=0?"+":"−")+Math.abs(d),d>0?"#ff8a80":"#a5d6a7");
  await countTo(r.before,r.after,ms(n===16||n===21||r.saved?1600:1000));if(my!==tk)return;
  if(r.bust){burst("💥",10);flash("#f44",700);shake()}
- paint();var L=lineFor(r);if(L)say(L[0],L[1]);
+ paint();
+ var L=lineFor(r);if(L)say(L[0],L[1]);
  await sl(spc?2300:1700);if(my!==tk)return;
  if(r.bust){await sl(500);if(my!==tk)return;endGame();return}
-}
-async function resolveSun(my,p,index){var r=G.choose(p,{index:index});if(r.error){busy=false;paint();say("เลือกไพ่ไม่สำเร็จ ลองใหม่อีกครั้งค่ะ");return}busy=true;thinking=-1;paint();await sl(250);if(my!==tk)return;turn(my)}
-async function resolveChariotAI(my,p){var a=G.aiChariot(p);if(a.skip){G.skip(p);busy=false;thinking=-1;paint();await sl(350);if(my===tk)turn(my);return}doPlay(my,p,a.i,a.k,rectOf(Q("#nnS"+p+" .av")),a.choice)}
-async function doPlay(my,p,i,k,rc,choice){busy=true;thinking=-1;sel=-1;var r=G.play(p,i,k,choice||{});if(r.error){busy=false;paint();say("ไพ่ใบนี้ยังลงไม่ได้ค่ะ");return}await animateResult(my,r,rc);if(my!==tk||G.over>=0)return;
- if(r.pending&&r.pending.type==="sun"){
-  if(!isHuman(p)){var si=G.aiChooseSun(p);await resolveSun(my,p,si)}else{busy=false;thinking=-1;paintHand()}return;
- }
- if(r.pending&&r.pending.type==="chariot"){
-  if(!isHuman(p)){await resolveChariotAI(my,p)}else{busy=false;thinking=-1;paintHand()}return;
- }
- turn(my)
-}
-async function doInterrupt(my,p,i,after){busy=true;var r=G.interrupt(p,i);if(r.error){busy=false;paint();return}var frc=Q("#nnS"+p+" .av")?rectOf(Q("#nnS"+p+" .av")):rectOf(Q("#nnHand"));await animateResult(my,r,frc);if(my!==tk||G.over>=0)return;if(typeof after==="function"){after();return}busy=false;thinking=PF.mode==="clone"&&G.cur>0?G.cur:-1;paint()}
-function nextInterruptPrompt(my){while(intQueue.length){var q=intQueue.shift();if(G.canInterrupt(q)){intPrompt=q;busy=false;thinking=-1;reveal=false;paint();return}}intPrompt=-1;busy=false;thinking=-1;reveal=false;paint();continueTurn(my)}
-function beginInterruptCheck(my){intCheckedState=G.turnState;if(PF.mode==="friend"){
- intQueue=[];for(var z=1;z<G.n;z++){var q=(G.cur+z)%G.n;if(G.canInterrupt(q))intQueue.push(q)}
- if(intQueue.length){nextInterruptPrompt(my);return true}return false;
- }
- if(PF.mode==="clone"){
-  var candidates=[];for(var q=1;q<G.n;q++)if(q!==G.cur&&G.canInterrupt(q)&&Math.random()<.14){var ix=G.hands[q].findIndex(function(c){return c.n===3});if(ix>=0)candidates.push({p:q,i:ix})}
-  if(candidates.length){var pick0=candidates[Math.floor(Math.random()*candidates.length)];doInterrupt(my,pick0.p,pick0.i,function(){turn(my)});return true}
- }
- return false;
-}
-async function continueTurn(my){if(my!==tk||G.over>=0)return;var p=G.cur;
- if(G.pending&&G.pending.p===p){
-  if(G.pending.type==="sun"){
-   if(isHuman(p)){busy=false;thinking=-1;paint();return}
-   var si=G.aiChooseSun(p);await resolveSun(my,p,si);return;
-  }
-  if(G.pending.type==="chariot"){
-   if(isHuman(p)){busy=false;thinking=-1;paint();return}
-   await resolveChariotAI(my,p);return;
-  }
- }
- if(isHuman(p)){busy=false;thinking=-1;reveal=PF.mode==="clone"||(PF.mode==="friend"&&G.turnState.played>0);paint();return}
- busy=true;thinking=p;paint();await sl(1500);if(my!==tk||G.over>=0||G.cur!==p)return;
- if(G.pending&&G.pending.type==="sun"){await resolveSun(my,p,G.aiChooseSun(p));return}
- if(G.pending&&G.pending.type==="chariot"){await resolveChariotAI(my,p);return}
- var m=G.ai(p);doPlay(my,p,m.i,m.k,rectOf(Q("#nnS"+p+" .av")),m.choice)
-}
-async function turn(my){if(my!==tk||G.over>=0)return;sel=-1;var p=G.cur;reveal=PF.mode==="clone"||(PF.mode==="friend"&&G.turnState.played>0);
- if(G.pending&&G.pending.p===p){continueTurn(my);return}
- if(G.turnState.played===0&&intCheckedState!==G.turnState){if(beginInterruptCheck(my))return}
- continueTurn(my)
-}
+ turn(my)}
+async function turn(my){if(my!==tk||G.over>=0)return;var p=G.cur;sel=-1;reveal=PF.mode==="clone";
+ if(isHuman(p)){busy=false;thinking=-1;paint();return}
+ busy=true;thinking=p;paint();await sl(1500);if(my!==tk)return;
+ var m=G.ai(p);doPlay(my,p,m.i,m.k,rectOf(Q("#nnS"+p+" .av")))}
 function nnReward(x){var d=day();if(S.day!==d){S.day=d;S.n={f:0,d:0}}var k=PF.mode==="friend"?"f":"d",cnt=S.n[k]||0,c;
  if(k==="f")c=8;else c=x===0?3:10;c=Math.round(c*(PF.cap===150?1.25:PF.cap===200?1.5:1)*COIN_X.card);if(cnt>=3)c=Math.max(2,Math.round(c/3));if(ST.sick)c=Math.max(1,Math.round(c/2));
  S.n[k]=cnt+1;S.g=(S.g||0)+1;if(k==="d"){if(x===0)S.l=(S.l||0)+1;else S.w=(S.w||0)+1}save();addCoins(c,"เกมเลขเพดาน");return c}
@@ -4040,7 +3739,7 @@ function setFs(on){var t=Q("#nnT");if(t)t.classList.toggle("fs",on);document.doc
 function start(){loadThumbs().then(function(){tk++;var my=tk;PF.n=+PF.n;PF.cap=+PF.cap;G=nnEngine({n:PF.n,cap:PF.cap});G.deal();G.cur=PF.mode==="clone"?0:Math.floor(Math.random()*G.n);
  names=[];for(var i=0;i<PF.n;i++)names.push(PF.mode==="clone"?(i?CH[i-1].n:cleanN(PF.names[0],"คุณ")):cleanN(PF.names[i],"ผู้เล่น "+(i+1)));
  if(PF.mode==="friend")for(var a=0;a<names.length;a++)for(var b=a+1;b<names.length;b++)if(names[a]===names[b])names[b]+=" "+(b+1);
- lastR=null;sel=-1;busy=true;thinking=-1;PL=[];intQueue=[];intPrompt=-1;intCheckedState=null;reveal=PF.mode==="clone";st="play";sayK="เบสท์";say0=pick(T.w,{cap:PF.cap});save2();buildTable();setNum(0);paintPile();paint();
+ lastR=null;sel=-1;busy=true;thinking=-1;PL=[];reveal=PF.mode==="clone";st="play";sayK="เบสท์";say0=pick(T.w,{cap:PF.cap});save2();buildTable();setNum(0);paintPile();paint();
  if(PF.n>=3)setFs(true);else B.scrollIntoView&&B.scrollIntoView({block:"start",behavior:"smooth"});
  sl(900).then(function(){turn(my)})})}
 B.onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var a=b.dataset.a,v=b.dataset.v;
@@ -4055,16 +3754,7 @@ B.onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var a=b.da
  else if(a==="rulesx"){Q("#nnRules").hidden=true}
  else if(a==="show"){reveal=true;paintHand()}
  else if(a==="card"){sel=sel===+v?-1:+v;paintHand()}
- else if(a==="opt"&&st==="play"&&sel>=0&&!busy){var i=sel,el=B.querySelector(".nnC.on"),cc=G.hands[G.cur][i],ch=cc&&cc.n===17?{value:G.opts(17)[+v].v}:{};doPlay(tk,G.cur,i,+v,rectOf(el||Q("#nnHand")),ch)}
- else if(a==="target"&&st==="play"&&sel>=0&&!busy){var i=sel,el=B.querySelector(".nnC.on");doPlay(tk,G.cur,i,0,rectOf(el||Q("#nnHand")),{target:+v})}
- else if(a==="value"&&st==="play"&&sel>=0&&!busy){var i=sel,el=B.querySelector(".nnC.on");doPlay(tk,G.cur,i,0,rectOf(el||Q("#nnHand")),{value:+v})}
- else if(a==="sun"&&st==="play"&&!busy){resolveSun(tk,G.cur,+v)}
- else if(a==="skip"&&st==="play"&&!busy){var rr=G.skip(G.cur);if(!rr.error){busy=true;paint();sl(250).then(function(){busy=false;turn(tk)})}}
- else if(a==="intPass"&&intPrompt>=0){intPrompt=-1;nextInterruptPrompt(tk)}
- else if(a==="intUse"&&intPrompt>=0){var q=intPrompt,ix=G.hands[q].findIndex(function(c){return c.n===3});intPrompt=-1;if(ix>=0)doInterrupt(tk,q,ix,function(){nextInterruptPrompt(tk)});else nextInterruptPrompt(tk)}
- else if(a==="intUse"&&PF.mode==="clone"&&intPrompt<0){var ix=G.hands[0].findIndex(function(c){return c.n===3});if(ix>=0&&G.canInterrupt(0))doInterrupt(tk,0,ix)}
- else if(a==="intStart"){intQueue=[];for(var z=1;z<G.n;z++){var q=(G.cur+z)%G.n;if(G.canInterrupt(q))intQueue.push(q)};nextInterruptPrompt(tk)}
- };
+ else if(a==="opt"&&st==="play"&&sel>=0&&!busy){var i=sel,el=B.querySelector(".nnC.on");doPlay(tk,G.cur,i,+v,rectOf(el||Q("#nnHand")))}};
 nnApi.frame=function(){};
 nnApi.enter=function(){if(st==="setup")setupUI();loadThumbs()};
 nnApi.state=function(){return{G:G,st:st,PF:PF,busy:busy}};

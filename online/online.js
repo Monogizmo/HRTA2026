@@ -9,7 +9,7 @@
     sb: null, uid: null, rid: null, room: null, players: [], online: {}, ch: null,
     link: "idle", busy: false, screen: "menu", net: navigator.onLine !== false,
     name: "", av: "", cap: 150, mode: "one_loser", code: "", timer: null, root: null,
-    game: null, hand: null, pending: null, sel: null, flash: false, skewMs: 0
+    game: null, hand: null, sel: null, flash: false, skewMs: 0
   };
 
   var ERR = {
@@ -42,14 +42,7 @@
     not_in_game: "คุณไม่ได้อยู่ในเกมนี้",
     room_not_finished: "เกมยังไม่จบ",
     server_error: "เซิร์ฟเวอร์ขัดข้อง ลองใหม่อีกครั้ง",
-    bad_request: "คำขอไม่ถูกต้อง",
-    choice_required: "ต้องเลือกตัวเลือกของไพ่ก่อน",
-    bad_choice: "ตัวเลือกไม่ถูกต้อง ลองใหม่อีกครั้ง",
-    choice_pending: "กรุณาจัดการตัวเลือกไพ่ที่ค้างอยู่ก่อน",
-    no_pending_choice: "ไม่มีตัวเลือกที่รออยู่",
-    interrupt_closed: "หมดช่วงเวลาแทรกเทิร์นแล้ว",
-    interrupt_unavailable: "ตอนนี้ยังแทรกเทิร์นไม่ได้",
-    not_empress: "ต้องใช้ Empress และต้องไม่ขัดกับการบังคับไพ่"
+    bad_request: "คำขอไม่ถูกต้อง"
   };
   var MODE_TXT = {
     one_loser: "แพ้ 1 คน (ที่เหลือชนะ)",
@@ -184,11 +177,11 @@
         var g = gq.data;
         if (g) {
           if (!S.game || g.id !== S.game.id || g.version >= S.game.version) setGame(g);
-          var hq = await sb.from("player_private_states").select("hand,pending").eq("game_id", g.id).eq("user_id", S.uid).maybeSingle();
-          if (!hq.error && hq.data) { S.hand = hq.data.hand; S.pending = hq.data.pending || null; }
+          var hq = await sb.from("player_private_states").select("hand").eq("game_id", g.id).eq("user_id", S.uid).maybeSingle();
+          if (!hq.error && hq.data) S.hand = hq.data.hand;
           if (S.sel != null && S.hand && !S.hand.some(function (c) { return c.id === S.sel; })) S.sel = null;
         }
-      } else { S.game = null; S.hand = null; S.pending = null; S.sel = null; }
+      } else { S.game = null; S.hand = null; S.sel = null; }
       render();
     } catch (e) {
       S.link = "bad"; render();
@@ -205,7 +198,7 @@
       .on("postgres_changes", { event: "*", schema: "public", table: "player_private_states", filter: "user_id=eq." + S.uid }, function (pl) {
         var r = pl && pl.new;
         if (r && r.hand && S.game && r.game_id === S.game.id) {
-          S.hand = r.hand; S.pending = r.pending || null;
+          S.hand = r.hand;
           if (S.sel != null && !S.hand.some(function (c) { return c.id === S.sel; })) S.sel = null;
           render();
         } else schedule();
@@ -244,14 +237,14 @@
     resubT = setTimeout(function () { resubT = null; if (S.rid && S.link === "bad") { subscribe(); schedule(); } }, d);
   }
   function enterRoom(id) {
-    S.rid = id; S.room = null; S.players = []; S.game = null; S.hand = null; S.pending = null; S.sel = null; S.screen = "lobby";
+    S.rid = id; S.room = null; S.players = []; S.game = null; S.hand = null; S.sel = null; S.screen = "lobby";
     subscribe(); startBeat(); refetch(); render();
   }
   function exitRoom(msg) {
     unsub(); stopBeat(); clearTimeout(S.timer);
     if (window.NNOnlineGame) NNOnlineGame.reset();
     if (S.root && !S.root.hidden) document.documentElement.style.overflow = "hidden";
-    S.rid = null; S.room = null; S.players = []; S.screen = "menu"; S.game = null; S.hand = null; S.pending = null; S.sel = null;
+    S.rid = null; S.room = null; S.players = []; S.screen = "menu"; S.game = null; S.hand = null; S.sel = null;
     if (msg) toast(msg);
     syncEntry(); render();
   }
@@ -329,8 +322,8 @@
     }).join("") + "</div>";
   }
   function formTop(withAv) {
-    return '<div class="onlFormProfile"><div class="onlNameField"><div class="lb">ชื่อผู้เล่น</div><input class="onlIn" id="onlName" maxlength="12" autocomplete="off" value="' + esc(S.name) + '" placeholder="เช่น เบล, เจน, ปีเตอร์"></div>' +
-      (withAv ? '<div class="onlAvatarField"><div class="lb">เลือกรูปของคุณ</div>' + avGrid() + '</div>' : "") + '</div>';
+    return '<div class="lb">ชื่อผู้เล่น</div><input class="onlIn" id="onlName" maxlength="12" autocomplete="off" value="' + esc(S.name) + '" placeholder="เช่น เบล, เจน, ปีเตอร์">' +
+      (withAv ? '<div class="lb">เลือกรูปของคุณ</div>' + avGrid() : "");
   }
   function top(title, backTo) {
     return '<div class="onlTop">' + (backTo ? '<button type="button" class="onlX" data-act="go" data-v="' + backTo + '" aria-label="ย้อนกลับ">‹ กลับ</button>' : "") +
@@ -349,18 +342,16 @@
       '<p class="onlHint">ยังไม่มีรางวัลเหรียญในโหมดออนไลน์</p>';
   }
   function viewCreate() {
-    return top("➕ สร้างห้อง", "menu") +
-      '<div class="onlCreateGrid"><div class="onlProfileCol">' + formTop(true) + '</div><div class="onlOptionsCol">' +
+    return top("➕ สร้างห้อง", "menu") + formTop(true) +
       '<div class="lb">เพดาน (เกินแล้วแพ้)</div>' + seg("cap", [[120, "120 · สบาย"], [150, "150 · กลาง"], [200, "200 · ยาว"]], S.cap) +
       '<div class="lb">โหมดจบเกม</div>' + seg("mode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], S.mode) +
-      '<p class="onlSub" id="onlModeD">' + MODE_TXT[S.mode] + "</p></div></div>" +
-      '<div class="onlActionBar"><button type="button" class="onlBtn pri" data-act="create"' + (S.busy ? " disabled" : "") + ">สร้างห้อง</button></div>";
+      '<p class="onlSub" id="onlModeD">' + MODE_TXT[S.mode] + "</p>" +
+      '<button type="button" class="onlBtn pri" data-act="create"' + (S.busy ? " disabled" : "") + ">สร้างห้อง</button>";
   }
   function viewJoin() {
-    return top("🔑 เข้าร่วมห้อง", "menu") +
-      '<div class="onlCreateGrid"><div class="onlProfileCol">' + formTop(true) + '</div><div class="onlOptionsCol">' +
-      '<div class="lb">รหัสห้อง 6 ตัว</div><input class="onlIn code" id="onlCode" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(S.code) + '" placeholder="······"></div></div>' +
-      '<div class="onlActionBar"><button type="button" class="onlBtn pri" data-act="join"' + (S.busy ? " disabled" : "") + ">เข้าห้อง</button></div>";
+    return top("🔑 เข้าร่วมห้อง", "menu") + formTop(true) +
+      '<div class="lb">รหัสห้อง 6 ตัว</div><input class="onlIn code" id="onlCode" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' + esc(S.code) + '" placeholder="······">' +
+      '<button type="button" class="onlBtn pri" data-act="join"' + (S.busy ? " disabled" : "") + ">เข้าห้อง</button>";
   }
   function seatHTML(p) {
     var me = p.user_id === S.uid;
@@ -470,7 +461,7 @@
   /* ---------- เหตุการณ์ ---------- */
   function onClick(e) {
     var t = e.target.closest("[data-act]"); if (!t || t.disabled) return;
-    var a = t.dataset.act, v = t.dataset.v, cardId = t.dataset.cardId;
+    var a = t.dataset.act, v = t.dataset.v;
     if (a === "hide") return hide();
     if (a === "go") { readForm(); S.screen = v; return render(); }
     if (a === "av") {
@@ -489,7 +480,7 @@
     if (a === "reload") { subscribe(); return schedule(); }
     if (a === "share") return share();
     if (!S.rid) return;
-    if (window.NNOnlineGame && window.NNOnlineGame.onClick(a, v, cardId)) return;
+    if (window.NNOnlineGame && window.NNOnlineGame.onClick(a, v)) return;
     if (a === "ready") { var me = mine(); return run(async function () { await rpc("nn_set_ready", { p_room: S.rid, p_ready: !(me && me.is_ready) }); await refetch(); }); }
     if (a === "scap") return run(async function () { await rpc("nn_update_settings", { p_room: S.rid, p_cap: +v, p_mode: S.room.mode }); await refetch(); });
     if (a === "smode") return run(async function () { await rpc("nn_update_settings", { p_room: S.rid, p_cap: S.room.cap, p_mode: v }); await refetch(); });
