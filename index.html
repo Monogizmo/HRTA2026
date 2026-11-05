@@ -3480,8 +3480,8 @@ var nnApi={};window.__nn=nnApi;
 var Q=function(q){return document.querySelector(q)};
 var RES=[0,9,11,12,13,16,17,18,20];
 function nnEngine(o,rnd){rnd=rnd||Math.random;
-   var G={cap:o.cap,n:o.n,two:o.n===2,hands:[],deck:[],disc:[],total:0,prev:0,dir:1,cur:0,over:-1,turn:0,band:9,shield:[],force:-1,heatAt:Math.round(o.cap/6),dbl:null,seal:[],owe:[],calm:[],rev:[],seq:null,pend:null};
-   G.heat=function(){return G.turn>=G.heatAt?1+Math.floor((G.turn-G.heatAt)/6):0};
+   var G={cap:o.cap,n:o.n,two:o.n===2,hands:[],deck:[],disc:[],total:0,prev:0,dir:1,cur:0,over:-1,turn:0,band:9,shield:[],force:-1,heatAt:Math.round(o.cap/6),dbl:null,seal:[],owe:[],calm:[],rev:[],seq:null,pend:null,hb:0};
+   G.heat=function(){return(G.turn>=G.heatAt?1+Math.floor((G.turn-G.heatAt)/6):0)+(G.hb||0)};
    var shuf=function(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
    var scr=function(t){return Math.floor(t/100)*100+(t%10)*10+Math.floor((t%100)/10)};
    G.deal=function(){var d=[];for(var k=0;k<2;k++)for(var n=0;n<22;n++)d.push({n:n,id:k*22+n});G.deck=shuf(d);G.disc=[];G.hands=[];G.shield=[];G.seal=[];G.owe=[];G.calm=[];G.rev=[];for(var p=0;p<G.n;p++){G.hands.push(G.deck.splice(0,3));G.shield.push(false);G.seal.push(false);G.owe.push(false);G.calm.push(0);G.rev.push(false)}};
@@ -3492,7 +3492,7 @@ function nnEngine(o,rnd){rnd=rnd||Math.random;
    G.next=function(p){return((p+G.dir)%G.n+G.n)%G.n};
    G.legal=function(p){var h=G.hands[p],ix=[],mx=-1;h.forEach(function(c){if(c.n>mx)mx=c.n});h.forEach(function(c,i){if(G.force!==p||c.n===mx)ix.push(i)});return ix};
    G.targets=function(p){var a=[];for(var q=0;q<G.n;q++)if(q!==p)a.push(q);return a};
-   G.needsTarget=function(fx){return fx==="fool"||fx==="seal"||fx==="moon"};
+   G.needsTarget=function(fx){return fx==="fool"||fx==="seal"};
    /* พลังไพ่ (ใช้เหมือนกันทุกจำนวนผู้เล่น) */
    G.opts=function(n){var c=G.cap,t=G.total,hf=t+Math.ceil((c-t)/2);switch(n){
     case 0:return[{t:"+0 สลับมือ",v:0,fx:"fool"}];
@@ -3513,8 +3513,8 @@ function nnEngine(o,rnd){rnd=rnd||Math.random;
     case 15:return[{t:"+15 คนต่อไปลง 2",v:15,fx:"devil"}];
     case 16:return[{t:"ล้างกอง → 0",set:0}];
     case 17:return[{t:"−17 → "+Math.max(0,t-17),v:-17,fx:"star"},{t:"+17 → "+(t+17),v:17,fx:"star"}];
-    case 18:return[{t:"+0 หงายไพ่",v:0,fx:"moon"}];
-    case 19:return[{t:"+19 เปิดไพ่ 3 ใบ",v:19,fx:"sun"}];
+    case 18:return[{t:"+"+(t%10)+" เปลี่ยนไพ่ในมือ",v:t%10,fx:"moon"}];
+    case 19:return[{t:"+19 เพดาน +19 🔥+1",v:19,fx:"sun"}];
     case 20:return[{t:"+20 ทุกคนล้างไพ่",v:20,fx:"all"}];
     case 21:return[{t:"ดันเป็น "+c,set:c,fx:"world"}];
     default:return[{t:"+"+n,v:n}]}};
@@ -3522,14 +3522,14 @@ function nnEngine(o,rnd){rnd=rnd||Math.random;
    var calc=function(p,c,k,sealed){
     var o=sealed?{t:"+"+c.n,v:c.n}:G.opts(c.n)[k||0],b=G.total,fx=o.fx||"";
     var t=o.set!=null?o.set:Math.max(0,b+o.v);if(fx==="wheel")t=Math.max(0,b+Math.floor(rnd()*41)-15);
-    var hh=G.heat();if(fx==="star"&&hh>0)G.calm[p]=2;if(fx==="world")hh=0;if(G.calm[p]>0){hh=0;G.calm[p]--}
+    var hh=G.heat();if(fx==="star"&&hh>0)G.calm[p]=2;if(fx==="world"||fx==="sun")hh=0;if(fx==="sun")G.cap+=19;if(G.calm[p]>0){hh=0;G.calm[p]--}
     t+=hh;var saved=false;
     if(t>G.cap&&G.shield[p]){G.shield[p]=false;saved=true;t=Math.max(0,G.cap-15)}
     return{o:o,b:b,fx:fx,t:t,hh:hh,saved:saved}};
    var pickTg=function(p,tg){var a=G.targets(p);return a.indexOf(tg)>=0?tg:(a.length===1?a[0]:G.next(p))};
    /* ลงไพ่ 1 ใบ (tg = เป้าหมายของ Fool/Emperor/Moon) — ถ้ายังต้องรับคำสั่งต่อ (ลงใบที่ 2 / ลงเพิ่ม / เลือก Sun) จะตั้ง G.pend */
    G.play=function(p,i,k,tg){if(G.force===p)G.force=-1;
-    var S=(G.seq&&G.seq.p===p)?G.seq:(G.seq={p:p,plays:0,max:1,forced:!!(G.dbl&&G.dbl.p===p),opt:false,sun:false,owed:0,post:[]});
+    var S=(G.seq&&G.seq.p===p)?G.seq:(G.seq={p:p,plays:0,max:1,forced:!!(G.dbl&&G.dbl.p===p),opt:false,sun:false,moon:false,owed:0,post:[]});
     var c=G.hands[p].splice(i,1)[0],sealed=!!G.seal[p];G.seal[p]=false;
     var m=calc(p,c,k,sealed),o=m.o,fx=m.fx,nx=G.next(p);
     G.total=m.t;G.prev=m.b;G.disc.push(c);G.turn++;
@@ -3545,25 +3545,28 @@ function nnEngine(o,rnd){rnd=rnd||Math.random;
     if(G.needsTarget(fx)){tg=pickTg(p,tg);r.tg=tg;
      if(fx==="fool")S.post.push({fx:"swap",a:p,b:tg});
      if(fx==="seal")G.seal[tg]=true;
-     if(fx==="moon")G.rev[tg]=true}
+     }
     if(fx==="devil")S.post.push({fx:"devil",q:nx});
-    if(fx==="sun")S.sun=true;
+    if(fx==="sun")G.hb++;if(fx==="moon")S.moon=true;
     if(fx==="chariot"&&!S.forced&&S.plays===1){S.opt=true;S.max=2}
     if(S.forced&&S.plays<2){G.pend={t:"forced",p:p};r.pend="forced";return r}
     if(S.opt&&S.plays<2){G.pend={t:"extra",p:p};r.pend="extra";return r}
     return G.finish(p,r)};
-   /* จบการลงไพ่ของตา: Sun เปิดไพ่ 3 ใบให้เลือก 1 ใบแทนการจั่ว ไม่งั้นจั่วคืนตามจำนวนที่ลง */
-   G.finish=function(p,r){var S=G.seq;
-    if(S.sun){S.sun=false;var cs=[];for(var j=0;j<3;j++){if(!G.deck.length)G.deck=shuf(G.disc.splice(0));if(G.deck.length)cs.push(G.deck.shift())}
-     if(cs.length>1){S.owed--;G.pend={t:"pick",p:p,cards:cs};r.pend="pick";r.cards=cs;return r}
-     if(cs.length===1){S.owed--;G.hands[p].push(cs[0])}}
-    return G.end(p,r)};
-   G.pick=function(p,idx){var pd=G.pend;if(!pd||pd.t!=="pick"||pd.p!==p||!(idx>=0&&idx<pd.cards.length))return null;
-    var cs=pd.cards.slice(),ch=cs.splice(idx,1)[0];G.hands[p].push(ch);G.deck=G.deck.concat(cs);G.pend=null;
-    return G.end(p,{pick:true,p:p,c:ch,pend:null})};
-   G.pass=function(p){var pd=G.pend;if(!pd||pd.t!=="extra"||pd.p!==p)return null;G.pend=null;return G.end(p,{pass:true,p:p,pend:null})};
+   /* จบการลงไพ่ของตา: จั่วคืนตามจำนวนที่ลง (Moon: หลังจั่วคืน รอผู้ลงเลือกทิ้งไพ่ในมือแล้วจั่วใหม่) */
+     G.finish=function(p,r){return G.end(p,r)};
+     G.pass=function(p){var pd=G.pend;if(!pd||pd.t!=="extra"||pd.p!==p)return null;G.pend=null;return G.end(p,{pass:true,p:p,pend:null})};
    G.end=function(p,r){var S=G.seq;
-    for(var j=0;j<S.owed;j++)G.draw(p);S.owed=0;
+      for(var j=0;j<S.owed;j++)G.draw(p);S.owed=0;
+      if(S.moon){S.moon=false;if(G.hands[p].length){G.pend={t:"moon",p:p};r.pend="moon";return r}}
+      return G.fin(p,r)};
+     /* The Moon: ทิ้งไพ่ในมือกี่ใบก็ได้ (ix = ดัชนีในมือ) แล้วจั่วใหม่เท่าจำนวนที่ทิ้ง — จั่วก่อนแล้วค่อยทิ้ง จึงไม่ได้ใบที่เพิ่งทิ้งกลับมา */
+     G.swap=function(p,ix){var pd=G.pend;if(!pd||pd.t!=="moon"||pd.p!==p)return null;
+      var h=G.hands[p],u=[];(ix||[]).forEach(function(i){if(Number.isInteger(i)&&i>=0&&i<h.length&&u.indexOf(i)<0)u.push(i)});
+      var nw=[];for(var j=0;j<u.length;j++){if(!G.deck.length)G.deck=shuf(G.disc.splice(0));if(G.deck.length)nw.push(G.deck.shift())}
+      u=u.slice(0,nw.length).sort(function(a,b){return b-a});
+      u.forEach(function(i){G.disc.push(h.splice(i,1)[0])});nw.forEach(function(c){h.push(c)});
+      G.pend=null;return G.fin(p,{swap:true,p:p,k:u.length,pend:null})};
+     G.fin=function(p,r){var S=G.seq;
     if(S.forced&&G.dbl&&G.dbl.p===p)G.dbl=null;
     S.post.forEach(function(e){if(e.fx==="swap"){var t=G.hands[e.a];G.hands[e.a]=G.hands[e.b];G.hands[e.b]=t}else if(e.fx==="devil")G.dbl={p:e.q,left:2}});
     G.rev[p]=false;G.seq=null;G.pend=null;G.adv(p);return r};
@@ -3580,12 +3583,12 @@ function nnEngine(o,rnd){rnd=rnd||Math.random;
    /* AI */
    G.aiBest=function(p){var best=null,bs=-1e9,hh=G.heat(),cm=G.calm[p]>0?0:hh;
     G.legal(p).forEach(function(i){var c=G.hands[p][i],os=G.seal[p]?[{t:"+"+c.n,v:c.n}]:G.opts(c.n);
-     os.forEach(function(o,k){var w=o.fx==="wheel",h2=o.fx==="world"?0:cm,t=(o.set!=null?o.set:w?G.total+5:Math.max(0,G.total+o.v))+h2,s;
-      if(t>G.cap){s=G.shield[p]?G.cap-15-30+rnd()*4:-1000-(t-G.cap)}
-      else{s=t+rnd()*7;if(RES.indexOf(c.n)>=0&&t<G.cap-25)s-=16;if(w&&G.total+25+h2>G.cap)s-=40}
+     os.forEach(function(o,k){var w=o.fx==="wheel",h2=(o.fx==="world"||o.fx==="sun")?0:cm,t=(o.set!=null?o.set:w?G.total+5:Math.max(0,G.total+o.v))+h2,s;
+      if(t>(o.fx==="sun"?G.cap+19:G.cap)){s=G.shield[p]?G.cap-15-30+rnd()*4:-1000-(t-G.cap)}
+      else{s=t+rnd()*7;if(o.fx==="sun")s-=19;if(RES.indexOf(c.n)>=0&&t<G.cap-25)s-=16;if(w&&G.total+25+h2>G.cap)s-=40}
       if(s>bs){bs=s;best={i:i,k:k,t:t,tg:G.needsTarget(o.fx)?(o.fx==="fool"?G.targets(p)[Math.floor(rnd()*(G.n-1))]:G.next(p)):null}}})});return best};
    G.aiStep=function(p){var pd=G.pend;
-    if(pd&&pd.p===p&&pd.t==="pick"){var bi=0;pd.cards.forEach(function(c,i){if(c.n<pd.cards[bi].n)bi=i});return{t:"pick",idx:bi}}
+    if(pd&&pd.p===p&&pd.t==="moon"){var dx=[];G.hands[p].forEach(function(c,i){if([15,17,18,19,20].indexOf(c.n)>=0)dx.push(i)});return{t:"swap",ix:dx}}
     var b=G.aiBest(p);
     if(pd&&pd.p===p&&pd.t==="extra"&&!(b&&b.t<G.total))return{t:"pass"};
     return{t:"play",i:b.i,k:b.k,tg:b.tg}};
@@ -3622,7 +3625,7 @@ var LN={0:["The Fool! ไม่เพิ่มแต้ม แต่สลับ
  13:["Death! ย้อนเวลากลับไปก่อนเกิดเรื่องค่ะ ⏪💀","ความตายไม่ได้น่ากลัวเสมอไป บางทีมันคือปุ่มรีเซ็ตค่ะ"],14:["Temperance ดันกองไปครึ่งทาง แล้วย้อนทิศเลยค่ะ 🧪"],
  15:["ปีศาจกวนตีน! 😈 คนถัดไปต้องลงสองใบติดกัน ขอให้โชคดีค่ะ","The Devil ปล่อยของ! ไพ่สองใบรวด คนต่อไปมือสั่นแน่ ๆ"],
  16:["The Tower! ฟ้าผ่ากองกลางจนเหลือ 0 ทุกคนถอนหายใจ ⚡","หอคอยถล่ม! ล้างความตึงเครียดกลับไปเริ่มใหม่ค่ะ"],17:["The Star ไพ่ประจำตัวน้องเบสท์เอง! ✨ ลบหรือบวกก็เลือกได้ 17 ค่ะ"],
- 18:["The Moon! หงายไพ่ในมือให้ทุกคนเห็นค่ะ 🌙"],19:["The Sun! เปิดไพ่ 3 ใบ เลือกเก็บที่ชอบ 1 ใบค่ะ ☀️"],20:["Judgement! วันพิพากษา ทุกคนทิ้งไพ่ใบใหญ่สุดแล้วจั่วใหม่ค่ะ 📯"],21:["The World! ดันกองไปที่เพดานทันที ไฟลามทุ่งก็ช่วยไม่ได้ ใครเป็นคนต่อไปเตรียมใจ 🌍"]};
+ 18:["The Moon! บวกเลขหน่วยของกอง แล้วเปลี่ยนไพ่ในมือได้ตามใจค่ะ 🌙"],19:["The Sun! ดันเพดานขึ้นอีก 19 แต่ไฟลามทุ่งแรงขึ้นด้วยนะคะ ☀️"],20:["Judgement! วันพิพากษา ทุกคนทิ้งไพ่ใบใหญ่สุดแล้วจั่วใหม่ค่ะ 📯"],21:["The World! ดันกองไปที่เพดานทันที ไฟลามทุ่งก็ช่วยไม่ได้ ใครเป็นคนต่อไปเตรียมใจ 🌍"]};
 function desc(n,two0,cap0){var c=cap0!=null?cap0:PF.cap;return[
 "+0 · เลือกผู้เล่น 1 คน สลับมือกับเขา (หลังจั่วคืน)",
 "+1 · เสกไพ่ปีศาจ (15) แทนใบต่ำสุดของคนถัดไป",
@@ -3642,12 +3645,12 @@ function desc(n,two0,cap0){var c=cap0!=null?cap0:PF.cap;return[
 "+15 · คนถัดไปต้องลง 2 ใบติด ไม่จั่วคั่น",
 "ล้างกองเป็น 0",
 "เลือก −17 หรือ +17 · ถ้าลงช่วงไฟลามทุ่ง ไฟไม่บวกให้คุณ 2 ตา",
-"+0 · เลือกผู้เล่น 1 คน หงายไพ่ในมือให้ทุกคนเห็น จนจบตาของเขา",
-"+19 · เปิดไพ่บนกองจั่ว 3 ใบ เลือกเก็บ 1 ใบแทนการจั่ว อีก 2 ใบวางใต้กอง",
+"+เลขหลักหน่วยของกอง (เช่น กอง 109 → +9) · แล้วเลือกทิ้งไพ่ในมือกี่ใบก็ได้ จั่วใหม่เท่าจำนวนที่ทิ้ง",
+"เพิ่มเลขเพดานของเกมนี้ +19 (สะสมได้ไม่จำกัด) แล้ว +19 · ไฟลามทุ่งเพิ่มถาวร +1 ตั้งแต่ใบถัดไป (ใบนี้ไม่โดนไฟ) · ลง Sun แล้วไม่มีทางแพ้",
 "+20 · ทุกคนทิ้งใบเลขสูงสุด จั่วใหม่",
 "กองเป็นเพดานทันที (ไฟลามทุ่งไม่มีผล)"][n]}
 function cn(n){var c=window.fzCards?window.fzCards()[n]:null;return c?c.n:"เลข "+n}
-function loadThumbs(){var src=window.fzCards?window.fzCards():[];return Promise.all(src.map(function(c,i){return new Promise(function(res){if(TH[i]||!c.img){res();return}var im=new Image();im.onload=function(){try{var w=170,h=Math.round(w*im.naturalHeight/im.naturalWidth),cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(im,0,0,w,h);TH[i]=cv.toDataURL("image/jpeg",.8)}catch(e){TH[i]=c.img}res()};im.onerror=res;im.src=c.img})}))}
+function loadThumbs(){var src=window.fzCards?window.fzCards():[];return Promise.all(src.map(function(c,i){return new Promise(function(res){if(TH[i]||!c.img){res();return}var im=new Image();im.onload=function(){try{var w=Math.min(400,im.naturalWidth),h=Math.round(w*im.naturalHeight/im.naturalWidth),cv=document.createElement("canvas");cv.width=w;cv.height=h;var cx=cv.getContext("2d");cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality="high";cx.drawImage(im,0,0,w,h);TH[i]=cv.toDataURL("image/jpeg",.92)}catch(e){TH[i]=c.img}res()};im.onerror=res;im.src=c.img})}))}
 function nsfx(k){var c=ga();if(!c||!vis("#gNn"))return;var t=c.currentTime+.01;
  if(k==="play")tone(mid(72),t,.08,"triangle",.07);
  else if(k==="warn"){tone(mid(60),t,.15,"square",.05);tone(mid(60),t+.2,.15,"square",.05)}
@@ -3686,16 +3689,17 @@ function buildTable(){var n=G.n,h='<div class="nnT n'+n+'" id="nnT"><div class="
 function setNum(v){var e=Q("#nnNum");if(!e)return;e.textContent=Math.round(v);var pc=Math.min(100,v/G.cap*100),b=Q("#nnBarI");b.style.width=pc+"%";b.style.background=pc<60?"#6aa84f":pc<85?"#e0a020":"#d04a2a";Q("#nnNumW").classList.toggle("hot",G.cap-v<=15)}
 function countTo(a,b,dur){return new Promise(function(res){var t0=performance.now(),last=-1;(function f(t){var k=Math.min(1,(t-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,v=a+(b-a)*e;setNum(v);if(Math.round(v)!==last&&k<1){last=Math.round(v);if(!(last%3))nsfx("tick")}if(k<1)requestAnimationFrame(f);else{setNum(b);res()}})(t0)})}
 function paintPile(){var e=Q("#nnPile");if(!e)return;e.innerHTML=PL.length?PL.map(function(c){return'<img alt="" src="'+(TH[c.n]||"")+'" style="transform:rotate('+c.r+'deg) translate('+c.x+'px,0)">'}).join(""):'<div class="em"></div>'}
+var mset=[];
 function optsOf(n,p){return G.seal[p]?[{t:"+"+n+" (ถูกผนึก)",v:n}]:G.opts(n)}
-function optT(o,p){var hh=o.fx==="world"?0:(G.calm[p]>0||(o.fx==="star"&&G.heat()>0))?0:G.heat();return(o.set!=null?o.set:Math.max(0,G.total+o.v))+hh}
+function optT(o,p){var hh=(o.fx==="world"||o.fx==="sun")?0:(G.calm[p]>0||(o.fx==="star"&&G.heat()>0))?0:G.heat();return(o.set!=null?o.set:Math.max(0,G.total+o.v))+hh}
 function paintHand(){var e=Q("#nnHand");if(!e||!G)return;var pd=G.pend,p=pd?pd.p:G.cur,fr=PF.mode==="friend",can=isHuman(p)&&!busy&&G.over<0,me=fr?p:0,h="";
  var pic=photoFor(names[me]),forced=G.force===me,ic=(G.shield[me]?" 🛡️":"")+(G.seal[me]?" 🔒":"")+(G.owe[me]?" ⏳":"")+(G.calm[me]>0?" 💧":"");
- var st0=can?(pd&&pd.t==="forced"?"ลงใบที่ 2 (ต้องลง ไม่จั่วคั่น)":pd&&pd.t==="extra"?"ลงเพิ่มอีก 1 ใบได้ (หรือข้าม)":pd&&pd.t==="pick"?"เลือกไพ่ที่จะเก็บ 1 ใบ":"ตาของคุณ"):(G.over>=0?"จบเกม":"รอ "+esc(names[p])+"…");
+ var st0=can?(pd&&pd.t==="forced"?"ลงใบที่ 2 (ต้องลง ไม่จั่วคั่น)":pd&&pd.t==="extra"?"ลงเพิ่มอีก 1 ใบได้ (หรือข้าม)":pd&&pd.t==="moon"?"🌙 เลือกไพ่ที่จะทิ้ง (กี่ใบก็ได้)":"ตาของคุณ"):(G.over>=0?"จบเกม":"รอ "+esc(names[p])+"…");
  var hdr='<div class="nnHdr">'+(pic?'<img class="hav" alt="" src="'+pic+'"> ':(fr?"📱 ":"🧑 "))+'<b>'+esc(names[me])+'</b>'+ic+' · '+st0+(forced?" · ⛓️ ถูกบังคับลงใบเลขสูงสุด":"")+'</div>';
  if(fr&&(busy||G.over>=0)){e.innerHTML=hdr;return}
  if(fr&&!reveal){e.innerHTML='<div class="nnCov"><b>📱 ถึงตา '+esc(names[p])+'</b><br>ส่งเครื่องให้ '+esc(names[p])+' แล้วแตะเพื่อดูไพ่<br><button type="button" data-a="show">👀 แตะเพื่อดูไพ่</button></div>';return}
  var hand=G.hands[me],lg=G.legal(me);if(sel>=hand.length)sel=-1;
- if(can&&pd&&pd.t==="pick"){e.innerHTML=hdr+'<div class="nnDs">เปิดไพ่บนกองจั่ว 3 ใบ เลือกเก็บ 1 ใบ (อีก 2 ใบวางใต้กอง)</div><div class="nnRow"><div class="nnHd">'+pd.cards.map(function(c,i){return'<button type="button" class="nnC" data-a="pk" data-v="'+i+'"><img alt="'+esc(cn(c.n))+'" src="'+(TH[c.n]||"")+'"><b>'+c.n+'</b><small>'+esc(cn(c.n))+'</small></button>'}).join("")+'</div></div>';return}
+   if(can&&pd&&pd.t==="moon"){e.innerHTML=hdr+'<div class="nnDs">แตะไพ่ที่ต้องการทิ้ง (เลือกกี่ใบก็ได้) แล้วจั่วใหม่เท่าจำนวนที่ทิ้ง</div><div class="nnRow"><div class="nnHd">'+hand.map(function(c,i){return'<button type="button" class="nnC'+(mset.indexOf(i)>=0?" on":"")+'" data-a="mx" data-v="'+i+'"><img alt="'+esc(cn(c.n))+'" src="'+(TH[c.n]||"")+'"><b>'+c.n+'</b><small>'+esc(cn(c.n))+'</small></button>'}).join("")+'</div><div class="nnAct"><button type="button" data-a="mgo">'+(mset.length?"🌙 ทิ้ง "+mset.length+" ใบ แล้วจั่วใหม่":"ไม่เปลี่ยน ไปต่อ")+'</button></div></div>';return}
  var cards='<div class="nnHd">'+hand.map(function(c,i){var lock=forced&&lg.indexOf(i)<0;return'<button type="button" class="nnC'+(i===sel?" on":"")+((can&&!lock)?"":" dim")+'" data-a="card" data-v="'+i+'"><img alt="'+esc(cn(c.n))+'" src="'+(TH[c.n]||"")+'"><b>'+c.n+'</b><small>'+optsOf(c.n,me).map(function(o){return esc(o.t)}).join(" / ")+'</small></button>'}).join("")+'</div>';
  var ok=sel>=0&&lg.indexOf(sel)>=0,act="";
  if(can&&tgp){act='<div class="nnAct">'+G.targets(me).map(function(q){return'<button type="button" data-a="tg" data-v="'+q+'">'+esc(names[q])+'</button>'}).join("")+'<button type="button" data-a="tgx" class="alt">ย้อนกลับ</button></div>'}
@@ -3749,14 +3753,14 @@ function extras(r){var a=[],nm=names;
  if(r.fx==="all")a.push("ทุกคนทิ้งไพ่เลขสูงสุด จั่วใหม่");
  if(r.fx==="fool")a.push("สลับมือกับ "+nm[r.tg]);
  if(r.fx==="seal")a.push("🔒 ผนึกไพ่ใบถัดไปของ "+nm[r.tg]);
- if(r.fx==="moon")a.push("🌙 หงายไพ่ของ "+nm[r.tg]);
+ if(r.fx==="moon")a.push("🌙 "+nm[r.p]+" เปลี่ยนไพ่ในมือได้");
  if(r.fx==="devil")a.push(nm[r.nx]+" ต้องลงติดกัน 2 ใบ!");
  if(r.fx==="conj")a.push(nm[r.nx]+" โดนเสกไพ่ปีศาจใส่มือ!");
  if(r.fx==="rob")a.push(nm[r.nx]+" ถูกริบไพ่เลขต่ำสุด");
  if(r.fx==="force")a.push(nm[r.nx]+" ต้องลงใบเลขสูงสุด!");
  if(r.fx==="rev")a.push("ย้อนทิศ!");
  if(r.fx==="chariot")a.push("🛞 "+nm[r.p]+" ลงเพิ่มได้ 1 ใบ");
- if(r.fx==="sun")a.push("☀️ "+nm[r.p]+" เปิดไพ่ 3 ใบเลือกเก็บ 1");
+ if(r.fx==="sun")a.push("☀️ เพดานเป็น "+G.cap+" · ไฟลามทุ่งถาวร +"+G.hb);
  if(r.fx==="star"&&G.calm[r.p]>0)a.push("💧 ไฟลามทุ่งไม่บวกให้ "+nm[r.p]+" อีก "+G.calm[r.p]+" ตา");
  return a.join(" · ")}
 function setCap(r){var e=Q("#nnCap");if(!e)return;var d=r.after-r.before,ex=extras(r);
@@ -3782,8 +3786,7 @@ async function animPlay(my,r,rc){busy=true;thinking=-1;lastR=r;var p=r.p,n=r.c.n
  var d=r.after-r.before;pop((d>=0?"+":"−")+Math.abs(d),d>0?"#ff8a80":"#a5d6a7");
  await countTo(r.before,r.after,ms(n===16||n===21||r.saved?1600:1000));if(my!==tk)return;
  if(r.bust){burst("💥",10);flash("#f44",700);shake()}
- if(r.fx==="moon"&&PF.mode==="friend"&&G.hands[r.tg])banner("🌙 "+names[r.tg]+" หงายไพ่",G.hands[r.tg].map(function(c){return cn(c.n)+" ("+c.n+")"}).join(" · "),3200);
- paint();
+  paint();
  var L=lineFor(r);if(L)say(L[0],L[1]);
  await sl(spc?2300:1700);if(my!==tk)return;
  if(r.bust){await sl(500);if(my!==tk)return;endGame();return}
@@ -3794,11 +3797,11 @@ async function doInterject(p){tk++;var my=tk;busy=true;thinking=-1;sel=-1;tgp=nu
  banner("👑 "+names[p]+" แทรกเทิร์น!","The Empress +3",1500);return animPlay(my,r,rc)}
 function scheduleAiInterject(my){clearTimeout(intT);intT=setTimeout(function(){if(my!==tk||busy||G.over>=0||G.cur!==0||G.pend||G.seq)return;
  for(var q=1;q<G.n;q++)if(G.aiInterject(q)){doInterject(q);return}},ms(2200+Math.random()*3500))}
-async function turn(my){if(my!==tk||G.over>=0)return;var pd=G.pend,p=pd?pd.p:G.cur;sel=-1;tgp=null;reveal=PF.mode==="clone"||!!pd;
+async function turn(my){if(my!==tk||G.over>=0)return;var pd=G.pend,p=pd?pd.p:G.cur;sel=-1;tgp=null;mset=[];reveal=PF.mode==="clone"||!!pd;
  if(isHuman(p)){busy=false;thinking=-1;paint();if(PF.mode==="clone"&&!pd)scheduleAiInterject(my);return}
  busy=true;thinking=p;paint();await sl(1500);if(my!==tk)return;
  var m=G.aiStep(p);
- if(m.t==="pick"){G.pick(p,m.idx);thinking=-1;paint();await sl(500);if(my!==tk)return;turn(my);return}
+ if(m.t==="swap"){var k0=m.ix.length;G.swap(p,m.ix);thinking=-1;paint();if(k0)banner("🌙 "+names[p]+" เปลี่ยนไพ่ "+k0+" ใบ","The Moon");await sl(700);if(my!==tk)return;turn(my);return}
  if(m.t==="pass"){G.pass(p);thinking=-1;paint();await sl(300);if(my!==tk)return;turn(my);return}
  doPlay(my,p,m.i,m.k,rectOf(Q("#nnS"+p+" .av")),m.tg)}
 function nnReward(x){var d=day();if(S.day!==d){S.day=d;S.n={f:0,d:0}}var k=PF.mode==="friend"?"f":"d",cnt=S.n[k]||0,c;
@@ -3833,7 +3836,8 @@ B.onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var a=b.da
  else if(a==="tg"&&tgp&&!busy){var t0=tgp,el2=B.querySelector(".nnC.on"),pp2=G.pend?G.pend.p:G.cur;tgp=null;doPlay(tk,pp2,t0.i,t0.k,rectOf(el2||Q("#nnHand")),+v)}
  else if(a==="tgx"){tgp=null;paintHand()}
  else if(a==="pass"&&!busy&&G.pend&&G.pend.t==="extra"){var pp3=G.pend.p;G.pass(pp3);paint();turn(tk)}
- else if(a==="pk"&&!busy&&G.pend&&G.pend.t==="pick"){var pp4=G.pend.p,rr=G.pick(pp4,+v);paint();turn(tk)}
+ else if(a==="mx"&&!busy&&G.pend&&G.pend.t==="moon"){var q0=mset.indexOf(+v);if(q0>=0)mset.splice(q0,1);else mset.push(+v);paintHand()}
+  else if(a==="mgo"&&!busy&&G.pend&&G.pend.t==="moon"){var pp4=G.pend.p,ix4=mset.slice();mset=[];G.swap(pp4,ix4);nsfx("pow");paint();turn(tk)}
  else if(a==="intj"&&st==="play"&&thinking>=0&&G.canInterject(0)>=0){doInterject(0)}};
 nnApi.frame=function(){};
 nnApi.enter=function(){if(st==="setup")setupUI();loadThumbs()};

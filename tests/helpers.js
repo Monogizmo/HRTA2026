@@ -2,11 +2,11 @@
 const NN = require("../online/nn-engine.js");
 function prng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
-// snap = { pub, hands:{uid:[card]}, uids:[uid ตามดัชนีเดิม], extras:{uid:{pick:[...]}} }
-// คืน action ถัดไปของผู้ที่ต้องลง (actor) : {uid, kind:'play'|'pass'|'pick', card_id?, k?, tg?, idx?}
+// snap = { pub, hands:{uid:[card]}, uids:[uid ตามดัชนีเดิม], extras:{uid:...} }
+// คืน action ถัดไปของผู้ที่ต้องลง (actor) : {uid, kind:'play'|'pass'|'swap', card_id?, k?, tg?, ix?}
 function agent(snap, mv) {
   const pub = snap.pub, actor = pub.pend ? pub.pend.p : pub.cur, uid = snap.uids[actor];
-  if (pub.pend && pub.pend.t === "pick") return { uid, kind: "pick", idx: Math.floor(mv() * 3) % ((snap.extras[uid] && snap.extras[uid].pick.length) || 1) };
+  if (pub.pend && pub.pend.t === "moon") return { uid, kind: "swap", ix: snap.hands[uid].map((c, i) => i).filter(() => mv() < 0.5) };
   if (pub.pend && pub.pend.t === "extra" && mv() < 0.5) return { uid, kind: "pass" };
   const hand = snap.hands[uid];
   let cand = hand.slice();

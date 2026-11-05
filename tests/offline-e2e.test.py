@@ -1,4 +1,4 @@
-# เล่นเกมเลขเพดานโหมดออฟไลน์ (เล่นกับ AI) ในเบราว์เซอร์: กดเลือกเป้าหมาย / ไพ่ Sun / ข้าม Chariot / แทรก Empress ไปจนจบหลายเกม
+# เล่นเกมเลขเพดานโหมดออฟไลน์ (เล่นกับ AI) ในเบราว์เซอร์: กดเลือกเป้าหมาย / ไพ่ Moon / ข้าม Chariot / แทรก Empress ไปจนจบหลายเกม
 # รัน: python3 -m http.server 8765 (ที่โฟลเดอร์โปรเจกต์) แล้ว python3 tests/offline-e2e.test.py
 from playwright.sync_api import sync_playwright
 import random, sys
@@ -17,7 +17,7 @@ with sync_playwright() as p:
         pg.click('text=เกม'); pg.click('[data-v="nn"]'); pg.wait_for_timeout(300)
         pg.click('#nnB [data-a="n"][data-v="%d"]'%n); pg.click('#nnB [data-a="spd0"][data-v="fast"]') if pg.locator('#nnB [data-a="spd0"][data-v="fast"]').count() else None
         pg.click('#nnB [data-a="go"]'); pg.wait_for_selector('#nnT',timeout=15000)
-        seen={'tg':0,'pk':0,'pass':0,'intj':0,'plays':0}
+        seen={'tg':0,'mx':0,'pass':0,'intj':0,'plays':0}
         done=False
         for it in range(2500):
             pg.wait_for_timeout(120)
@@ -26,8 +26,11 @@ with sync_playwright() as p:
             txt=hdr.inner_text() if hdr.count() else ''
             if pg.locator('#nnHand [data-a="intj"]').count() and random.random()<.7:
                 pg.click('#nnHand [data-a="intj"]'); seen['intj']+=1; continue
-            if not any(k in txt for k in ('ตาของคุณ','ลงใบที่ 2','ลงเพิ่ม','เลือกไพ่ที่จะเก็บ')): continue
-            if pg.locator('#nnHand [data-a="pk"]').count(): pg.click('#nnHand [data-a="pk"]:nth-child(%d)'%random.randint(1,3)); seen['pk']+=1; continue
+            if not any(k in txt for k in ('ตาของคุณ','ลงใบที่ 2','ลงเพิ่ม','เลือกไพ่ที่จะทิ้ง')): continue
+            if pg.locator('#nnHand [data-a="mgo"]').count():
+                m=pg.locator('#nnHand [data-a="mx"]')
+                if m.count() and random.random()<.6: m.nth(random.randrange(m.count())).click(); pg.wait_for_timeout(40)
+                pg.click('#nnHand [data-a="mgo"]'); seen['mx']+=1; continue
             if pg.locator('#nnHand [data-a="tg"]').count(): pg.click('#nnHand [data-a="tg"]'); seen['tg']+=1; continue
             if pg.locator('#nnHand [data-a="pass"]').count() and random.random()<.5: pg.click('#nnHand [data-a="pass"]'); seen['pass']+=1; continue
             cards=pg.locator('#nnHand .nnC:not(.dim)')
