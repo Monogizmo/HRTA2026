@@ -95,19 +95,31 @@ t("17 Star: เลือก −17/+17 ; ช่วงไฟลามทุ่ง 
   G = mk(2, [[17, 5, 6], [7, 8, 9]], { total: 50, turn: 0 }); G.play(0, 0, 1); assert.strictEqual(G.total, 67); assert.strictEqual(G.calm[0], 0);
   G = mk(2, [[17, 5, 6], [7, 8, 9]], { total: 10 }); G.play(0, 0, 0); assert.strictEqual(G.total, 0);
 });
-t("18 Moon: เลือกใครก็ได้หงายไพ่ ; หายเมื่อเป้าหมายลงเสร็จ", () => {
-  const G = mk(3, [[18, 5, 6], [7, 8, 9], [10, 11, 12]], { deck: [30, 31, 32, 33, 34] });
-  G.play(0, 0, 0, 2); assert.deepStrictEqual(G.rev, [false, false, true]);
-  G.play(1, 0, 0); assert.strictEqual(G.rev[2], true);
-  G.play(2, 0, 0); assert.strictEqual(G.rev[2], false);
-});
-t("19 Sun: เปิด 3 ใบ เลือก 1 ใบแทนจั่ว อีก 2 ใต้กอง", () => {
-  const G = mk(2, [[19, 5, 6], [7, 8, 9]], { deck: [30, 31, 32, 33, 34] });
+t("18 Moon: +เลขหน่วยของกอง (109→+9) แล้วทิ้งไพ่ในมือกี่ใบก็ได้ จั่วใหม่เท่าที่ทิ้ง (หลังจั่วคืน)", () => {
+  let G = mk(2, [[18, 5, 6], [7, 8, 9]], { deck: [30, 31, 32, 33, 34], total: 100, cap: 200 }); G.total = 109;
   const r = G.play(0, 0, 0);
-  assert.strictEqual(r.pend, "pick"); assert.deepStrictEqual(r.cards.map(c => c.n), [30, 31, 32]); assert.strictEqual(G.cur, 0); assert.strictEqual(G.hands[0].length, 2);
-  assert.strictEqual(G.pick(1, 0), null);                        // คนอื่นเลือกไม่ได้
-  G.pick(0, 1); assert.deepStrictEqual(G.hands[0].map(c => c.n).sort((a, b) => a - b), [5, 6, 31]);
-  assert.deepStrictEqual(G.deck.map(c => c.n), [33, 34, 30, 32]); assert.strictEqual(G.cur, 1); assert.strictEqual(G.pend, null);
+  assert.strictEqual(G.total, 118); assert.strictEqual(r.pend, "moon"); assert.strictEqual(G.cur, 0);
+  assert.deepStrictEqual(G.hands[0].map(c => c.n), [5, 6, 30]);                      // จั่วคืนปกติก่อน
+  assert.strictEqual(G.swap(1, [0]), null);                                          // คนอื่นสลับไม่ได้
+  G.swap(0, [0, 1, 1, 99, -1]);                                                      // ดัชนีซ้ำ/นอกช่วงถูกข้าม → ทิ้ง 2 ใบ (5, 6)
+  assert.deepStrictEqual(G.hands[0].map(c => c.n).sort((a, b) => a - b), [30, 31, 32]);
+  assert.deepStrictEqual(G.disc.map(c => c.n).sort((a, b) => a - b), [5, 6, 18]); assert.strictEqual(G.cur, 1); assert.strictEqual(G.pend, null);
+  G = mk(2, [[18, 5, 6], [7, 8, 9]], { deck: [30, 31, 32], total: 50 }); G.play(0, 0, 0); assert.strictEqual(G.total, 50);      // หน่วย 0 → +0
+  assert.ok(G.swap(0, [])); assert.deepStrictEqual(G.hands[0].map(c => c.n), [5, 6, 30]); assert.strictEqual(G.cur, 1);          // ไม่เปลี่ยนเลยก็ได้
+  G = mk(2, [[18, 5, 6], [7, 8, 9]], { deck: [30, 31, 32, 33], total: 117, cap: 120 }); const r2 = G.play(0, 0, 0); assert.ok(r2.bust);   // 117+7 = 124 > 120 แพ้ ไม่มีสลับ
+  G = mk(2, [[18, 5, 6], [7, 8, 9]], { deck: [30], total: 12 }); G.disc = [card(40, 300), card(41, 301)]; G.play(0, 0, 0);
+  G.swap(0, [0, 1, 2]); assert.strictEqual(G.hands[0].length, 3);                    // กองจั่วหมด → สับกองทิ้งมาจั่ว ไม่ได้ใบที่เพิ่งทิ้งกลับมาทันที
+});
+t("19 Sun: ดันเพดาน +19 → +19 → Heat ถาวร +1 (ใบที่ลงไม่โดนไฟ · ไม่มีทางแพ้ · สะสมไม่จำกัด)", () => {
+  let G = mk(2, [[19, 5, 6], [7, 8, 9]], { total: 120 });                         // กองเต็มเพดานพอดี ลง Sun ก็รอด
+  let r = G.play(0, 0, 0);
+  assert.ok(!r.bust); assert.strictEqual(G.cap, 139); assert.strictEqual(G.total, 139); assert.strictEqual(G.hb, 1); assert.strictEqual(r.heat, 0);
+  assert.strictEqual(G.heat(), 1); assert.strictEqual(G.hands[0].length, 3); assert.strictEqual(G.cur, 1);
+  G.play(1, 0, 0); assert.strictEqual(G.total, 139 + 7 + 1);                       // ใบถัดไปโดนไฟ +1 ทันที (ยังไม่ถึงช่วงไฟ)
+  G = mk(2, [[19, 19, 6], [7, 8, 9]], { total: 10, turn: 60 }); assert.ok(G.heat() > 0);
+  const h0 = G.heat(); r = G.play(0, 0, 0); assert.strictEqual(r.heat, 0); assert.strictEqual(G.total, 29); assert.strictEqual(G.heat(), h0 + 1);   // ไฟเดิมก็ไม่บวกให้ Sun
+  G.play(1, 0, 0); G.play(0, idx(G, 0, 19), 0); assert.strictEqual(G.cap, 158); assert.strictEqual(G.hb, 2);     // Sun สองใบ = +38 / ไฟ +2
+  G = mk(2, [[19, 5, 6], [7, 8, 9]], { total: 30 }); G.seal[0] = true; G.play(0, 0, 0); assert.strictEqual(G.cap, 120); assert.strictEqual(G.hb, 0); assert.strictEqual(G.total, 49);   // ถูกผนึก = +19 เฉยๆ
 });
 t("20 Judgement เดิม · 9 Hermit โล่ · 13 Rebirth · 14 Temperance ปัดขึ้น+ย้อนทิศ", () => {
   let G = mk(3, [[20, 5, 6], [7, 8, 9], [10, 11, 12]], { deck: [30, 31, 32, 33, 34] }); G.play(0, 0, 0);
@@ -136,7 +148,7 @@ for (const n of [2, 3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1;
     if (!G.seq && !G.pend) for (let q = 0; q < n && G.over < 0; q++) if (q !== G.cur && G.aiInterject(q)) { G.interject(q); inter++; }
     if (G.over >= 0) break;
     const p = G.pend ? G.pend.p : G.cur, a = G.aiStep(p);
-    if (a.t === "pick") { assert.ok(G.pick(p, a.idx)); picks++; }
+    if (a.t === "swap") { assert.ok(G.swap(p, a.ix)); picks++; }
     else if (a.t === "pass") { assert.ok(G.pass(p)); extra++; }
     else {
       assert.ok(G.legal(p).includes(a.i), "illegal ai card");
@@ -151,5 +163,5 @@ for (const n of [2, 3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1;
   }
   games++; stat.turns += G.turn;
 }
-console.log(`ok  AI simulation: ${games} games, ${plays} plays (${inter} interjections, ${extra} chariot-extra/pass, ${picks} sun picks), avg ${(stat.turns / games).toFixed(1)} turns`);
+console.log(`ok  AI simulation: ${games} games, ${plays} plays (${inter} interjections, ${extra} chariot-extra/pass, ${picks} moon swaps), avg ${(stat.turns / games).toFixed(1)} turns`);
 console.log(`ALL PASSED (${ok} card tests)`);

@@ -37,8 +37,10 @@ def scenario(b, mode):
         if pg.locator('.nnSeat.out').count(): sawOut=True
         hdr=pg.locator('#nnHand .nnHdr'); htxt=hdr.inner_text() if hdr.count() else ''
         if pg.locator('#nnHand [data-act="nintj"]').count() and pg.evaluate("Math.random()")<.5: pg.click('#nnHand [data-act="nintj"]'); continue
-        if not any(k in htxt for k in ('ตาของคุณ','ลงใบที่ 2','ลงเพิ่ม','เลือกไพ่ที่จะเก็บ')): continue
-        if pg.locator('#nnHand [data-act="npk"]').count(): pg.click('#nnHand [data-act="npk"]:nth-child(1)'); continue
+        if not any(k in htxt for k in ('ตาของคุณ','ลงใบที่ 2','ลงเพิ่ม','เลือกไพ่ที่จะทิ้ง')): continue
+        if pg.locator('#nnHand [data-act="nmgo"]').count():
+            if pg.evaluate("Math.random()")<.6 and pg.locator('#nnHand [data-act="nmx"]').count(): pg.click('#nnHand [data-act="nmx"]:nth-child(1)')
+            pg.click('#nnHand [data-act="nmgo"]'); continue
         if pg.locator('#nnHand [data-act="ntg"]').count(): pg.click('#nnHand [data-act="ntg"]:nth-child(1)'); continue
         if pg.locator('#nnHand [data-act="npass"]').count() and pg.evaluate("Math.random()")<.5: pg.click('#nnHand [data-act="npass"]'); continue
         btns=pg.locator('#nnHand .nnC:not(.dim)')

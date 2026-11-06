@@ -39,10 +39,10 @@
   }
   function optsOf(pub, n, me) { return pub.seal[me] ? [{ t: "+" + n + " (ถูกผนึก)", v: n }] : optsFor(pub, n); }
   function optT(pub, o, me) {
-    var hh = o.fx === "world" ? 0 : (pub.calm[me] > 0 || (o.fx === "star" && pub.heat > 0)) ? 0 : pub.heat;
+    var hh = (o.fx === "world" || o.fx === "sun") ? 0 : (pub.calm[me] > 0 || (o.fx === "star" && pub.heat > 0)) ? 0 : pub.heat;
     return (o.set != null ? o.set : Math.max(0, pub.total + o.v)) + hh;
   }
-  function needsTg(fx) { return fx === "fool" || fx === "seal" || fx === "moon"; }
+  function needsTg(fx) { return fx === "fool" || fx === "seal"; }
   function actor(pub) { return pub.pend ? pub.pend.p : pub.cur; }
 
   /* ---------- ตัวเลข/กอง/คำบรรยาย (เหมือน setNum/paintPile/setCap ของออฟไลน์) ---------- */
@@ -82,14 +82,14 @@
     if (r.fx === "all") a.push("ทุกคนทิ้งไพ่เลขสูงสุด จั่วใหม่");
     if (r.fx === "fool") a.push("สลับมือกับ " + nm(r.tg));
     if (r.fx === "seal") a.push("🔒 ผนึกไพ่ใบถัดไปของ " + nm(r.tg));
-    if (r.fx === "moon") a.push("🌙 หงายไพ่ของ " + nm(r.tg));
+    if (r.fx === "moon") a.push("🌙 " + nm(r.p) + " เปลี่ยนไพ่ในมือได้");
     if (r.fx === "devil") a.push(nm(r.nx) + " ต้องลงติดกัน 2 ใบ!");
     if (r.fx === "conj") a.push(nm(r.nx) + " โดนเสกไพ่ปีศาจใส่มือ!");
     if (r.fx === "rob") a.push(nm(r.nx) + " ถูกริบไพ่เลขต่ำสุด");
     if (r.fx === "force") a.push(nm(r.nx) + " ต้องลงใบเลขสูงสุด!");
     if (r.fx === "rev") a.push("ย้อนทิศ!");
     if (r.fx === "chariot") a.push("🛞 " + nm(r.p) + " ลงเพิ่มได้ 1 ใบ");
-    if (r.fx === "sun") a.push("☀️ " + nm(r.p) + " เปิดไพ่ 3 ใบเลือกเก็บ 1");
+    if (r.fx === "sun") a.push("☀️ เพดาน +19 · ไฟลามทุ่งถาวร +1");
     if (r.fx === "star") a.push("💧 ถ้าอยู่ในช่วงไฟลามทุ่ง ไฟไม่บวกให้ " + nm(r.p) + " 2 ตา");
     return a.join(" · ");
   }
@@ -97,7 +97,7 @@
   function setCap(r) {
     var e = Q("#nnCap"); if (!e) return;
     if (r.kind === "pass") e.innerHTML = "<div><b>" + esc(nm(r.p)) + "</b> ข้ามการลงเพิ่ม</div>";
-    else if (r.kind === "pick") e.innerHTML = "<div><b>" + esc(nm(r.p)) + "</b> เลือกไพ่ 1 ใบจาก The Sun</div>";
+    else if (r.kind === "swap") e.innerHTML = "<div><b>" + esc(nm(r.p)) + "</b> " + (r.k ? "เปลี่ยนไพ่ในมือ " + r.k + " ใบ (The Moon)" : "ไม่เปลี่ยนไพ่ (The Moon)") + "</div>";
     else if (r.forfeit) {
       e.innerHTML = "<div><b>" + esc(nm(r.p)) + "</b> " + REASON[r.reason] + " — ถือว่ายอมแพ้</div>";
     } else {
@@ -148,14 +148,14 @@
     var pic = M.avatars[me], forced = pub.force === me;
     var ic = (pub.shield[me] ? " 🛡️" : "") + (pub.seal[me] ? " 🔒" : "") + (pub.owe[me] ? " ⏳" : "") + (pub.calm[me] > 0 ? " 💧" : "");
     var status = pub.over >= 0 ? "จบเกม" : out ? "ตกรอบแล้ว — ดูเพื่อนเล่นต่อ" : myTurn(pub) ? (M.sending ? "กำลังส่ง…" :
-      pd && pd.t === "forced" ? "ลงใบที่ 2 (ต้องลง ไม่จั่วคั่น)" : pd && pd.t === "extra" ? "ลงเพิ่มอีก 1 ใบได้ (หรือข้าม)" : pd && pd.t === "pick" ? "เลือกไพ่ที่จะเก็บ 1 ใบ" : "ตาของคุณ") : "รอ " + esc(nm(act)) + "…";
+      pd && pd.t === "forced" ? "ลงใบที่ 2 (ต้องลง ไม่จั่วคั่น)" : pd && pd.t === "extra" ? "ลงเพิ่มอีก 1 ใบได้ (หรือข้าม)" : pd && pd.t === "moon" ? "🌙 เลือกไพ่ที่จะทิ้ง (กี่ใบก็ได้)" : "ตาของคุณ") : "รอ " + esc(nm(act)) + "…";
     var hdr = '<div class="nnHdr">' + (pic ? '<img class="hav" alt="" src="' + esc(pic) + '"> ' : "🧑 ") + "<b>" + esc(nm(me)) + "</b>" + ic + " · " + status +
       (forced ? " · ⛓️ ถูกบังคับลงใบเลขสูงสุด" : "") + "</div>";
-    if (can && pd && pd.t === "pick") {
-      var cs = (X.S.extra && X.S.extra.pick) || [];
-      e.innerHTML = hdr + '<div class="nnDs">เปิดไพ่บนกองจั่ว 3 ใบ เลือกเก็บ 1 ใบ (อีก 2 ใบวางใต้กอง)</div><div class="nnRow"><div class="nnHd">' + cs.map(function (c, i) {
-        return '<button type="button" class="nnC" data-act="npk" data-v="' + i + '"><img alt="' + esc(cn(c.n)) + '" src="' + tsrc(c.n) + '"><b>' + c.n + "</b><small>" + esc(cn(c.n)) + "</small></button>";
-      }).join("") + "</div></div>";
+    if (can && pd && pd.t === "moon") {
+      var ms = M.mset || [];
+      e.innerHTML = hdr + '<div class="nnDs">แตะไพ่ที่ต้องการทิ้ง (เลือกกี่ใบก็ได้) แล้วจั่วใหม่เท่าจำนวนที่ทิ้ง</div><div class="nnRow"><div class="nnHd">' + hand.map(function (c, i) {
+        return '<button type="button" class="nnC' + (ms.indexOf(i) >= 0 ? " on" : "") + '" data-act="nmx" data-v="' + i + '"><img alt="' + esc(cn(c.n)) + '" src="' + tsrc(c.n) + '"><b>' + c.n + "</b><small>" + esc(cn(c.n)) + "</small></button>";
+      }).join("") + '</div><div class="nnAct"><button type="button" data-act="nmgo">' + (ms.length ? "🌙 ทิ้ง " + ms.length + " ใบ แล้วจั่วใหม่" : "ไม่เปลี่ยน ไปต่อ") + "</button></div></div>";
       return;
     }
     var sel = null; hand.forEach(function (c) { if (c.id === M.sel) sel = c; });
@@ -193,7 +193,7 @@
     var rem = Math.ceil((Date.parse(g.turn_deadline_at) - (Date.now() + X.skew())) / 1000), txt;
     if (over) txt = "";
     else {
-      var what = pd && pd.t === "forced" ? "ต้องลงใบที่ 2" : pd && pd.t === "extra" ? "ลงเพิ่มหรือข้าม" : pd && pd.t === "pick" ? "เลือกไพ่จาก The Sun" : null;
+      var what = pd && pd.t === "forced" ? "ต้องลงใบที่ 2" : pd && pd.t === "extra" ? "ลงเพิ่มหรือข้าม" : pd && pd.t === "moon" ? "เลือกไพ่ที่จะทิ้ง (The Moon)" : null;
       txt = p === M.myP ? (what ? "ถึงตาคุณ — " + what : "ถึงตาคุณ — เลือกไพ่แล้วกดลง") : (what ? what + "…" : "กำลังคิดว่าจะลงใบไหน…");
       if (isFinite(rem)) txt += " · ⏱ " + Math.max(0, rem) + " วิ";
       var rp = X.S.players.filter(function (x) { return x.seat === pub.players[p].seat; })[0];
@@ -233,7 +233,7 @@
   function rnd(a) { return Math.round((Math.random() - .5) * a); }
   async function animate(l) {
     var u = ui(), p = l.p, i = M.order.indexOf(p);
-    if (l.kind === "pass" || l.kind === "pick") { setCap(l); await sl(700); return; }
+    if (l.kind === "pass" || l.kind === "swap") { setCap(l); await sl(700); return; }
     if (l.forfeit) {
       setCap(l); u.nsfx("boom"); u.banner("🏳️ " + nm(p) + (l.elim != null && M.mode === "elimination" ? " ตกรอบ" : " ยอมแพ้"), REASON[l.reason], 1800); u.shake();
       await sl(1700); return;
@@ -324,7 +324,7 @@
   function mount(root, g, pub, me) {
     var u = ui();
     M.mode = pub.mode || "one_loser";
-    M.gid = g.id; M.n = pub.players.length; M.cap = pub.cap; M.resultShown = false; M.tgp = null;
+    M.gid = g.id; M.n = pub.players.length; M.cap = pub.cap; M.resultShown = false; M.tgp = null; M.mset = [];
     M.myP = -1; pub.players.forEach(function (pl) { if (pl.seat === me.seat) M.myP = pl.p; });
     M.order = []; for (var i = 0; i < M.n; i++) M.order.push((M.myP + i) % M.n);
     M.names = pub.players.map(function (pl) { return pl.name; });
@@ -394,7 +394,8 @@
     if (a === "ntg") { var t = M.tgp; if (t) send({ action: "play", card_id: t.id, k: t.k, tg: +v }, selRect()); return true; }
     if (a === "ntgx") { M.tgp = null; paintHand(); return true; }
     if (a === "npass") { send({ action: "pass" }); return true; }
-    if (a === "npk") { send({ action: "pick", idx: +v }); return true; }
+    if (a === "nmx") { var ms0 = M.mset || (M.mset = []), qi = ms0.indexOf(+v); if (qi >= 0) ms0.splice(qi, 1); else ms0.push(+v); paintHand(); return true; }
+    if (a === "nmgo") { var ix = (M.mset || []).slice(); M.mset = []; send({ action: "swap", ix: ix }); return true; }
     if (a === "nintj") { send({ action: "interject" }, ui().rectOf(Q("#nnHand"))); return true; }
     if (a === "nrules") { var r = Q("#nnRules"); if (r && g) { r.innerHTML = rulesHTML(g.public_state); r.hidden = false; } return true; }
     if (a === "nrulesx") { var r2 = Q("#nnRules"); if (r2) r2.hidden = true; return true; }
