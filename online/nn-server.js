@@ -4,7 +4,7 @@
  *
  * ดัชนีผู้เล่นใน pub ทุกช่อง เป็น "ดัชนีเดิมตอนเริ่มเกม" ซึ่งคงที่ตลอดเกม ส่วน engine ใช้ดัชนี 0..n-1 ของ "ผู้เล่นที่ยังอยู่" (pub.alive)
  * แปลงที่ขอบของ pubFrom/engineFrom เท่านั้น
- * action ที่รองรับ: play (card_id, k, tg) · pass (ข้ามการลงเพิ่มของ Chariot) · swap (เลือกไพ่ที่จะทิ้งของ Moon) · interject (Empress แทรกเทิร์น) · forfeit
+ * action ที่รองรับ: play (card_id, k, tg) · pass (ข้ามการลงเพิ่มของ Chariot) · pick (เลือกไพ่ Sun) · interject (Empress แทรกเทิร์น) · forfeit
  * โหมด one_loser: alive = ทุกคนตลอดเกม · โหมด elimination: ตกรอบแล้วกองรีเซ็ตเป็น 0 เล่นต่อจนเหลือ 1 คน
  */
 (function (root, factory) {
@@ -29,12 +29,12 @@
     });
     var seq = null;
     if (G.seq) {
-      seq = { p: alive[G.seq.p], plays: G.seq.plays, max: G.seq.max, forced: G.seq.forced, opt: G.seq.opt, sun: G.seq.sun, moon: !!G.seq.moon, owed: G.seq.owed,
+      seq = { p: alive[G.seq.p], plays: G.seq.plays, max: G.seq.max, forced: G.seq.forced, opt: G.seq.opt, sun: G.seq.sun, owed: G.seq.owed,
         post: G.seq.post.map(function (e) { return e.fx === "swap" ? { fx: "swap", a: alive[e.a], b: alive[e.b] } : { fx: "devil", q: alive[e.q] }; }) };
     }
     return {
       v: 3, mode: meta.mode, np: np, alive: alive.slice(), out: meta.out.slice(),
-      cap: G.cap, n: G.n, heatAt: G.heatAt, hb: G.hb || 0,
+      cap: G.cap, n: G.n, heatAt: G.heatAt,
       total: G.total, prev: G.prev, dir: G.dir, cur: alive[G.cur], turn: G.turn, heat: G.heat(),
       seq_n: meta.seq, turns: meta.turns,
       shield: shield, seal: seal, owe: owe, calm: calm, rev: rev, seq: seq,
@@ -74,7 +74,7 @@
     var pick = function (arr) { return alive.map(function (o) { return arr[o]; }); };
     var rev = alive.map(function (o) { return (pub.rev || []).some(function (r) { return r.p === o; }); });
     var st = {
-      cap: pub.cap, n: alive.length, two: alive.length === 2, heatAt: pub.heatAt, hb: pub.hb || 0, total: pub.total, prev: pub.prev,
+      cap: pub.cap, n: alive.length, two: alive.length === 2, heatAt: pub.heatAt, total: pub.total, prev: pub.prev,
       dir: pub.dir, cur: inv(pub.cur), over: -1, turn: pub.turn,
       shield: pick(pub.shield).map(Boolean), seal: pick(pub.seal).map(Boolean), owe: pick(pub.owe).map(Boolean), calm: pick(pub.calm).map(function (x) { return x || 0; }), rev: rev,
       dbl: pub.dbl ? { p: inv(pub.dbl.p), left: pub.dbl.left } : null,
@@ -84,7 +84,7 @@
       hands: alive.map(function (o) { return snap.hands[snap.uids[o]]; })
     };
     if (pub.seq) {
-      st.seq = { p: inv(pub.seq.p), plays: pub.seq.plays, max: pub.seq.max, forced: pub.seq.forced, opt: pub.seq.opt, sun: pub.seq.sun, moon: !!pub.seq.moon, owed: pub.seq.owed,
+      st.seq = { p: inv(pub.seq.p), plays: pub.seq.plays, max: pub.seq.max, forced: pub.seq.forced, opt: pub.seq.opt, sun: pub.seq.sun, owed: pub.seq.owed,
         post: pub.seq.post.map(function (e) { return e.fx === "swap" ? { fx: "swap", a: inv(e.a), b: inv(e.b) } : { fx: "devil", q: inv(e.q) }; }) };
     }
     if (pub.pend) {
@@ -198,7 +198,7 @@
     opt = opt || {};
     var c0 = baseCheck(snap, uid); if (c0.error) return c0;
     var pub = snap.pub, orig = c0.orig, alive = pub.alive;
-    if (pub.pend && pub.pend.t === "moon") return { error: pub.pend.p === orig ? "must_swap" : "not_your_turn" };
+    if (pub.pend && pub.pend.t === "pick") return { error: pub.pend.p === orig ? "must_pick" : "not_your_turn" };
     if (actor(pub) !== orig) return { error: "not_your_turn" };
     var mine = snap.hands[uid] || [];
     var i = -1;
@@ -236,23 +236,17 @@
     var res = finish(snap, G, last, "pass"); res.action = { p: orig, pass: true, last: last }; return res;
   }
 
-  // The Moon: เลือกไพ่ในมือที่จะทิ้งกี่ใบก็ได้ (ix = ดัชนีในมือ ไม่ซ้ำ) แล้วจั่วใหม่เท่าจำนวนที่ทิ้ง
-  function applySwap(snap, uid, ix, rnd) {
+  // เลือกไพ่ 1 ใบจาก 3 ใบของ The Sun (ผู้เลือกเท่านั้นที่เห็นไพ่)
+  function applyPick(snap, uid, idx, rnd) {
     var c0 = baseCheck(snap, uid); if (c0.error) return c0;
     var pub = snap.pub, orig = c0.orig;
-    if (!pub.pend || pub.pend.t !== "moon") return { error: "no_pending" };
+    if (!pub.pend || pub.pend.t !== "pick") return { error: "no_pending" };
     if (pub.pend.p !== orig) return { error: "not_your_turn" };
     var G = NN.importState(engineFrom(snap), rnd), p = pub.alive.indexOf(orig);
-    if (!Array.isArray(ix) || ix.length > 12) return { error: "bad_option" };
-    var seen = {}, hl = G.hands[p].length;
-    for (var j = 0; j < ix.length; j++) {
-      if (!Number.isInteger(ix[j]) || ix[j] < 0 || ix[j] >= hl || seen[ix[j]]) return { error: "bad_option" };
-      seen[ix[j]] = 1;
-    }
-    var r = G.swap(p, ix);
-    if (!r) return { error: "no_pending" };
-    var last = { seq: pub.seq_n, kind: "swap", p: orig, n: null, id: null, t: "", k: r.k, before: pub.total, after: pub.total, heat: 0, fx: null, saved: false, bust: false };
-    var res = finish(snap, G, last, "swap"); res.action = { p: orig, swap: r.k, last: last }; return res;
+    if (!(Number.isInteger(idx) && idx >= 0 && idx < G.pend.cards.length)) return { error: "bad_option" };
+    if (!G.pick(p, idx)) return { error: "no_pending" };
+    var last = { seq: pub.seq_n, kind: "pick", p: orig, n: null, id: null, t: "", before: pub.total, after: pub.total, heat: 0, fx: null, saved: false, bust: false };
+    var res = finish(snap, G, last, "pick"); res.action = { p: orig, pick: idx, last: last }; return res;
   }
 
   // The Empress แทรกเทิร์น (ผู้เล่นที่ไม่ใช่ตาของตัวเอง)
@@ -284,5 +278,5 @@
     return { loser: pub.over, winner: pub.winner, turns: pub.turns, total: pub.last ? pub.last.after : pub.total, cap: pub.cap, out: pub.out };
   }
 
-  return { startGame: startGame, applyPlay: applyPlay, applyPass: applyPass, applySwap: applySwap, applyInterject: applyInterject, applyForfeit: applyForfeit, summary: summary, copy: copy };
+  return { startGame: startGame, applyPlay: applyPlay, applyPass: applyPass, applyPick: applyPick, applyInterject: applyInterject, applyForfeit: applyForfeit, summary: summary, copy: copy };
 });

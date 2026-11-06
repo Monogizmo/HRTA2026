@@ -45,15 +45,15 @@
       return { ok: true, game_id: res.game_id };
     }
 
-    var KINDS = { play: 1, pass: 1, swap: 1, interject: 1 };
+    var KINDS = { play: 1, pass: 1, pick: 1, interject: 1 };
     var optInt = function (v) { return v == null || Number.isInteger(v); };
 
-    // ลงไพ่ / ข้าม (Chariot) / เลือกไพ่ที่จะทิ้ง (Moon) / แทรก (Empress) — ผ่านขั้นตอนเดียวกัน
+    // ลงไพ่ / ข้าม (Chariot) / เลือกไพ่ (Sun) / แทรก (Empress) — ผ่านขั้นตอนเดียวกัน
     async function act(uid, b, kind) {
       if (!UUID.test(String(b.game_id || "")) || !UUID.test(String(b.request_id || ""))) return { error: "bad_request" };
       if (!Number.isInteger(b.expected_version)) return { error: "bad_request" };
       if (kind === "play" && !Number.isInteger(b.card_id)) return { error: "bad_request" };
-      if (kind === "swap" && !Array.isArray(b.ix)) return { error: "bad_request" };
+      if (kind === "pick" && !Number.isInteger(b.idx)) return { error: "bad_request" };
       if (!optInt(b.k) || !optInt(b.tg)) return { error: "bad_request" };
       var game = await q(admin.from("games").select("*").eq("id", b.game_id).maybeSingle());
       if (!game) return { error: "game_not_found" };
@@ -82,7 +82,7 @@
 
       var out = kind === "play" ? SV.applyPlay(snap, uid, b.card_id, rnd, { k: b.k, tg: b.tg })
         : kind === "pass" ? SV.applyPass(snap, uid, rnd)
-        : kind === "swap" ? SV.applySwap(snap, uid, b.ix, rnd)
+        : kind === "pick" ? SV.applyPick(snap, uid, b.idx, rnd)
         : SV.applyInterject(snap, uid, rnd);
       if (out.error) return { error: out.error };
       // การแทรก (Empress) ไม่รีเซ็ตเวลาของคนที่กำลังจะลง

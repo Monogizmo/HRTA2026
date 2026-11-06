@@ -23,7 +23,7 @@ for (const n of [3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1; se
     if (iu) { const r = SV.applyInterject(snap, iu, rnd); if (!r.error) { apply(r); inter++; } }
     else {
       const a = agent(snap, mv); let r;
-      if (a.kind === "swap") r = SV.applySwap(snap, a.uid, a.ix, rnd);
+      if (a.kind === "pick") r = SV.applyPick(snap, a.uid, a.idx, rnd);
       else if (a.kind === "pass") r = SV.applyPass(snap, a.uid, rnd);
       else r = SV.applyPlay(snap, a.uid, a.card_id, rnd, { k: a.k, tg: a.tg });
       apply(r);
@@ -34,8 +34,8 @@ for (const n of [3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1; se
     const base = all.filter(x => x.id < 900).map(x => x.id).sort((a, b) => a - b);
     assert.strictEqual(base.length, 44); assert.strictEqual(new Set(base).size, 44);
     // ไพ่ที่รอเลือกเห็นได้เฉพาะผู้เลือก
-    if (p.pend && p.pend.t === "moon") pend++;
-    assert.strictEqual(Object.keys(snap.extras).length, 0, "no private extras expected");
+    if (p.pend && p.pend.t === "pick") { pend++; const u = snap.uids[p.pend.p]; assert.ok(snap.extras[u] && snap.extras[u].pick.length >= 1); assert.strictEqual(Object.keys(snap.extras).length, 1); }
+    else assert.strictEqual(Object.keys(snap.extras).length, 0, "stale pending extra");
     p.out.forEach(o => { if (p.over < 0 || o !== p.over) assert.strictEqual(snap.hands[snap.uids[o]].length, 0); });
     if (p.over < 0) {
       assert.ok(p.alive.every(o => !p.out.includes(o)));
@@ -51,7 +51,7 @@ for (const n of [3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1; se
   assert.strictEqual(p.over, p.out[p.out.length - 1]);
   games++;
 }
-console.log(`ok  elimination logic: ${games} games, ${elims} mid-game eliminations (${twoSwitch} down to 2 players), ${inter} interjections, ${pend} Moon swaps; card conservation + turn order + resets hold`);
+console.log(`ok  elimination logic: ${games} games, ${elims} mid-game eliminations (${twoSwitch} down to 2 players), ${inter} interjections, ${pend} Sun picks; card conservation + turn order + resets hold`);
 
 // โหมดเดี่ยวไม่เปลี่ยน: alive = ทุกคนตลอดเกม, ไม่มี winner
 { const r = prng(5), players = [0, 1, 2].map(i => ({ user_id: "u" + i, seat: i + 1, name: "P" + i, avatar: "" }));

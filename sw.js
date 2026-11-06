@@ -1,6 +1,6 @@
 // HRTA Offsite - service worker
 // เปลี่ยนเลขเวอร์ชันนี้ทุกครั้งที่แก้ไฟล์ เพื่อบังคับให้เครื่องผู้ใช้โหลดของใหม่
-const VERSION = "v32";
+const VERSION = "v33";
 const CACHE = "hrta-offsite-" + VERSION;
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png",
   "online/online.css", "online/config.js", "online/nn-engine.js", "online/online-game.js", "online/online.js",
@@ -14,7 +14,7 @@ const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon
   "img/07-47c0a45c.jpg",
   "img/08-7b079276.jpg",
   "img/09-9087c7d6.jpg",
-  "img/10-4a36b655.jpg",
+  "img/10-fd83dbc2.jpg",
   "img/11-d3d30171.jpg",
   "img/12-c208595e.jpg",
   "img/13-dfeee269.jpg",
@@ -48,7 +48,7 @@ const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon
   "img/41-24fc7403.jpg",
   "img/42-87784f91.jpg",
   "img/43-aad150dd.jpg",
-  "img/44-96d2fe9d.jpg",
+  "img/44-e541de21.jpg",
   "img/45-f321de6d.jpg",
   "img/46-129072b7.jpg",
   "img/47-defd9456.jpg",

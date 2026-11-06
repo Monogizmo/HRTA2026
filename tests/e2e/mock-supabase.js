@@ -83,7 +83,7 @@
   }
   function botAction(snap, uid) {
     var pub = snap.pub, actor = pub.pend ? pub.pend.p : pub.cur, hand = snap.hands[uid];
-    if (pub.pend && pub.pend.t === "moon") return { action: "swap", ix: hand.map(function (c, i) { return i; }).filter(function () { return Math.random() < .5; }) };
+    if (pub.pend && pub.pend.t === "pick") return { action: "pick", idx: Math.floor(Math.random() * (snap.extras[uid] ? snap.extras[uid].pick.length : 1)) };
     if (pub.pend && pub.pend.t === "extra" && Math.random() < .5) return { action: "pass" };
     var cand = hand.slice();
     if (pub.force === actor) { var mx = Math.max.apply(null, cand.map(function (c) { return c.n; })); cand = cand.filter(function (c) { return c.n === mx; }); }

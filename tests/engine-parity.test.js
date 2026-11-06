@@ -1,6 +1,6 @@
 // รัน:  node tests/engine-parity.test.js
 // ตรวจ: (1) engine ที่แยกออกมายังเหมือนใน index.html  (2) ตรรกะเซิร์ฟเวอร์ (nn-server.js) เล่นตาม action เดียวกันแล้วได้สถานะตรงกับ engine ตัวตรง ๆ ทุก action
-//       (ลง/เลือกเป้าหมาย/ข้าม Chariot/เลือกไพ่ที่จะทิ้งของ Moon/แทรก Empress)  (3) กติกาของเซิร์ฟเวอร์ปฏิเสธ action ผิดตา/ผิดไพ่ และข้อมูลลับไม่หลุดสู่ public
+//       (ลง/เลือกเป้าหมาย/ข้าม Chariot/เลือก Sun/แทรก Empress)  (3) กติกาของเซิร์ฟเวอร์ปฏิเสธ action ผิดตา/ผิดไพ่ และข้อมูลลับไม่หลุดสู่ public
 const fs = require("fs"), path = require("path"), assert = require("assert");
 const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
@@ -17,9 +17,9 @@ function grab(s) {
 assert.strictEqual(grab(shared), grab(html), "nn-engine.js ไม่ตรงกับ engine ใน index.html");
 console.log("ok  (1) engine text identical to index.html");
 
-const FIELDS = ["cap", "hb", "total", "prev", "dir", "cur", "over", "turn", "shield", "seal", "owe", "calm", "dbl", "force", "hands", "deck", "disc"];
+const FIELDS = ["total", "prev", "dir", "cur", "over", "turn", "shield", "seal", "owe", "calm", "dbl", "force", "hands", "deck", "disc"];
 const snapG = G => JSON.stringify(FIELDS.map(k => G[k]));
-let games = 0, steps = 0; const kinds = { play: 0, pass: 0, swap: 0, interject: 0 };
+let games = 0, steps = 0; const kinds = { play: 0, pass: 0, pick: 0, interject: 0 };
 for (const n of [2, 3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1; seed <= 120; seed++) {
   const rA = prng(seed * 7919 + n * 31 + cap), rC = prng(seed * 7919 + n * 31 + cap), mv = prng(seed * 104729 + n), mi = prng(seed * 13 + n);
   const A = NN.engine({ cap, n }, rA); A.deal(); A.cur = Math.floor(rA() * n);
@@ -60,7 +60,7 @@ for (const n of [2, 3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1;
       assert.strictEqual(SV.applyInterject(snap, iu, rC).error, "cant_interject");      // เช่นถูกบังคับลงใบสูงสุดแต่ Empress ไม่ใช่ใบสูงสุด
     }
     const a = agent(snap, mv), p = snap.uids.indexOf(a.uid);
-    if (a.kind === "swap") { assert.ok(A.swap(p, a.ix)); apply(SV.applySwap(snap, a.uid, a.ix, rC)); kinds.swap++; }
+    if (a.kind === "pick") { assert.ok(A.pick(p, a.idx)); apply(SV.applyPick(snap, a.uid, a.idx, rC)); kinds.pick++; }
     else if (a.kind === "pass") { assert.ok(A.pass(p)); apply(SV.applyPass(snap, a.uid, rC)); kinds.pass++; }
     else {
       const i = A.hands[p].findIndex(c => c.id === a.card_id);
@@ -90,17 +90,16 @@ console.log(`ok  (2) ${games} games, ${steps} actions (${JSON.stringify(kinds)})
   assert.strictEqual(SV.applyPlay(snap, "stranger", myCard, r).error, "not_in_game");
   assert.strictEqual(SV.applyPlay(snap, snap.uids[cur], myCard, r, { k: 9 }).error, "bad_option");
   assert.strictEqual(SV.applyPass(snap, snap.uids[cur], r).error, "no_pending");
-  assert.strictEqual(SV.applySwap(snap, snap.uids[cur], [], r).error, "no_pending");
+  assert.strictEqual(SV.applyPick(snap, snap.uids[cur], 0, r).error, "no_pending");
   assert.strictEqual(SV.applyInterject(snap, snap.uids[cur], r).error, "cant_interject");
   // บังคับใบสูงสุด
   const s2 = JSON.parse(JSON.stringify(snap)); s2.pub.force = cur;
   s2.hands[s2.uids[cur]] = [{ n: 5, id: 5 }, { n: 17, id: 17 }, { n: 9, id: 9 }];
   assert.strictEqual(SV.applyPlay(s2, s2.uids[cur], 5, r).error, "illegal_card");
   assert.ok(!SV.applyPlay(s2, s2.uids[cur], 17, r, { k: 0 }).error);
-  // ต้องเลือกเป้าหมายเมื่อมี 3 คนขึ้นไป (Fool / Emperor) — Moon ไม่ต้องเลือกเป้าหมายแล้ว
+  // ต้องเลือกเป้าหมายเมื่อมี 3 คนขึ้นไป (Fool / Emperor / Moon)
   const s3 = JSON.parse(JSON.stringify(snap)); s3.hands[s3.uids[cur]] = [{ n: 0, id: 0 }, { n: 4, id: 4 }, { n: 18, id: 18 }];
-  assert.ok(!SV.applyPlay(s3, s3.uids[cur], 18, r, { k: 0 }).error);
-  [0, 4].forEach(id => { assert.strictEqual(SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0 }).error, "need_target"); assert.strictEqual(SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0, tg: cur }).error, "need_target"); assert.ok(!SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0, tg: other }).error); });
+  [0, 4, 18].forEach(id => { assert.strictEqual(SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0 }).error, "need_target"); assert.strictEqual(SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0, tg: cur }).error, "need_target"); assert.ok(!SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0, tg: other }).error); });
   // จบเกมแล้วลงไม่ได้
   const s4 = JSON.parse(JSON.stringify(snap)); s4.pub.over = 0;
   assert.strictEqual(SV.applyPlay(s4, s4.uids[cur], myCard, r).error, "game_over");

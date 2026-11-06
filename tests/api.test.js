@@ -8,7 +8,7 @@ function prng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B7
 const uuid = () => crypto.randomUUID();
 const clone = x => JSON.parse(JSON.stringify(x));
 
-// เดินเกม 1 action ผ่าน API จริง: แทรก Empress (บางครั้ง) / เลือกไพ่ที่จะทิ้งของ Moon / ข้าม Chariot / ลงไพ่พร้อมเลือกตัวเลือกและเป้าหมาย
+// เดินเกม 1 action ผ่าน API จริง: แทรก Empress (บางครั้ง) / เลือก Sun / ข้าม Chariot / ลงไพ่พร้อมเลือกตัวเลือกและเป้าหมาย
 async function step(s, gid, mv) {
   const g = s.T.games[0], pub = g.public_state, rows = s.T.player_private_states;
   const uids = pub.players.map(pl => rows.find(x => x.seat === pl.seat).user_id), hands = {}, extras = {};
@@ -17,7 +17,7 @@ async function step(s, gid, mv) {
   const iu = wantsInterject(snap, mv, 0.25);
   if (iu) { const r = await s.api.handle(iu, Object.assign({ action: "interject" }, base)); if (r.ok) return r; assert.strictEqual(r.error, "cant_interject"); base.request_id = uuid(); }
   const a = agent(snap, mv);
-  if (a.kind === "swap") return s.api.handle(a.uid, Object.assign({ action: "swap", ix: a.ix }, base));
+  if (a.kind === "pick") return s.api.handle(a.uid, Object.assign({ action: "pick", idx: a.idx }, base));
   if (a.kind === "pass") return s.api.handle(a.uid, Object.assign({ action: "pass" }, base));
   return s.api.handle(a.uid, Object.assign({ action: "play", card_id: a.card_id, k: a.k, tg: a.tg }, base));
 }

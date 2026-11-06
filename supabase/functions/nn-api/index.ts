@@ -14,8 +14,8 @@ const self = globalThis;
 })(typeof self !== "undefined" ? self : this, function () {
   var RES=[0,9,11,12,13,16,17,18,20];
   function nnEngine(o,rnd){rnd=rnd||Math.random;
-     var G={cap:o.cap,n:o.n,two:o.n===2,hands:[],deck:[],disc:[],total:0,prev:0,dir:1,cur:0,over:-1,turn:0,band:9,shield:[],force:-1,heatAt:Math.round(o.cap/6),dbl:null,seal:[],owe:[],calm:[],rev:[],seq:null,pend:null,hb:0};
-     G.heat=function(){return(G.turn>=G.heatAt?1+Math.floor((G.turn-G.heatAt)/6):0)+(G.hb||0)};
+     var G={cap:o.cap,n:o.n,two:o.n===2,hands:[],deck:[],disc:[],total:0,prev:0,dir:1,cur:0,over:-1,turn:0,band:9,shield:[],force:-1,heatAt:Math.round(o.cap/6),dbl:null,seal:[],owe:[],calm:[],rev:[],seq:null,pend:null};
+     G.heat=function(){return G.turn>=G.heatAt?1+Math.floor((G.turn-G.heatAt)/6):0};
      var shuf=function(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
      var scr=function(t){return Math.floor(t/100)*100+(t%10)*10+Math.floor((t%100)/10)};
      G.deal=function(){var d=[];for(var k=0;k<2;k++)for(var n=0;n<22;n++)d.push({n:n,id:k*22+n});G.deck=shuf(d);G.disc=[];G.hands=[];G.shield=[];G.seal=[];G.owe=[];G.calm=[];G.rev=[];for(var p=0;p<G.n;p++){G.hands.push(G.deck.splice(0,3));G.shield.push(false);G.seal.push(false);G.owe.push(false);G.calm.push(0);G.rev.push(false)}};
@@ -26,7 +26,7 @@ const self = globalThis;
      G.next=function(p){return((p+G.dir)%G.n+G.n)%G.n};
      G.legal=function(p){var h=G.hands[p],ix=[],mx=-1;h.forEach(function(c){if(c.n>mx)mx=c.n});h.forEach(function(c,i){if(G.force!==p||c.n===mx)ix.push(i)});return ix};
      G.targets=function(p){var a=[];for(var q=0;q<G.n;q++)if(q!==p)a.push(q);return a};
-     G.needsTarget=function(fx){return fx==="fool"||fx==="seal"};
+     G.needsTarget=function(fx){return fx==="fool"||fx==="seal"||fx==="moon"};
      /* พลังไพ่ (ใช้เหมือนกันทุกจำนวนผู้เล่น) */
      G.opts=function(n){var c=G.cap,t=G.total,hf=t+Math.ceil((c-t)/2);switch(n){
       case 0:return[{t:"+0 สลับมือ",v:0,fx:"fool"}];
@@ -47,8 +47,8 @@ const self = globalThis;
       case 15:return[{t:"+15 คนต่อไปลง 2",v:15,fx:"devil"}];
       case 16:return[{t:"ล้างกอง → 0",set:0}];
       case 17:return[{t:"−17 → "+Math.max(0,t-17),v:-17,fx:"star"},{t:"+17 → "+(t+17),v:17,fx:"star"}];
-      case 18:return[{t:"+"+(t%10)+" เปลี่ยนไพ่ในมือ",v:t%10,fx:"moon"}];
-      case 19:return[{t:"+19 เพดาน +19 🔥+1",v:19,fx:"sun"}];
+      case 18:return[{t:"+0 หงายไพ่",v:0,fx:"moon"}];
+      case 19:return[{t:"+19 เปิดไพ่ 3 ใบ",v:19,fx:"sun"}];
       case 20:return[{t:"+20 ทุกคนล้างไพ่",v:20,fx:"all"}];
       case 21:return[{t:"ดันเป็น "+c,set:c,fx:"world"}];
       default:return[{t:"+"+n,v:n}]}};
@@ -56,14 +56,14 @@ const self = globalThis;
      var calc=function(p,c,k,sealed){
       var o=sealed?{t:"+"+c.n,v:c.n}:G.opts(c.n)[k||0],b=G.total,fx=o.fx||"";
       var t=o.set!=null?o.set:Math.max(0,b+o.v);if(fx==="wheel")t=Math.max(0,b+Math.floor(rnd()*41)-15);
-      var hh=G.heat();if(fx==="star"&&hh>0)G.calm[p]=2;if(fx==="world"||fx==="sun")hh=0;if(fx==="sun")G.cap+=19;if(G.calm[p]>0){hh=0;G.calm[p]--}
+      var hh=G.heat();if(fx==="star"&&hh>0)G.calm[p]=2;if(fx==="world")hh=0;if(G.calm[p]>0){hh=0;G.calm[p]--}
       t+=hh;var saved=false;
       if(t>G.cap&&G.shield[p]){G.shield[p]=false;saved=true;t=Math.max(0,G.cap-15)}
       return{o:o,b:b,fx:fx,t:t,hh:hh,saved:saved}};
      var pickTg=function(p,tg){var a=G.targets(p);return a.indexOf(tg)>=0?tg:(a.length===1?a[0]:G.next(p))};
      /* ลงไพ่ 1 ใบ (tg = เป้าหมายของ Fool/Emperor/Moon) — ถ้ายังต้องรับคำสั่งต่อ (ลงใบที่ 2 / ลงเพิ่ม / เลือก Sun) จะตั้ง G.pend */
      G.play=function(p,i,k,tg){if(G.force===p)G.force=-1;
-      var S=(G.seq&&G.seq.p===p)?G.seq:(G.seq={p:p,plays:0,max:1,forced:!!(G.dbl&&G.dbl.p===p),opt:false,sun:false,moon:false,owed:0,post:[]});
+      var S=(G.seq&&G.seq.p===p)?G.seq:(G.seq={p:p,plays:0,max:1,forced:!!(G.dbl&&G.dbl.p===p),opt:false,sun:false,owed:0,post:[]});
       var c=G.hands[p].splice(i,1)[0],sealed=!!G.seal[p];G.seal[p]=false;
       var m=calc(p,c,k,sealed),o=m.o,fx=m.fx,nx=G.next(p);
       G.total=m.t;G.prev=m.b;G.disc.push(c);G.turn++;
@@ -79,28 +79,25 @@ const self = globalThis;
       if(G.needsTarget(fx)){tg=pickTg(p,tg);r.tg=tg;
        if(fx==="fool")S.post.push({fx:"swap",a:p,b:tg});
        if(fx==="seal")G.seal[tg]=true;
-       }
+       if(fx==="moon")G.rev[tg]=true}
       if(fx==="devil")S.post.push({fx:"devil",q:nx});
-      if(fx==="sun")G.hb++;if(fx==="moon")S.moon=true;
+      if(fx==="sun")S.sun=true;
       if(fx==="chariot"&&!S.forced&&S.plays===1){S.opt=true;S.max=2}
       if(S.forced&&S.plays<2){G.pend={t:"forced",p:p};r.pend="forced";return r}
       if(S.opt&&S.plays<2){G.pend={t:"extra",p:p};r.pend="extra";return r}
       return G.finish(p,r)};
-     /* จบการลงไพ่ของตา: จั่วคืนตามจำนวนที่ลง (Moon: หลังจั่วคืน รอผู้ลงเลือกทิ้งไพ่ในมือแล้วจั่วใหม่) */
-     G.finish=function(p,r){return G.end(p,r)};
+     /* จบการลงไพ่ของตา: Sun เปิดไพ่ 3 ใบให้เลือก 1 ใบแทนการจั่ว ไม่งั้นจั่วคืนตามจำนวนที่ลง */
+     G.finish=function(p,r){var S=G.seq;
+      if(S.sun){S.sun=false;var cs=[];for(var j=0;j<3;j++){if(!G.deck.length)G.deck=shuf(G.disc.splice(0));if(G.deck.length)cs.push(G.deck.shift())}
+       if(cs.length>1){S.owed--;G.pend={t:"pick",p:p,cards:cs};r.pend="pick";r.cards=cs;return r}
+       if(cs.length===1){S.owed--;G.hands[p].push(cs[0])}}
+      return G.end(p,r)};
+     G.pick=function(p,idx){var pd=G.pend;if(!pd||pd.t!=="pick"||pd.p!==p||!(idx>=0&&idx<pd.cards.length))return null;
+      var cs=pd.cards.slice(),ch=cs.splice(idx,1)[0];G.hands[p].push(ch);G.deck=G.deck.concat(cs);G.pend=null;
+      return G.end(p,{pick:true,p:p,c:ch,pend:null})};
      G.pass=function(p){var pd=G.pend;if(!pd||pd.t!=="extra"||pd.p!==p)return null;G.pend=null;return G.end(p,{pass:true,p:p,pend:null})};
      G.end=function(p,r){var S=G.seq;
       for(var j=0;j<S.owed;j++)G.draw(p);S.owed=0;
-      if(S.moon){S.moon=false;if(G.hands[p].length){G.pend={t:"moon",p:p};r.pend="moon";return r}}
-      return G.fin(p,r)};
-     /* The Moon: ทิ้งไพ่ในมือกี่ใบก็ได้ (ix = ดัชนีในมือ) แล้วจั่วใหม่เท่าจำนวนที่ทิ้ง — จั่วก่อนแล้วค่อยทิ้ง จึงไม่ได้ใบที่เพิ่งทิ้งกลับมา */
-     G.swap=function(p,ix){var pd=G.pend;if(!pd||pd.t!=="moon"||pd.p!==p)return null;
-      var h=G.hands[p],u=[];(ix||[]).forEach(function(i){if(Number.isInteger(i)&&i>=0&&i<h.length&&u.indexOf(i)<0)u.push(i)});
-      var nw=[];for(var j=0;j<u.length;j++){if(!G.deck.length)G.deck=shuf(G.disc.splice(0));if(G.deck.length)nw.push(G.deck.shift())}
-      u=u.slice(0,nw.length).sort(function(a,b){return b-a});
-      u.forEach(function(i){G.disc.push(h.splice(i,1)[0])});nw.forEach(function(c){h.push(c)});
-      G.pend=null;return G.fin(p,{swap:true,p:p,k:u.length,pend:null})};
-     G.fin=function(p,r){var S=G.seq;
       if(S.forced&&G.dbl&&G.dbl.p===p)G.dbl=null;
       S.post.forEach(function(e){if(e.fx==="swap"){var t=G.hands[e.a];G.hands[e.a]=G.hands[e.b];G.hands[e.b]=t}else if(e.fx==="devil")G.dbl={p:e.q,left:2}});
       G.rev[p]=false;G.seq=null;G.pend=null;G.adv(p);return r};
@@ -117,12 +114,12 @@ const self = globalThis;
      /* AI */
      G.aiBest=function(p){var best=null,bs=-1e9,hh=G.heat(),cm=G.calm[p]>0?0:hh;
       G.legal(p).forEach(function(i){var c=G.hands[p][i],os=G.seal[p]?[{t:"+"+c.n,v:c.n}]:G.opts(c.n);
-       os.forEach(function(o,k){var w=o.fx==="wheel",h2=(o.fx==="world"||o.fx==="sun")?0:cm,t=(o.set!=null?o.set:w?G.total+5:Math.max(0,G.total+o.v))+h2,s;
-        if(t>(o.fx==="sun"?G.cap+19:G.cap)){s=G.shield[p]?G.cap-15-30+rnd()*4:-1000-(t-G.cap)}
-        else{s=t+rnd()*7;if(o.fx==="sun")s-=19;if(RES.indexOf(c.n)>=0&&t<G.cap-25)s-=16;if(w&&G.total+25+h2>G.cap)s-=40}
+       os.forEach(function(o,k){var w=o.fx==="wheel",h2=o.fx==="world"?0:cm,t=(o.set!=null?o.set:w?G.total+5:Math.max(0,G.total+o.v))+h2,s;
+        if(t>G.cap){s=G.shield[p]?G.cap-15-30+rnd()*4:-1000-(t-G.cap)}
+        else{s=t+rnd()*7;if(RES.indexOf(c.n)>=0&&t<G.cap-25)s-=16;if(w&&G.total+25+h2>G.cap)s-=40}
         if(s>bs){bs=s;best={i:i,k:k,t:t,tg:G.needsTarget(o.fx)?(o.fx==="fool"?G.targets(p)[Math.floor(rnd()*(G.n-1))]:G.next(p)):null}}})});return best};
      G.aiStep=function(p){var pd=G.pend;
-      if(pd&&pd.p===p&&pd.t==="moon"){var dx=[];G.hands[p].forEach(function(c,i){if([15,17,18,19,20].indexOf(c.n)>=0)dx.push(i)});return{t:"swap",ix:dx}}
+      if(pd&&pd.p===p&&pd.t==="pick"){var bi=0;pd.cards.forEach(function(c,i){if(c.n<pd.cards[bi].n)bi=i});return{t:"pick",idx:bi}}
       var b=G.aiBest(p);
       if(pd&&pd.p===p&&pd.t==="extra"&&!(b&&b.t<G.total))return{t:"pass"};
       return{t:"play",i:b.i,k:b.k,tg:b.tg}};
@@ -130,7 +127,7 @@ const self = globalThis;
      return G}
 
   /* ---- ส่วนเสริม (ไม่อยู่ใน engine เดิม): แปลง state เป็น JSON เพื่อเก็บใน DB ---- */
-  var KEYS = ["cap", "n", "two", "hands", "deck", "disc", "total", "prev", "dir", "cur", "over", "turn", "shield", "dbl", "force", "heatAt", "seal", "owe", "calm", "rev", "seq", "pend", "hb"];
+  var KEYS = ["cap", "n", "two", "hands", "deck", "disc", "total", "prev", "dir", "cur", "over", "turn", "shield", "dbl", "force", "heatAt", "seal", "owe", "calm", "rev", "seq", "pend"];
   function exportState(G) {
     var s = {};
     KEYS.forEach(function (k) { s[k] = G[k]; });
@@ -152,7 +149,7 @@ const self = globalThis;
  *
  * ดัชนีผู้เล่นใน pub ทุกช่อง เป็น "ดัชนีเดิมตอนเริ่มเกม" ซึ่งคงที่ตลอดเกม ส่วน engine ใช้ดัชนี 0..n-1 ของ "ผู้เล่นที่ยังอยู่" (pub.alive)
  * แปลงที่ขอบของ pubFrom/engineFrom เท่านั้น
- * action ที่รองรับ: play (card_id, k, tg) · pass (ข้ามการลงเพิ่มของ Chariot) · swap (เลือกไพ่ที่จะทิ้งของ Moon) · interject (Empress แทรกเทิร์น) · forfeit
+ * action ที่รองรับ: play (card_id, k, tg) · pass (ข้ามการลงเพิ่มของ Chariot) · pick (เลือกไพ่ Sun) · interject (Empress แทรกเทิร์น) · forfeit
  * โหมด one_loser: alive = ทุกคนตลอดเกม · โหมด elimination: ตกรอบแล้วกองรีเซ็ตเป็น 0 เล่นต่อจนเหลือ 1 คน
  */
 (function (root, factory) {
@@ -177,12 +174,12 @@ const self = globalThis;
     });
     var seq = null;
     if (G.seq) {
-      seq = { p: alive[G.seq.p], plays: G.seq.plays, max: G.seq.max, forced: G.seq.forced, opt: G.seq.opt, sun: G.seq.sun, moon: !!G.seq.moon, owed: G.seq.owed,
+      seq = { p: alive[G.seq.p], plays: G.seq.plays, max: G.seq.max, forced: G.seq.forced, opt: G.seq.opt, sun: G.seq.sun, owed: G.seq.owed,
         post: G.seq.post.map(function (e) { return e.fx === "swap" ? { fx: "swap", a: alive[e.a], b: alive[e.b] } : { fx: "devil", q: alive[e.q] }; }) };
     }
     return {
       v: 3, mode: meta.mode, np: np, alive: alive.slice(), out: meta.out.slice(),
-      cap: G.cap, n: G.n, heatAt: G.heatAt, hb: G.hb || 0,
+      cap: G.cap, n: G.n, heatAt: G.heatAt,
       total: G.total, prev: G.prev, dir: G.dir, cur: alive[G.cur], turn: G.turn, heat: G.heat(),
       seq_n: meta.seq, turns: meta.turns,
       shield: shield, seal: seal, owe: owe, calm: calm, rev: rev, seq: seq,
@@ -222,7 +219,7 @@ const self = globalThis;
     var pick = function (arr) { return alive.map(function (o) { return arr[o]; }); };
     var rev = alive.map(function (o) { return (pub.rev || []).some(function (r) { return r.p === o; }); });
     var st = {
-      cap: pub.cap, n: alive.length, two: alive.length === 2, heatAt: pub.heatAt, hb: pub.hb || 0, total: pub.total, prev: pub.prev,
+      cap: pub.cap, n: alive.length, two: alive.length === 2, heatAt: pub.heatAt, total: pub.total, prev: pub.prev,
       dir: pub.dir, cur: inv(pub.cur), over: -1, turn: pub.turn,
       shield: pick(pub.shield).map(Boolean), seal: pick(pub.seal).map(Boolean), owe: pick(pub.owe).map(Boolean), calm: pick(pub.calm).map(function (x) { return x || 0; }), rev: rev,
       dbl: pub.dbl ? { p: inv(pub.dbl.p), left: pub.dbl.left } : null,
@@ -232,7 +229,7 @@ const self = globalThis;
       hands: alive.map(function (o) { return snap.hands[snap.uids[o]]; })
     };
     if (pub.seq) {
-      st.seq = { p: inv(pub.seq.p), plays: pub.seq.plays, max: pub.seq.max, forced: pub.seq.forced, opt: pub.seq.opt, sun: pub.seq.sun, moon: !!pub.seq.moon, owed: pub.seq.owed,
+      st.seq = { p: inv(pub.seq.p), plays: pub.seq.plays, max: pub.seq.max, forced: pub.seq.forced, opt: pub.seq.opt, sun: pub.seq.sun, owed: pub.seq.owed,
         post: pub.seq.post.map(function (e) { return e.fx === "swap" ? { fx: "swap", a: inv(e.a), b: inv(e.b) } : { fx: "devil", q: inv(e.q) }; }) };
     }
     if (pub.pend) {
@@ -346,7 +343,7 @@ const self = globalThis;
     opt = opt || {};
     var c0 = baseCheck(snap, uid); if (c0.error) return c0;
     var pub = snap.pub, orig = c0.orig, alive = pub.alive;
-    if (pub.pend && pub.pend.t === "moon") return { error: pub.pend.p === orig ? "must_swap" : "not_your_turn" };
+    if (pub.pend && pub.pend.t === "pick") return { error: pub.pend.p === orig ? "must_pick" : "not_your_turn" };
     if (actor(pub) !== orig) return { error: "not_your_turn" };
     var mine = snap.hands[uid] || [];
     var i = -1;
@@ -384,23 +381,17 @@ const self = globalThis;
     var res = finish(snap, G, last, "pass"); res.action = { p: orig, pass: true, last: last }; return res;
   }
 
-  // The Moon: เลือกไพ่ในมือที่จะทิ้งกี่ใบก็ได้ (ix = ดัชนีในมือ ไม่ซ้ำ) แล้วจั่วใหม่เท่าจำนวนที่ทิ้ง
-  function applySwap(snap, uid, ix, rnd) {
+  // เลือกไพ่ 1 ใบจาก 3 ใบของ The Sun (ผู้เลือกเท่านั้นที่เห็นไพ่)
+  function applyPick(snap, uid, idx, rnd) {
     var c0 = baseCheck(snap, uid); if (c0.error) return c0;
     var pub = snap.pub, orig = c0.orig;
-    if (!pub.pend || pub.pend.t !== "moon") return { error: "no_pending" };
+    if (!pub.pend || pub.pend.t !== "pick") return { error: "no_pending" };
     if (pub.pend.p !== orig) return { error: "not_your_turn" };
     var G = NN.importState(engineFrom(snap), rnd), p = pub.alive.indexOf(orig);
-    if (!Array.isArray(ix) || ix.length > 12) return { error: "bad_option" };
-    var seen = {}, hl = G.hands[p].length;
-    for (var j = 0; j < ix.length; j++) {
-      if (!Number.isInteger(ix[j]) || ix[j] < 0 || ix[j] >= hl || seen[ix[j]]) return { error: "bad_option" };
-      seen[ix[j]] = 1;
-    }
-    var r = G.swap(p, ix);
-    if (!r) return { error: "no_pending" };
-    var last = { seq: pub.seq_n, kind: "swap", p: orig, n: null, id: null, t: "", k: r.k, before: pub.total, after: pub.total, heat: 0, fx: null, saved: false, bust: false };
-    var res = finish(snap, G, last, "swap"); res.action = { p: orig, swap: r.k, last: last }; return res;
+    if (!(Number.isInteger(idx) && idx >= 0 && idx < G.pend.cards.length)) return { error: "bad_option" };
+    if (!G.pick(p, idx)) return { error: "no_pending" };
+    var last = { seq: pub.seq_n, kind: "pick", p: orig, n: null, id: null, t: "", before: pub.total, after: pub.total, heat: 0, fx: null, saved: false, bust: false };
+    var res = finish(snap, G, last, "pick"); res.action = { p: orig, pick: idx, last: last }; return res;
   }
 
   // The Empress แทรกเทิร์น (ผู้เล่นที่ไม่ใช่ตาของตัวเอง)
@@ -432,7 +423,7 @@ const self = globalThis;
     return { loser: pub.over, winner: pub.winner, turns: pub.turns, total: pub.last ? pub.last.after : pub.total, cap: pub.cap, out: pub.out };
   }
 
-  return { startGame: startGame, applyPlay: applyPlay, applyPass: applyPass, applySwap: applySwap, applyInterject: applyInterject, applyForfeit: applyForfeit, summary: summary, copy: copy };
+  return { startGame: startGame, applyPlay: applyPlay, applyPass: applyPass, applyPick: applyPick, applyInterject: applyInterject, applyForfeit: applyForfeit, summary: summary, copy: copy };
 });
 
 /* ===== online/nn-api-core.js ===== */
@@ -483,15 +474,15 @@ const self = globalThis;
       return { ok: true, game_id: res.game_id };
     }
 
-    var KINDS = { play: 1, pass: 1, swap: 1, interject: 1 };
+    var KINDS = { play: 1, pass: 1, pick: 1, interject: 1 };
     var optInt = function (v) { return v == null || Number.isInteger(v); };
 
-    // ลงไพ่ / ข้าม (Chariot) / เลือกไพ่ที่จะทิ้ง (Moon) / แทรก (Empress) — ผ่านขั้นตอนเดียวกัน
+    // ลงไพ่ / ข้าม (Chariot) / เลือกไพ่ (Sun) / แทรก (Empress) — ผ่านขั้นตอนเดียวกัน
     async function act(uid, b, kind) {
       if (!UUID.test(String(b.game_id || "")) || !UUID.test(String(b.request_id || ""))) return { error: "bad_request" };
       if (!Number.isInteger(b.expected_version)) return { error: "bad_request" };
       if (kind === "play" && !Number.isInteger(b.card_id)) return { error: "bad_request" };
-      if (kind === "swap" && !Array.isArray(b.ix)) return { error: "bad_request" };
+      if (kind === "pick" && !Number.isInteger(b.idx)) return { error: "bad_request" };
       if (!optInt(b.k) || !optInt(b.tg)) return { error: "bad_request" };
       var game = await q(admin.from("games").select("*").eq("id", b.game_id).maybeSingle());
       if (!game) return { error: "game_not_found" };
@@ -520,7 +511,7 @@ const self = globalThis;
 
       var out = kind === "play" ? SV.applyPlay(snap, uid, b.card_id, rnd, { k: b.k, tg: b.tg })
         : kind === "pass" ? SV.applyPass(snap, uid, rnd)
-        : kind === "swap" ? SV.applySwap(snap, uid, b.ix, rnd)
+        : kind === "pick" ? SV.applyPick(snap, uid, b.idx, rnd)
         : SV.applyInterject(snap, uid, rnd);
       if (out.error) return { error: out.error };
       // การแทรก (Empress) ไม่รีเซ็ตเวลาของคนที่กำลังจะลง
