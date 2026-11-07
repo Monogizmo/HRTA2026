@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
+<script src="emoji-fix.js"></script>
 <title>HRTA Offsite Meeting · กาญจนบุรี</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap" rel="stylesheet">
@@ -676,6 +677,35 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
 @keyframes wrRif{0%{transform:translate(-34px,0) rotate(-9deg)}25%{transform:translate(-6px,-10px) rotate(0)}50%{transform:translate(34px,0) rotate(9deg)}75%{transform:translate(6px,-10px) rotate(0)}100%{transform:translate(-34px,0) rotate(-9deg)}}
 </style>
 <link rel="stylesheet" href="online/online.css">
+<style id="wtCss">
+#wrB[data-gm="tac"] #wrSet,#wrB[data-gm="tac"] #wrPlay,#wrB[data-gm="tac"] #wrBan,#wrB[data-gm="tac"] #wrEnd{display:none!important}
+#wrB:not([data-gm="tac"]) #wtSet,#wrB:not([data-gm="tac"]) #wtPlay,#wrB:not([data-gm="tac"]) #wtEnd{display:none!important}
+.wtModes{display:flex;gap:6px;padding:6px 8px}.wtModes button{flex:1;padding:9px 6px;border-radius:12px;border:2px solid var(--wr-gold);background:#13283a;color:var(--wr-cream);font:inherit;font-weight:700;cursor:pointer}.wtModes button.on{background:var(--wr-gold);color:#2b1a08}
+.wtPlay{padding:6px 8px;display:flex;flex-direction:column;gap:6px;color:var(--wr-cream)}
+.wtBar{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12px;font-weight:700}.wtBar .wrIc{margin-left:auto}
+.wtOpp{display:flex;align-items:center;gap:8px;min-height:50px}.wtOpp .bks{display:flex}.wtOpp .bks .wtC{margin-left:-32px}.wtOpp .bks .wtC:first-child{margin-left:0}.wtOpp .st{font-size:12px;flex:1;text-align:right}
+.wtC{width:76px;height:112px;border-radius:9px;background:#f6efd9;border:2px solid var(--wr-gold);position:relative;overflow:hidden;flex:0 0 auto;color:#2b1a08;font-size:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;user-select:none}
+.wtC .im{position:absolute;inset:0;background:#d9c9a0}.wtC .im img{width:100%;height:100%;object-fit:cover;display:block}
+.wtC .nb{position:absolute;left:3px;top:2px;background:#2b1a08;color:var(--wr-gold);border-radius:6px;padding:0 5px;font-size:13px}
+.wtC .tg{position:absolute;right:2px;top:2px;background:var(--wr-gold);color:#2b1a08;font-style:normal;font-weight:700;border-radius:6px;padding:0 4px;font-size:10px}
+.wtC.sel,.wtC.up,.wtC.stk{transform:translateY(-8px);box-shadow:0 6px 14px rgba(0,0,0,.45)}.wtC.sel{border-color:#7fe3a0}.wtC.up{border-color:#ffd24a}.wtC.stk{border-color:#ee8f78}
+.wtC.bk{background:repeating-linear-gradient(45deg,#1b4768,#1b4768 6px,#143650 6px,#143650 12px);cursor:default}
+.wtC.sm{width:62px;height:90px}
+.wtHand.many .wtC{width:60px;height:90px}
+.wtTbl{display:flex;align-items:center;justify-content:center;gap:10px;min-height:104px}.wtSw{display:flex;flex-direction:column;align-items:center;gap:2px}.wtSl{min-width:62px;min-height:90px;border:2px dashed rgba(230,193,90,.4);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.wtSl.win{border-color:#7fe3a0;box-shadow:0 0 14px #7fe3a0}.wtSl.lose{opacity:.55}.wtSl.war{border-color:#ee8f78}.wtSl .wtC{cursor:default}
+.wtVs{font-weight:900;color:var(--wr-gold)}.wtKk{font-size:11px;min-height:14px}.wtPot{text-align:center;font-size:12px;min-height:16px}
+.wtTip{font-size:12px;min-height:34px;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.28)}
+.wtHand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:120px;padding-top:10px}
+.wtAct{display:flex;gap:8px;flex-wrap:wrap}.wtAct .wrBtn{flex:1;min-width:120px}.wtAct .wrBtn.on{outline:3px solid #7fe3a0}.wtAct button:disabled{opacity:.45}
+.wtEnd{text-align:center;padding:14px 10px;color:var(--wr-cream)}.wtEnd .big{font-size:34px;font-weight:900;margin:2px 0}
+@media (prefers-reduced-motion:reduce){.wtC{transition:none}}
+@media (max-width:420px){.wtC{width:70px;height:104px}.wtC.sm{width:56px;height:82px}}
+.qlb{margin-top:18px}.qlb h3{margin:0 0 8px}
+.qlbTabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.qlbTabs button{padding:7px 12px;border-radius:999px;border:1px solid var(--line,#d9cfb8);background:#fff;font:inherit;cursor:pointer}.qlbTabs button.on{background:#4f6b3a;color:#fff;border-color:#4f6b3a}
+.qlbWrap{overflow-x:auto}.qlbT{border-collapse:collapse;width:100%;font-size:14px}.qlbT th,.qlbT td{padding:7px 8px;text-align:left;border-bottom:1px solid rgba(0,0,0,.08);white-space:nowrap}.qlbT th{font-size:12px;opacity:.7}.qlbT td:nth-child(1){width:38px;text-align:center}.qlbT tr.me td{background:rgba(224,182,74,.22);font-weight:700}
+.qlbErr{color:#a4452c}
+</style>
 </head>
 <body>
 <main>
@@ -780,6 +810,7 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
         <button type="button" class="wrIc" id="wrRl" aria-label="อ่านกติกาสงครามไพ่">📖</button>
         <button type="button" class="wrIc" id="wrQuit" aria-label="ออกจากเกมนี้" hidden>✕</button>
       </div>
+      <div class="wtModes" id="wtModes" role="group" aria-label="เลือกโหมดสงครามไพ่"><button type="button" data-g="luck" class="on">🎲 วัดดวง</button><button type="button" data-g="tac">🧠 ยุทธวิธี</button></div>
       <div class="wrDl" id="wrDl">
         <svg class="sc" viewBox="0 0 470 166" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>
@@ -807,9 +838,33 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
         <div class="wrShuf" id="wrShuf" hidden aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div class="wrSay" id="wrSay" aria-live="polite"><span class="wrWho">🎩 น้องเบสท์ · เจ้ามือ</span><span class="t" id="wrSayT"></span></div>
+      <div class="wrPanel" id="wtSet">
+        <div class="wrRow"><div class="wrLb">① ระดับโคลน (น้องเบสท์)</div>
+          <div class="wrOpt" id="wtOLv"><button type="button" data-v="novice">😊 มือใหม่</button><button type="button" data-v="normal" class="on">🎯 ปกติ</button><button type="button" data-v="hard">😈 ตัวโหด</button></div></div>
+        <div class="wrRow"><div class="wrLb">② เมื่อไหร่ถึงเรียกว่า “ชนกัน”</div>
+          <div class="wrOpt" id="wtOCl"><button type="button" data-v="u" class="on">🎯 หลักหน่วยเหมือนกัน</button><button type="button" data-v="un">🔥 + ห่าง 1</button><button type="button" data-v="eq">📜 เลขเท่ากัน</button></div></div>
+        <div class="wrRow"><div class="wrLb">③ “คนโง่ล้มเจ้าโลก”</div>
+          <div class="wrOpt" id="wtOFl"><button type="button" data-v="1" class="on">🃏 เปิด</button><button type="button" data-v="0">ปิด</button></div></div>
+        <div class="wrRow"><button type="button" class="wrBtn wrGo" id="wtStart">⚔️ เริ่มกับโคลน</button>
+          <p class="wrDesc" id="wtDRw"></p>
+          <button type="button" class="wrBtn alt" data-onl-open>🌐 ออนไลน์ 2 คน (สร้างห้อง / เข้าห้อง)</button>
+          <p class="wrDesc">เล่นเครื่องเดียวกับเพื่อนไม่ได้ เพราะไพ่ที่เลือกเป็นความลับ — เล่นกับโคลน หรือออนไลน์คนละเครื่อง</p></div>
+        <p class="wrDesc">ถือไพ่ 3 ใบ เลือกลงพร้อมกัน เลขมากชนะ เก็บไพ่ทั้งสองใบ · เพิ่มเดิมพันได้ 2 ครั้ง/เกม · ชนกันเป็นสงคราม สู้หรือถอยก็ได้</p>
+      </div>
+      <div class="wtPlay" id="wtPlay" hidden>
+        <div class="wtBar"><span id="wtRd"></span><span id="wtDk"></span><span id="wtPl"></span><span id="wtDd"></span><button type="button" class="wrIc" id="wtQuit" aria-label="เลิกเล่นตานี้">✕</button></div>
+        <div class="wtOpp" id="wtOpp"></div>
+        <div class="wtTbl"><div class="wtSw"><div class="wtSl" id="wtS0"></div><span class="wtKk" id="wtK0"></span></div><span class="wtVs">VS</span><div class="wtSw"><div class="wtSl" id="wtS1"></div><span class="wtKk" id="wtK1"></span></div></div>
+        <div class="wtPot" id="wtPot"></div>
+        <div class="wtTip" id="wtTip" aria-live="polite"></div>
+        <div class="wtHand" id="wtHand"></div>
+        <div class="wtAct"><button type="button" class="wrBtn alt" id="wtRz" hidden></button><button type="button" class="wrBtn alt" id="wtRt" hidden></button><button type="button" class="wrBtn" id="wtGo" hidden></button></div>
+        <details class="wrLogBox"><summary>📜 บันทึกสนามรบ <span id="wtLogN" class="gTips"></span></summary><ol id="wtLog" reversed></ol></details>
+      </div>
+      <div class="wtEnd" id="wtEnd" hidden></div>
       <div class="wrPanel" id="wrSet">
         <div class="wrRow"><div class="wrLb">① เลือกคู่ต่อสู้</div>
-          <div class="wrOpt" id="wrOMode"><button type="button" data-v="friend" class="on">👫 เพื่อน 2 คน</button><button type="button" data-v="dealer">🎩 ท้าเจ้ามือน้องเบสท์</button></div>
+          <div class="wrOpt" id="wrOMode"><button type="button" data-v="friend" class="on">👫 เพื่อนเครื่องเดียวกัน</button><button type="button" data-v="dealer">🎩 เล่นกับโคลน (น้องเบสท์)</button></div>
           <p class="wrDesc" id="wrDMode"></p></div>
         <div class="wrRow"><div class="wrLb">② ชื่อผู้เล่น</div>
           <div class="wrNames"><input class="wrIn c0" id="wrI0" maxlength="12" autocomplete="off" aria-label="ชื่อผู้เล่นฝั่งซ้าย"><input class="wrIn c1" id="wrI1" maxlength="12" autocomplete="off" aria-label="ชื่อผู้เล่นฝั่งขวา"></div></div>
@@ -907,6 +962,9 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
   <p>20 ข้อ เลือกชื่อของคุณก่อนเริ่ม ทำได้ไม่จำกัดครั้ง ลำดับข้อและตัวเลือกสลับทุกรอบ ระบบจะจำคะแนนสูงสุดของคุณในเครื่องนี้</p>
   <select id="qzName" aria-label="เลือกชื่อ"><option value="">เลือกชื่อของคุณ</option></select>
   <div id="qzBody"></div>
+  <div id="qzLb" class="qlb"><h3>🏆 ลีดเดอร์บอร์ด Quiz</h3>
+    <div class="qlbTabs"><button type="button" class="on" data-m="team">🌐 ทั้งทีม</button><button type="button" data-m="local">📱 เครื่องนี้</button><button type="button" id="qlbRef" aria-label="รีเฟรชอันดับ">↻ รีเฟรช</button></div>
+    <div id="qlbBody" aria-live="polite"></div></div>
 </section>
 
   <section id="soulmate">
@@ -1845,6 +1903,67 @@ function qDraw(){
     $("#qzNx").onclick = () => { QS.locked = false; if (QS.i === 19) qFinish(); else { QS.i++; qDraw(); } };
   });
 }
+/* ---------- Quiz Leaderboard: อันดับทั้งทีม (Supabase quiz_submit / quiz_leaderboard) + อันดับเฉพาะเครื่องนี้ ---------- */
+const QB = { mode: "team", rows: null, err: "", loading: false };
+function qPend(){ try { const a = JSON.parse(localStorage.getItem("hrta-quiz-pending") || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function qPendSave(a){ try { localStorage.setItem("hrta-quiz-pending", JSON.stringify(a.slice(-60))); } catch (e) {} }
+async function qbClient(){ if (!window.HRTAOnline || !HRTAOnline.getClient) throw new Error("no_online"); return await HRTAOnline.getClient(); }
+/* ส่งคะแนนที่ค้างอยู่ขึ้นเซิร์ฟเวอร์ (เรียงตามลำดับ) — คืน true ถ้าส่งหมด; ที่ error ถาวร (ชื่อ/คะแนนไม่ถูกต้อง, เกินโควตา) ทิ้งไป ไม่ติดคิว */
+async function qbFlush(){
+  const p = qPend(); if (!p.length) return true;
+  const sb = await qbClient(), rest = [];
+  for (let i = 0; i < p.length; i++){
+    let r; try { r = await sb.rpc("quiz_submit", { p_name: p[i].n, p_score: p[i].s }); } catch (e) { r = { error: { message: "network" } }; }
+    if (r.error && !/bad_name|bad_score|rate_limited/.test(r.error.message || "")) { rest.push(...p.slice(i)); break; }
+  }
+  qPendSave(rest); return rest.length === 0;
+}
+function qbLocalRows(){
+  const l = qLocal();
+  return Object.keys(l).map(n => { const r = l[n], h = r.h || []; return { name: n, best: r.best || 0, last: r.last == null ? r.best : r.last, plays: r.attempts || h.length, avg: h.length ? Math.round(h.reduce((a, b) => a + b, 0) / h.length * 10) / 10 : r.best || 0 }; })
+    .sort((a, b) => b.best - a.best || a.plays - b.plays || a.name.localeCompare(b.name, "th"));
+}
+function qbRender(){
+  const el = $("#qlbBody"); if (!el) return;
+  const local = QB.mode === "local", rows = local ? qbLocalRows() : QB.rows, me = ($("#qzName") || {}).value;
+  let note = "";
+  if (!local && QB.loading && !rows) { el.innerHTML = `<p class="cap">กำลังโหลดอันดับ…</p>`; return; }
+  if (!local && QB.err) note = `<p class="cap qlbErr">${esc(QB.err)}${QB.rows ? " (แสดงอันดับที่โหลดไว้ล่าสุด)" : ""}</p>`;
+  if (!rows || !rows.length){ el.innerHTML = note + `<p class="cap">${local ? "ยังไม่มีใครทำ Quiz ในเครื่องนี้" : QB.err ? "" : "ยังไม่มีใครทำ Quiz — เป็นคนแรกเลย!"}</p>`; return; }
+  const medal = i => i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1);
+  const tot = rows.reduce((a, r) => a + (r.plays || 0), 0);
+  el.innerHTML = note + `<p class="cap">${local ? "เฉพาะเครื่องนี้" : "ทั้งทีม"} · ผู้เล่น ${rows.length} คน · เล่นรวม ${tot} ครั้ง</p>` +
+    `<div class="qlbWrap"><table class="qlbT"><thead><tr><th>#</th><th>ชื่อ</th><th>สูงสุด</th><th>เฉลี่ย</th><th>เล่น (ครั้ง)</th></tr></thead><tbody>` +
+    rows.map((r, i) => `<tr class="${r.name === me ? "me" : ""}"><td>${medal(i)}</td><td>${esc(r.name)}</td><td><b>${r.best}</b>/20</td><td>${r.avg}</td><td>${r.plays}</td></tr>`).join("") + `</tbody></table></div>`;
+}
+async function qbLoad(){
+  if (QB.mode === "local"){ qbRender(); return; }
+  if (QB.loading) return; QB.loading = true; QB.err = ""; qbRender();
+  try {
+    await qbFlush();
+    const sb = await qbClient(), r = await sb.rpc("quiz_leaderboard");
+    if (r.error) throw r.error;
+    QB.rows = Array.isArray(r.data) ? r.data : [];
+  } catch (e) {
+    const m = (e && e.message) || "";
+    QB.err = m === "no_online" || /failed to fetch|network|load failed|lib_missing/i.test(m) ? "ดึงอันดับทีมไม่ได้ (ไม่มีอินเทอร์เน็ต?)" : /anonymous/i.test(m) ? "ผู้ดูแลยังไม่ได้เปิด Anonymous sign-ins ใน Supabase" : /quiz_leaderboard|schema cache|does not exist/i.test(m) ? "ยังไม่ได้ติดตั้งตารางอันดับ (migration 007) บนเซิร์ฟเวอร์" : "ดึงอันดับทีมไม่สำเร็จ";
+  }
+  QB.loading = false; qbRender();
+}
+function qbInit(){
+  const box = $("#qzLb"); if (!box) return;
+  box.querySelectorAll(".qlbTabs button[data-m]").forEach(b => b.onclick = () => { QB.mode = b.dataset.m; box.querySelectorAll(".qlbTabs button[data-m]").forEach(x => x.classList.toggle("on", x === b)); qbLoad(); });
+  $("#qlbRef").onclick = () => qbLoad();
+  document.querySelectorAll('.tab[data-t="quiz"]').forEach(t => t.addEventListener("click", () => qbLoad()));
+  const nm = $("#qzName"); if (nm) nm.addEventListener("change", () => qbRender());
+  qbRender();
+}
+async function qbAfterFinish(n, s){
+  const p = qPend(); p.push({ n: n, s: s, t: Date.now() }); qPendSave(p);
+  let ok = false; try { ok = await qbFlush(); } catch (e) { ok = false; }
+  const sv = $("#qzSave"); if (sv) sv.textContent = ok ? "บันทึกคะแนนสูงสุดไว้ในเครื่องนี้ และส่งขึ้นอันดับทีมแล้ว ✓" : "บันทึกไว้ในเครื่องนี้แล้ว ✓ · ยังส่งอันดับทีมไม่ได้ (จะลองส่งใหม่ให้อัตโนมัติ)";
+  if (QB.mode === "team") qbLoad(); else qbRender();
+}
 async function qFinish(){
   const n = QS.name, s = QS.score, miss = QS.miss; QS.done = true;
   const msg = s === 20 ? "เต็ม 20! ผู้รู้กาญจน์ตัวจริง 🏆" : s >= 16 ? "เก่งมาก! แทบเป็นไกด์แล้ว 🎉" : s >= 11 ? "ผ่านฉลุย 👍" : s >= 6 ? "ยังไหว ลองใหม่อีกรอบนะ 💪" : "ไปทริปนี้แล้วจะรู้เองค่ะ 😆";
@@ -1854,10 +1973,12 @@ async function qFinish(){
   const loc = qLocal(), r = loc[n] || { name: n, h: [], attempts: 0 };
   r.h = (r.h || []).concat(s).slice(-50); r.best = Math.max(...r.h); r.attempts = (r.attempts || 0) + 1; r.last = s; loc[n] = r;
   try { localStorage.setItem("hrta-quiz", JSON.stringify(loc)); } catch (e) {}
-  const sv = $("#qzSave"); if (sv) sv.textContent = "บันทึกคะแนนสูงสุดไว้ในเครื่องนี้แล้ว ✓";
+  const sv = $("#qzSave"); if (sv) sv.textContent = "บันทึกคะแนนสูงสุดไว้ในเครื่องนี้แล้ว ✓ · กำลังส่งขึ้นอันดับทีม…";
+  qbAfterFinish(n, s);
   window.bestSay && bestSay("ได้ " + s + "/20 ค่ะ " + msg); window.gameQuiz && gameQuiz(s);
 }
 function qzInit(){
+  qbInit();
   const sel = $("#qzName"); Object.keys(MIS).forEach(n => { const o = document.createElement("option"); o.value = n; o.textContent = n; sel.appendChild(o); });
   sel.onchange = () => { QS = null; qDraw(); };
   qDraw();
@@ -3841,9 +3962,419 @@ wrApi.setSpeed=function(s){W.speed=s};wrApi.state=function(){return{W:W,E:E,R:R}
 (function init(){var S=ST.wr;S.day=S.day||"";S.n=(S.n&&typeof S.n==="object")?S.n:{f:0,d:0};if(S.n.f==null)S.n.f=0;if(S.n.d==null)S.n.d=0;
  var bk=getComputedStyle(document.getElementById("fz")||document.body).getPropertyValue("--fz-back");if(bk)B.style.setProperty("--wr-back",bk.trim());
  buildInfo();applyPrefs();renderStats();paintSndW();say(pick("welcome"),"🃏");W.greeted=true})();
+wrApi.say=say;wrApi.wsfx=wsfx;wrApi.cards=loadCards;wrApi.busy=function(){return W.run};
 /*UI_END*/
 
 })();
+
+/* ===== สงครามไพ่โหมดยุทธวิธี (เล่นกับโคลน = น้องเบสท์) =====
+   engine + AI ฝังจาก online/war-engine.js ด้วย node tools/embed-war.js (ห้ามแก้ระหว่างเครื่องหมาย WT_*) */
+(function(){
+var Q=function(q){return document.querySelector(q)};
+var B=Q("#wrB");if(!B||!Q("#wtSet"))return;
+var wrA=window.__war||{};
+/*WT_ENGINE_START*/
+function wtEngine(R0, rnd) {
+  var R = {clash: "u", fool: 1, hand: 3, wh: 7, cap: 60, raise: 1, raiseMax: 2};
+  for (var k0 in (R0 || {})) R[k0] = R0[k0];
+  rnd = rnd || Math.random;
+  var shuf = function (a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t } return a };
+  var E = {R: R, deck: [], hands: [[], []], piles: [[], []], disc: [], pot: [], up: [null, null], cs: null, stk: [null, null],
+    round: 0, wars: 0, depth: 0, phase: "play", over: null, pub: {}, own: [{}, {}], rz: [0, 0], ev: [],
+    st: {rw: [0, 0], ww: [0, 0], ret: [0, 0], maxd: 0, pot: 0}};
+  var mark = function (cards) { cards.forEach(function (c) { if (c) E.pub[c.id] = 1 }) };
+  var cnum = function (c) { return c ? c.n : -1 };
+  var rmId = function (arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr.splice(i, 1)[0]; return null };
+  var hasId = function (arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return true; return false };
+  var emit = function (o) { E.ev.push(o) };
+
+  E.deal = function () {
+    var d = []; for (var k = 0; k < 2; k++) for (var n = 0; n < 22; n++) d.push({n: n, d: k, id: k * 22 + n});
+    shuf(d); E.hands = [d.slice(0, R.hand), d.slice(R.hand, 2 * R.hand)]; E.deck = d.slice(2 * R.hand);
+    E.piles = [[], []]; E.disc = []; E.pot = []; E.round = 0; E.wars = 0; E.phase = "play"; E.over = null;
+    E.pub = {}; E.own = [{}, {}]; E.rz = [0, 0];
+    return E;
+  };
+  E.clashes = function (a, b) { if (a === b) return true; if (R.clash === "eq") return false; if (a % 10 === b % 10) return true; return R.clash === "un" && Math.abs(a - b) === 1 };
+  E.draw = function (p) { var c = E.deck.shift(); if (!c) return null; E.hands[p].push(c); return c };
+  var drawTo = function (n) { /* จั่วสลับฝั่ง จนมือ >= n หรือกองหมด; ฝั่งที่เริ่มก่อนสลับทุกรอบ */
+    var f = E.round % 2, go = true;
+    while (go && E.deck.length) { go = false; for (var i = 0; i < 2; i++) { var p = (f + i) % 2; if (E.hands[p].length < n && E.deck.length) { E.draw(p); go = true } } }
+  };
+
+  /* ---------- ตรวจการเลือก ---------- */
+  E.legalPlay = function (p, ch) {
+    if (!(ch && E.phase === "play" && !E.over && hasId(E.hands[p], ch.c))) return false;
+    if (ch.x == null) return true;
+    return !!R.raise && E.rz[p] < R.raiseMax && ch.x !== ch.c && hasId(E.hands[p], ch.x);
+  };
+  E.needDown = function (p) { return Math.min(3, Math.max(0, E.hands[p].length - 1)) };
+  E.legalWar = function (p, ch) {
+    if (E.phase !== "war" || E.over) return false;
+    if (!E.hands[p].length) return true;
+    if (!ch) return false; if (ch.r) return true;
+    var h = E.hands[p], d = ch.down || [], nd = E.needDown(p), seen = {};
+    if (d.length !== nd || ch.up == null) return false;
+    var all = d.concat([ch.up]);
+    for (var i = 0; i < all.length; i++) { if (seen[all[i]] || !hasId(h, all[i])) return false; seen[all[i]] = 1 }
+    return true;
+  };
+
+  /* ---------- ขั้นตอนหลัก ---------- */
+  E.step = function (ch) {
+    E.ev = [];
+    if (E.over) return E.ev;
+    if (E.phase === "play") playStep(ch); else warStep(ch);
+    return E.ev;
+  };
+
+  function playStep(ch) {
+    var cs = [], p;
+    for (p = 0; p < 2; p++) { if (!E.legalPlay(p, ch && ch[p])) throw new Error("illegal play p" + p); }
+    for (p = 0; p < 2; p++) cs.push(rmId(E.hands[p], ch[p].c));
+    var stk = [null, null];
+    if (R.raise) for (p = 0; p < 2; p++) if (ch[p].x != null) { stk[p] = rmId(E.hands[p], ch[p].x); E.rz[p]++ }
+    E.stk = stk; mark(stk.filter(Boolean));
+    E.cs = cs; E.round++; E.up = cs.slice(); E.pot = cs.concat(stk.filter(Boolean)); E.depth = 0; mark(cs);
+    emit({t: "flip", r: E.round, up: cs.map(cnum), stk: stk.map(function (c) { return c ? c.n : -1 })});
+    var a = cs[0].n, b = cs[1].n, fw = -1;
+    if (R.fool) { if (a === 0 && b === 21) fw = 0; else if (a === 21 && b === 0) fw = 1 }
+    if (fw >= 0) return settle(fw, false, {fool: true});
+    if (E.clashes(a, b)) return startWar();
+    return settle(a > b ? 0 : 1, false, {});
+  }
+
+  function startWar() {
+    E.wars++; E.depth++; if (E.depth > E.st.maxd) E.st.maxd = E.depth;
+    E.phase = "war";
+    drawTo(R.wh);
+    emit({t: "war", d: E.depth, pot: E.pot.length, ups: E.up.map(cnum)});
+  }
+
+  function warStep(ch) {
+    var p, mode = ["f", "f"];
+    for (p = 0; p < 2; p++) {
+      if (!E.hands[p].length) mode[p] = "x";
+      else { if (!E.legalWar(p, ch && ch[p])) throw new Error("illegal war p" + p); if (ch[p].r) mode[p] = "r" }
+    }
+    if (mode[0] === "f" && mode[1] === "f") {
+      var ups = [], downN = [0, 0];
+      for (p = 0; p < 2; p++) {
+        var dn = ch[p].down.map(function (id) { return rmId(E.hands[p], id) });
+        dn.forEach(function (c) { E.own[p][c.id] = 1 });
+        downN[p] = dn.length; E.pot = E.pot.concat(dn); ups.push(rmId(E.hands[p], ch[p].up));
+      }
+      E.pot = E.pot.concat(ups); E.up = ups; mark(ups);
+      emit({t: "lay", ups: ups.map(cnum), dn: downN, pot: E.pot.length});
+      var a = ups[0].n, b = ups[1].n, fw = -1;
+      if (R.fool) { if (a === 0 && b === 21) fw = 0; else if (a === 21 && b === 0) fw = 1 }
+      if (fw >= 0) return settle(fw, true, {fool: true});
+      if (E.clashes(a, b)) return startWar();
+      return settle(a > b ? 0 : 1, true, {});
+    }
+    /* มีคนถอย/ไพ่หมด */
+    var pot = E.pot.slice(); E.pot = []; E.up = [null, null];
+    var f = mode[0] === "f" ? 0 : mode[1] === "f" ? 1 : -1;
+    for (p = 0; p < 2; p++) if (mode[p] === "r") E.st.ret[p]++;
+    if (f < 0) {
+      mark(pot); E.disc = E.disc.concat(pot); emit({t: "ret", both: true, n: pot.length, d: E.depth});
+    } else {
+      var q = 1 - f;
+      E.piles[f] = E.piles[f].concat(pot); mark(pot);
+      emit({t: "ret", p: q, w: f, n: pot.length, d: E.depth, forfeit: mode[q] === "x"});
+      E.st.rw[f]++; E.st.ww[f]++;
+      if (pot.length > E.st.pot) E.st.pot = pot.length;
+    }
+    E.depth = 0;
+    endRound();
+  }
+
+  function settle(w, war, o) {
+    var pot = E.pot.slice(), depth = E.depth;
+    E.piles[w] = E.piles[w].concat(pot); mark(pot);
+    E.st.rw[w]++; if (war) E.st.ww[w]++; if (pot.length > E.st.pot) E.st.pot = pot.length;
+    if (o.fool) emit({t: "fool", p: w});
+    emit({t: "res", w: w, n: pot.length, war: war ? depth : 0, up: E.up.map(cnum)});
+    endRound();
+  }
+
+  function endRound() {
+    drawTo(R.hand);
+    E.up = [null, null]; E.pot = []; E.phase = "play";
+    if (!E.deck.length && (!E.hands[0].length || !E.hands[1].length)) E.over = "done";
+    else if (E.round >= R.cap) E.over = "cap";
+    if (E.over) emit({t: "end", why: E.over, s: [E.piles[0].length, E.piles[1].length]});
+  }
+  E.result = function () { var a = E.piles[0].length, b = E.piles[1].length; return {w: a > b ? 0 : b > a ? 1 : -1, a: a, b: b} };
+
+  /* ---------- มุมมอง ---------- */
+  E.pubState = function () { /* ข้อมูลสาธารณะ: ไม่มีมือ/กองจั่ว/ไพ่ที่เลือกแต่ยังไม่เปิด/ไพ่คว่ำ */
+    return {round: E.round, phase: E.phase, depth: E.depth, over: E.over, deckN: E.deck.length, handN: [E.hands[0].length, E.hands[1].length],
+      pileN: [E.piles[0].length, E.piles[1].length], discN: E.disc.length, potN: E.pot.length,
+      up: E.up.map(function (c) { return c ? {n: c.n, d: c.d, id: c.id} : null }), cfg: {clash: R.clash, fool: R.fool}};
+  };
+  E.view = function (p) {
+    var v = E.pubState(), unseen = [], i;
+    v.rzLeft = R.raise ? Math.max(0, R.raiseMax - E.rz[p]) : 0; v.p = p; v.hand = E.hands[p].slice(); v.pile = E.piles[p].slice();
+    for (i = 0; i < 44; i++) { if (E.pub[i] || E.own[p][i] || hasId(E.hands[p], i)) continue; unseen.push({n: i % 22, d: Math.floor(i / 22), id: i}) }
+    v.unseen = unseen; v.R = {clash: R.clash, fool: R.fool, hand: R.hand, wh: R.wh, cap: R.cap, raise: R.raise, raiseMax: R.raiseMax};
+    v.need = E.phase === "war" ? E.needDown(p) : 0;
+    return v;
+  };
+
+  /* ---------- บันทึก/โหลดสถานะ (ใช้ในตัวจำลองของ AI และเซิร์ฟเวอร์) ---------- */
+  E.save = function () {
+    return {deck: E.deck.slice(), hands: [E.hands[0].slice(), E.hands[1].slice()], piles: [E.piles[0].slice(), E.piles[1].slice()], disc: E.disc.slice(),
+      pot: E.pot.slice(), up: E.up.slice(), cs: E.cs, stk: E.stk || [null, null], round: E.round, wars: E.wars, depth: E.depth, phase: E.phase, over: E.over,
+      pub: Object.assign({}, E.pub), own: [Object.assign({}, E.own[0]), Object.assign({}, E.own[1])], rz: E.rz.slice(), st: JSON.parse(JSON.stringify(E.st))};
+  };
+  E.load = function (s) {
+    for (var k in s) { var v = s[k]; E[k] = (v && typeof v === "object") ? JSON.parse(JSON.stringify(v)) : v }
+    return E;
+  };
+  return E;
+}
+/*WT_ENGINE_END*/
+/*WT_AI_START*/
+/* ===================== AI "น้องเบสท์" (เล่นแฟร์: รับ view ของตัวเองเท่านั้น) ===================== */
+var LEVELS = {
+  random: {kind: "random"},
+  novice: {kind: "mc", samples: 3, noise: 0.7, count: false},
+  normal: {kind: "mc", samples: 8, noise: 0, count: false},
+  hard:   {kind: "mc", samples: 20, noise: 0, count: true},
+  retreatAlways: {kind: "mc", samples: 8, noise: 0, count: false, war: "retreat"},
+  retreatNever:  {kind: "mc", samples: 8, noise: 0, count: false, war: "fight"}
+};
+var FULL = []; for (var _k = 0; _k < 2; _k++) for (var _n = 0; _n < 22; _n++) FULL.push({n: _n, d: _k, id: _k * 22 + _n});
+
+function pickRand(arr, rnd) { return arr[Math.floor(rnd() * arr.length)] }
+function shuffled(a, rnd) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t } return a }
+
+/* กลุ่มไพ่ที่ฝั่งตรงข้ามน่าจะถืออยู่ (ตามข้อมูลที่ AI เห็นได้) */
+function oppPool(view, lv) {
+  if (lv.count) return view.unseen;
+  var mine = {}; view.hand.forEach(function (c) { mine[c.id] = 1 });
+  return FULL.filter(function (c) { return !mine[c.id] });
+}
+function sampleOpp(view, lv, rnd, n) {
+  var known = [], kid = {};
+  var pool = shuffled(oppPool(view, lv).filter(function (c) { return !kid[c.id] }), rnd);
+  var take = pool.slice(0, Math.max(0, n - known.length));
+  var hh = known.concat(take);
+  while (hh.length < n) hh.push(FULL[Math.floor(rnd() * 44)]); /* ข้อมูลที่เห็นไม่พอ (ไพ่ซ่อนในกองรางวัล) → เติมสุ่ม */
+  return {hand: hh, rest: pool.slice(take.length)};
+}
+
+/* สร้างสถานะจำลองจากมุมมองของ me (ฝั่งตรงข้าม+กองจั่วสุ่มจากสิ่งที่ยังไม่เห็น) */
+function determinize(view, lv, rnd) {
+  var me = view.p, o = 1 - me, R = Object.assign({}, view.R);
+  var s = sampleOpp(view, lv, rnd, view.handN[o]);
+  var dummy = function (n) { var a = []; for (var i = 0; i < n; i++) a.push({n: 5, d: 0, id: 100 + i}); return a };
+  var deck = s.rest.slice(0, view.deckN);
+  while (deck.length < view.deckN) deck.push({n: Math.floor(rnd() * 22), d: 0, id: 200 + deck.length});
+  var sim = wtEngine(R, rnd);
+  var st = {deck: deck, hands: [[], []], piles: [[], []], disc: dummy(view.discN), pot: [], up: [null, null], cs: null, stk: [null, null],
+    round: view.round, wars: 0, depth: 0, phase: "play", over: null, pub: {}, own: [{}, {}],
+    rz: me === 0 ? [Math.max(0, view.R.raiseMax - view.rzLeft), 0] : [0, Math.max(0, view.R.raiseMax - view.rzLeft)],
+    st: {rw: [0, 0], ww: [0, 0], ret: [0, 0], maxd: 0, pot: 0}};
+  st.hands[me] = view.hand.slice(); st.hands[o] = s.hand;
+  st.piles[me] = view.pile.slice(); st.piles[o] = dummy(view.pileN[o]);
+  return sim.load(st);
+}
+
+function rank(c) { return c.n }
+
+/* ตัดสินใจในสงคราม: คืน {r:1} หรือ {down:[ids], up:id} */
+function warDecide(view, lvName, rnd) {
+  var lv = LEVELS[lvName] || LEVELS.normal, h = view.hand.slice().sort(function (a, b) { return a.n - b.n });
+  var nd = view.need;
+  var legalFight = function () { var up = h[h.length - 1]; return {down: h.slice(0, nd).map(function (c) { return c.id }), up: up.id} };
+  if (lv.kind === "random") {
+    if (rnd() < 0.2) return {r: 1};
+    var sh = shuffled(h, rnd); return {down: sh.slice(0, nd).map(function (c) { return c.id }), up: sh[nd].id};
+  }
+  if (lv.war === "retreat") return {r: 1};
+  var fight = legalFight();
+  if (lv.war === "fight") return fight;
+  if (lv.noise && rnd() < lv.noise) { if (rnd() < 0.5) return fight; var sh2 = shuffled(h, rnd); return {down: sh2.slice(0, nd).map(function (c) { return c.id }), up: sh2[nd].id} }
+  /* ประเมินโอกาสชนะใบตัดสิน เทียบมือคู่ต่อสู้ที่สุ่มจากข้อมูลที่เห็น (คู่ต่อสู้เลือกใบสูงสุด) */
+  var mine = h[h.length - 1].n, W = 0, K = 40, oppN = view.handN[1 - view.p];
+  if (!oppN) return fight;
+  for (var i = 0; i < K; i++) {
+    var oh = sampleOpp(view, lv, rnd, oppN).hand, ob = -1; oh.forEach(function (c) { if (c.n > ob) ob = c.n });
+    var cl = (mine === ob) || (view.R.clash !== "eq" && mine % 10 === ob % 10) || (view.R.clash === "un" && Math.abs(mine - ob) === 1);
+    W += cl ? 0.5 : (mine > ob ? 1 : (view.R.fool && mine === 0 && ob === 21 ? 1 : (view.R.fool && mine === 21 && ob === 0) ? 0 : 0));
+  }
+  var p = W / K, T = view.potN + (nd + 1) * 2;
+  var cost = view.potN;
+  return ((2 * p - 1) * T > -cost) ? fight : {r: 1};
+}
+
+/* เลือกไพ่ลงรอบปกติ: คืน {c:id, mag, jud, star, her} */
+function playDecide(view, lvName, rnd) {
+  var lv = LEVELS[lvName] || LEVELS.normal, hand = view.hand;
+  if (lv.kind === "random" || hand.length === 1) { var rc = pickRand(hand, rnd), ro = {c: rc.id}; if (view.rzLeft > 0 && hand.length > 1 && rnd() < 0.3) ro.x = pickRand(hand.filter(function (x) { return x.id !== rc.id }), rnd).id; return ro }
+  if (lv.noise && rnd() < lv.noise) return {c: pickRand(hand, rnd).id};
+  var me = view.p, o = 1 - me, late = view.deckN <= 2;
+  /* ตัวเลือก: ลงใบ c เฉย ๆ หรือลง c + เพิ่มเดิมพันด้วยใบอื่นที่ต่ำสุด */
+  var acts = [];
+  hand.forEach(function (c) {
+    acts.push({c: c.id});
+    if (view.rzLeft > 0 && hand.length > 1) {
+      var low = null; hand.forEach(function (x) { if (x.id !== c.id && (!low || x.n < low.n)) low = x });
+      acts.push({c: c.id, x: low.id});
+    }
+  });
+  var scores = acts.map(function () { return 0 });
+  for (var s = 0; s < lv.samples; s++) {
+    var base = determinize(view, lv, rnd).save();
+    var oh = base.hands[o], oc = pickRand(oh, rnd), ox = null;
+    if (view.R.raise && oh.length > 1 && rnd() < 0.2) ox = pickRand(oh.filter(function (x) { return x.id !== oc.id }), rnd);
+    acts.forEach(function (a, ai) {
+      var sim = wtEngine(view.R, rnd).load(base), oa = {c: oc.id}; if (ox) oa.x = ox.id;
+      try {
+        sim.step(me === 0 ? [a, oa] : [oa, a]);
+        var guard = 0;
+        while (sim.phase === "war" && !sim.over && guard++ < 6) {
+          var ch = [null, null];
+          for (var q = 0; q < 2; q++) ch[q] = warDecide(sim.view(q), "normal", rnd);
+          sim.step(ch);
+        }
+      } catch (e) { return }
+      var diff = sim.piles[me].length - sim.piles[o].length, hq = 0;
+      sim.hands[me].forEach(function (x) { hq += x.n / 21 - 0.5 }); sim.hands[o].forEach(function (x) { hq -= (x.n / 21 - 0.5) * 0 });
+      scores[ai] += diff + (late ? 0 : (lv.keep == null ? 0.5 : lv.keep) * hq);
+    });
+  }
+  var bi = 0; for (var i = 1; i < acts.length; i++) if (scores[i] > scores[bi] + 1e-9) bi = i;
+  return acts[bi];
+}
+
+var PRESET = {clash: "u", fool: 1, hand: 3, wh: 7, cap: 60, raise: 1, raiseMax: 2};
+/*WT_AI_END*/
+var LVN={novice:"😊 มือใหม่",normal:"🎯 ปกติ",hard:"😈 ตัวโหด"};
+var LT={
+ intro:["โหมดยุทธวิธีค่ะ! ถือไพ่ในมือ เลือกลงพร้อมกัน แล้วเปิดดูว่าใครชนะ 🧠","คราวนี้ไม่ใช่แค่ดวงนะคะ ต้องวางแผนด้วย ตั้งค่าแล้วมาประลองกัน ⚔️"],
+ start:["แจกไพ่ค่ะ! คนละ {h} ใบ เลือกลงใบที่ใช่ แล้วกดยืนยัน","เริ่มศึกยุทธวิธี! เลือกไพ่หนึ่งใบ ใครเลือกแล้วอีกฝั่งไม่เห็นนะคะ"],
+ turn:["รอบที่ {r} เลือกไพ่ของคุณได้เลยค่ะ","ถึงตาตัดสินใจแล้วค่ะ รอบที่ {r} เลือกให้ดี","รอบที่ {r} ค่ะ จะลงใบแรงหรือเก็บไว้สู้ในสงครามดีคะ"],
+ war:["สงครามเกิดแล้วค่ะ! เลือกไพ่คว่ำ {n} ใบ แล้วเลือกใบตัดสิน หรือถอยก็ได้ 🥁","ชนกัน! ตัดสินใจเลยค่ะ สู้หรือถอย ใบตัดสินควรเป็นใบแรง ๆ นะคะ"],
+ win:["รอบนี้คุณชนะค่ะ! 👏","คุณได้ไพ่เข้ากองรางวัลแล้วค่ะ เยี่ยมมาก"],
+ lose:["รอบนี้น้องเบสท์ชนะค่ะ ไพ่เข้ากองของฝั่งโน้น","เสียรอบนี้ไป แต่เกมยังอีกยาวนะคะ"],
+ oppWin:{novice:["เย้ ชนะแล้ว! โชคดีจัง 😆","หนูชนะรอบนี้นะคะ ขอบคุณที่ใจดีค่ะ"],normal:["รอบนี้ของน้องเบสท์ค่ะ 😏","เป็นไปตามแผนค่ะ"],hard:["อ่านไพ่คุณออกหมดแล้ว 😎","เหนียวแค่ไหนก็ไม่รอดค่ะ"]},
+ oppLose:{novice:["โอ๊ย แพ้แล้ว 🥲","คุณเก่งจัง!"],normal:["ก็ได้ รอบนี้ยกให้ค่ะ","เสียรอบหนึ่ง ไม่เป็นไร"],hard:["…จำไว้เลยนะ 😤","นับไพ่ใหม่ก็ได้"]},
+ oppRaise:{novice:["หนูลองเพิ่มเดิมพันดูนะ 🤞"],normal:["เพิ่มเดิมพันค่ะ มั่นใจนะ 😏"],hard:["เดิมพันเพิ่ม เตรียมเสียไพ่ได้เลย 😈"]},
+ oppRet:{novice:["ไม่ไหวแล้ว ขอถอยค่ะ 🏳️"],normal:["ถอยตั้งหลักค่ะ ตัดขาดทุน"],hard:["ถอยอย่างมีเหตุผลค่ะ ไพ่ไม่ดีไม่ลุย"]},
+ end:{win:["คุณชนะน้องเบสท์ได้ในศึกยุทธวิธี! 🏆","เก่งมากค่ะ วางแผนได้เฉียบขาด!"],lose:["ศึกนี้น้องเบสท์ชนะค่ะ แต่คุณสู้ได้ดีมาก สู้ใหม่ได้เสมอ 💪"],draw:["เสมอกัน! สูสีสุด ๆ ค่ะ 🤝"]}
+};
+var lastP={};
+function pk(k,v){var a=LT[k];if(v&&v.sub)a=a[v.sub];if(!a||!a.length)return "";var i=0,n=0;do{i=Math.floor(Math.random()*a.length);n++}while(a.length>1&&lastP[k+(v&&v.sub||"")]===i&&n<6);lastP[k+(v&&v.sub||"")]=i;return a[i].replace(/\{(\w+)\}/g,function(m,x){return v&&v[x]!=null?v[x]:m})}
+var who=Q("#wrSay .wrWho");
+function say(t,emo,opp){if(who)who.textContent=opp?"🧑‍🎤 น้องเบสท์ · คู่ต่อสู้":"🎩 น้องเบสท์ · เจ้ามือ";if(wrA.say)wrA.say(t,emo)}
+function sfx(k){try{wrA.wsfx&&wrA.wsfx(k)}catch(e){}}
+function reduce(){try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}}
+var T={tok:0,run:false,E:null,R:null,v:null,S:{},opp:""},PF={lv:"normal",clash:"u",fool:1},CI=null,E=null;
+function tacS(){var S=ST.wr;if(!S.tac||typeof S.tac!=="object")S.tac={};var t=S.tac;if(!t.sm||typeof t.sm!=="object")t.sm={w:0,l:0,d:0};t.sm.w=t.sm.w||0;t.sm.l=t.sm.l||0;t.sm.d=t.sm.d||0;t.day=t.day||"";t.n=t.n||0;return t}
+function loadPrefs(){var p=ST.wr.tacPref;if(p&&typeof p==="object"){if(LVN[p.lv])PF.lv=p.lv;if(["u","un","eq"].indexOf(p.clash)>=0)PF.clash=p.clash;PF.fool=p.fool?1:0}}
+function savePrefs(){ST.wr.tacPref=PF;save()}
+function seg(id,v){Q(id).querySelectorAll("button").forEach(function(b){b.classList.toggle("on",String(b.dataset.v)===String(v))})}
+function paintSet(){seg("#wtOLv",PF.lv);seg("#wtOCl",PF.clash);seg("#wtOFl",PF.fool);
+ var t=tacS().sm,R=reward0(PF.lv);Q("#wtDRw").textContent="🪙 ชนะ "+R.w+" · เสมอ "+R.d+" · แพ้ "+R.l+"  |  สถิติโหมดนี้: ชนะ "+t.w+" · แพ้ "+t.l+" · เสมอ "+t.d}
+function reward0(lv){var tb={novice:10,normal:14,hard:19},X=window.COIN_X?COIN_X.card:2;return{w:Math.round(tb[lv]*X),d:Math.round(5*X),l:Math.round(3*X)}}
+function sl(ms,tk){return new Promise(function(r,j){setTimeout(function(){tk===T.tok?r():j("abort")},reduce()?Math.min(ms,200):ms)})}
+function cards(){if(CI)return Promise.resolve(CI);return(wrA.cards?wrA.cards():Promise.resolve([])).then(function(c){CI=c||[];return CI}).catch(function(){CI=[];return CI})}
+function esc2(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function cardH(c,o){o=o||{};var ci=CI&&CI[c.n];return'<div class="wtC'+(o.cls?" "+o.cls:"")+'" data-id="'+c.id+'" role="button" tabindex="0" aria-label="ไพ่เลข '+c.n+'"><div class="im">'+(ci&&ci.thumb?'<img alt="" src="'+ci.thumb+'">':"")+'</div><b class="nb">'+c.n+"</b>"+(o.tag?'<i class="tg">'+o.tag+"</i>":"")+"</div>"}
+function faceH(n){return cardH({n:n,id:-1,d:0},{cls:"sm"})}
+function logAdd(t,war){var li=document.createElement("li");li.textContent=t;if(war)li.className="war";var ol=Q("#wtLog");ol.insertBefore(li,ol.firstChild);Q("#wtLogN").textContent="("+ol.children.length+")"}
+function paintBar(){if(!E)return;var p=E.pubState();Q("#wtRd").textContent="รอบ "+p.round;Q("#wtDk").textContent="🂠 กองจั่ว "+p.deckN;Q("#wtPl").textContent="🏁 คุณ "+p.pileN[0]+" : "+p.pileN[1]+" น้องเบสท์";Q("#wtDd").textContent="🗑 ทิ้ง "+p.discN;
+ var o=Q("#wtOpp"),n=p.handN[1],h="";for(var i=0;i<n;i++)h+='<div class="wtC bk sm"></div>';o.innerHTML='<div class="bks">'+h+'</div><span class="st">'+(T.opp||"")+"</span>"}
+function setSlot(i,n,cls){var e=Q("#wtS"+i);e.className="wtSl"+(cls?" "+cls:"");e.innerHTML=n==null?"":faceH(n)}
+function setStake(i,n){Q("#wtK"+i).textContent=n!=null&&n>=0?"➕ เดิมพัน "+n:""}
+function clearTable(){setSlot(0,null);setSlot(1,null);setStake(0,null);setStake(1,null);Q("#wtPot").textContent=""}
+function tip(t){Q("#wtTip").textContent=t||""}
+/* ---------- มือ + การเลือก ---------- */
+function drawHand(){var v=T.v,S=T.S,h=v.hand.slice().sort(function(a,b){return a.n-b.n}),el=Q("#wtHand"),s="";
+ el.className="wtHand"+(h.length>5?" many":"");
+ h.forEach(function(c){var tag="",cls="";
+  if(S.mode==="play"){if(S.c===c.id){tag="ลง";cls="sel"}else if(S.x===c.id){tag="เดิมพัน";cls="stk"}}
+  else if(S.mode==="war"){if(S.downs.indexOf(c.id)>=0){tag="⬇ คว่ำ";cls="sel"}else if(S.up===c.id){tag="⭐ ตัดสิน";cls="up"}}
+  s+=cardH(c,{cls:cls,tag:tag})});
+ el.innerHTML=s;setActs()}
+function setActs(){var v=T.v,S=T.S,go=Q("#wtGo"),rz=Q("#wtRz"),rt=Q("#wtRt");if(!v||!S.mode){go.hidden=rz.hidden=rt.hidden=true;return}
+ go.hidden=false;
+ if(S.mode==="play"){rt.hidden=true;rz.hidden=!(v.rzLeft>0&&v.hand.length>1);rz.textContent=(S.raise?"✅ ":"➕ ")+"เพิ่มเดิมพัน (เหลือ "+v.rzLeft+")";rz.classList.toggle("on",!!S.raise);go.disabled=S.c==null;go.textContent="✅ ลงไพ่"+(S.x!=null?" + เดิมพัน":"")}
+ else{rz.hidden=true;rt.hidden=false;rt.textContent="🏳️ ถอย (เสีย "+v.potN+" ใบ)";go.disabled=!(S.downs.length===v.need&&S.up!=null);go.textContent="⚔️ ลุย!"}}
+function onCard(id){var S=T.S,v=T.v;if(!S.mode)return;var c=v.hand.filter(function(x){return x.id===id})[0];if(!c)return;sfx("tap");
+ tip("ไพ่เลข "+c.n);
+ if(S.mode==="play"){if(S.raise&&S.c!=null&&id!==S.c){S.x=S.x===id?null:id}else{if(S.x===id)S.x=null;S.c=S.c===id?null:id}}
+ else{var i=S.downs.indexOf(id);if(i>=0)S.downs.splice(i,1);else if(S.up===id)S.up=null;else if(S.downs.length<v.need)S.downs.push(id);else S.up=id}
+ drawHand()}
+function humanPlay(tk){return new Promise(function(res){T.S={mode:"play",c:null,x:null,raise:false,res:res};T.v=E.view(0);T.opp="";paintBar();drawHand();say(pk("turn",{r:E.round+1}),"🃏");tip("แตะไพ่เพื่อเลือก แล้วกดลงไพ่ · เพิ่มเดิมพันได้ถ้าอยากเสี่ยง")})}
+function humanWar(tk){return new Promise(function(res){T.S={mode:"war",downs:[],up:null,res:res};T.v=E.view(0);paintBar();drawHand();say(pk("war",{n:T.v.need}),"⚔️");tip("แตะไพ่ "+T.v.need+" ใบเป็นไพ่คว่ำ (⬇) แล้วแตะอีกใบเป็นใบตัดสิน (⭐) · กองกลาง "+T.v.potN+" ใบ")})}
+function submit(ch){var S=T.S;if(!S.mode)return;var r=S.res;T.S={mode:null};T.v=null;Q("#wtHand").innerHTML="";setActs();tip("");r(ch)}
+/* ---------- AI (น้องเบสท์ · เล่นแฟร์: รับ view ของตัวเองเท่านั้น) ---------- */
+async function aiPlay(tk){T.opp="🤔 กำลังคิด…";paintBar();var t0=PF.lv==="hard"?1300:PF.lv==="novice"?600:900;await sl(t0+Math.random()*500,tk);var ch=playDecide(E.view(1),PF.lv,Math.random);T.opp="✋ เลือกแล้ว";paintBar();return ch}
+async function aiWar(tk){T.opp="🤔 กำลังคิด…";paintBar();await sl(900+Math.random()*600,tk);var ch=warDecide(E.view(1),PF.lv,Math.random);T.opp="✋ เลือกแล้ว";paintBar();return ch}
+/* ---------- แสดงผลเหตุการณ์ ---------- */
+function nm(p){return p===0?"คุณ":"น้องเบสท์"}
+async function show(evs,tk){
+ for(var i=0;i<evs.length;i++){var e=evs[i],m="";
+  if(e.t==="flip"){clearTable();setSlot(0,e.up[0]);setSlot(1,e.up[1]);setStake(0,e.stk[0]);setStake(1,e.stk[1]);sfx("flip");
+   if(e.stk[1]>=0){say(pk("oppRaise",{sub:PF.lv}),"😏",true);logAdd("น้องเบสท์เพิ่มเดิมพัน")}
+   logAdd("รอบ "+e.r+": คุณ "+e.up[0]+" ต่อ "+e.up[1]+" น้องเบสท์"+(e.stk[0]>=0?" (คุณเพิ่มเดิมพัน)":""));await sl(800,tk)}
+  else if(e.t==="fool"){m="🃏 คนโง่ล้มเจ้าโลก! "+nm(e.p)+" ชนะ";logAdd(m);tip(m);sfx("fool");await sl(750,tk)}
+  else if(e.t==="war"){m="⚔️ ชนกัน! ซ้อนศึกชั้น "+e.d+" · กองกลาง "+e.pot+" ใบ";logAdd(m,true);Q("#wtPot").textContent="🎴 กองกลาง "+e.pot;tip(m);sfx("war");await sl(700,tk)}
+  else if(e.t==="lay"){setSlot(0,e.ups[0],"war");setSlot(1,e.ups[1],"war");Q("#wtPot").textContent="🎴 กองกลาง "+e.pot;sfx("lay");logAdd("ใบตัดสิน: คุณ "+e.ups[0]+" ต่อ "+e.ups[1]+" น้องเบสท์",true);await sl(900,tk)}
+  else if(e.t==="res"){var mine=e.w===0;
+   m=e.war?"⚔️ ศึกจบ! "+nm(e.w)+" กวาดกองกลาง "+e.n+" ใบ":nm(e.w)+" ชนะ ได้ไพ่ "+e.n+" ใบ";logAdd(m,!!e.war);tip(m);
+   Q("#wtS"+e.w).classList.add("win");Q("#wtS"+(1-e.w)).classList.add("lose");sfx("take");
+   say(mine?pk("win"):pk("lose"),mine?"👏":"😏");await sl(500,tk);
+   say(mine?pk("oppLose",{sub:PF.lv}):pk("oppWin",{sub:PF.lv}),mine?"🥲":"😎",true);await sl(700,tk)}
+  else if(e.t==="ret"){if(e.both)m="🤝 ทั้งสองถอย กองกลาง "+e.n+" ใบถูกทิ้ง";else if(e.forfeit)m=nm(e.p)+" ไพ่หมดกลางสงคราม "+nm(e.w)+" เก็บ "+e.n+" ใบ";else m="🏳️ "+nm(e.p)+" ถอย "+nm(e.w)+" เก็บ "+e.n+" ใบ";
+   logAdd(m,true);tip(m);if(e.p===1)say(pk("oppRet",{sub:PF.lv}),"🏳️",true);await sl(900,tk)}}
+ paintBar()}
+/* ---------- ลูปเกม ---------- */
+async function loop(tk){
+ try{while(!E.over&&tk===T.tok){
+   var evs;
+   if(E.phase==="play"){var hc=await humanPlay(tk);var ac=await aiPlay(tk);evs=E.step([hc,ac])}
+   else{var hw=E.hands[0].length?await humanWar(tk):null;var aw=E.hands[1].length?await aiWar(tk):null;evs=E.step([hw,aw])}
+   await show(evs,tk);
+   if(E.phase==="play"&&!E.over)await sl(250,tk)}
+  if(tk===T.tok)await finish(tk)}catch(x){if(x!=="abort")throw x}}
+function day2(){return typeof day==="function"?day():new Date().toISOString().slice(0,10)}
+function reward(w){var t=tacS(),d=day2();if(t.day!==d){t.day=d;t.n=0}var r=reward0(PF.lv),c=w===0?r.w:w===1?r.l:r.d,full=t.n<3;t.n++;if(!full)c=Math.max(2,Math.round(c/3));if(ST.sick)c=Math.max(1,Math.round(c/2));return{c:c,full:full}}
+async function finish(tk){T.run=false;var r=E.result(),t=tacS(),rw=reward(r.w);
+ if(r.w===0)t.sm.w++;else if(r.w===1)t.sm.l++;else t.sm.d++;
+ save();if(rw.c>0&&typeof addCoins==="function")addCoins(rw.c,"สงครามไพ่ยุทธวิธี");
+ var wn=r.w===0?"win":r.w===1?"lose":"draw";say(pk("end",{sub:wn}),wn==="win"?"🏆":wn==="lose"?"💪":"🤝");sfx(wn==="win"?"fool":"cnt");
+ var en=Q("#wtEnd");en.hidden=false;en.innerHTML='<h3>'+(wn==="win"?"🏆 คุณชนะ!":wn==="lose"?"😅 น้องเบสท์ชนะ":"🤝 เสมอ")+'</h3><p class="big">'+r.a+" : "+r.b+'</p><p>รอบทั้งหมด '+E.round+" · สงคราม "+E.wars+" ครั้ง</p><p>🪙 +"+rw.c+(rw.full?"":" (เกินโควตาเต็มของวัน)")+'</p><div class="wtAct"><button type="button" class="wrBtn" id="wtAgain">⚔️ เล่นอีกตา</button><button type="button" class="wrBtn alt" id="wtBackS">⚙️ ตั้งค่า</button></div>';
+ Q("#wtAgain").onclick=start;Q("#wtBackS").onclick=toSetup;Q("#wtHand").innerHTML="";setActs();paintSet()}
+function start(){if(wrA.busy&&wrA.busy())return;cards().then(function(){T.tok++;var tk=T.tok;T.run=true;
+ var R=Object.assign({},PRESET,{clash:PF.clash,fool:PF.fool});E=wtEngine(R,Math.random).deal();T.E=E;
+ Q("#wtSet").hidden=true;Q("#wtPlay").hidden=false;Q("#wtEnd").hidden=true;Q("#wtLog").innerHTML="";Q("#wtLogN").textContent="";clearTable();T.opp="";
+ say(pk("start",{h:R.hand}),"🃏");paintBar();sfx("deal");loop(tk).catch(function(x){console.error(x)})})}
+function toSetup(){T.tok++;T.run=false;T.S={mode:null};E=null;Q("#wtPlay").hidden=true;Q("#wtSet").hidden=false;Q("#wtEnd").hidden=true;setActs();paintSet();say(pk("intro"),"🧠")}
+/* ---------- สลับโหมด + ตั้งค่า ---------- */
+function setGm(g,quiet){if(g==="luck"&&T.run&&!confirm("เลิกเล่นตานี้แล้วกลับโหมดวัดดวง?"))return;if(g==="tac"&&wrA.busy&&wrA.busy()){if(window.toast)toast("จบศึกวัดดวงที่กำลังเล่นก่อนนะคะ");return}
+ if(g==="luck"&&T.run)toSetup();B.dataset.gm=g;ST.wr.gm=g;save();
+ Q("#wtModes").querySelectorAll("button").forEach(function(b){b.classList.toggle("on",b.dataset.g===g)});
+ if(g==="tac"){paintSet();if(!quiet)say(pk("intro"),"🧠");cards()}else if(who)who.textContent="🎩 น้องเบสท์ · เจ้ามือ"}
+Q("#wtModes").onclick=function(e){var b=e.target.closest("button");if(b)setGm(b.dataset.g)};
+function bindSeg(id,key,num){Q(id).onclick=function(e){var b=e.target.closest("button");if(!b)return;PF[key]=num?+b.dataset.v:b.dataset.v;savePrefs();paintSet()}}
+bindSeg("#wtOLv","lv");bindSeg("#wtOCl","clash");bindSeg("#wtOFl","fool",1);
+Q("#wtStart").onclick=start;
+Q("#wtHand").onclick=function(e){var c=e.target.closest(".wtC");if(c)onCard(+c.dataset.id)};
+Q("#wtHand").onkeydown=function(e){if(e.key==="Enter"||e.key===" "){var c=e.target.closest(".wtC");if(c){e.preventDefault();onCard(+c.dataset.id)}}};
+Q("#wtRz").onclick=function(){if(T.S.mode!=="play")return;T.S.raise=!T.S.raise;if(!T.S.raise)T.S.x=null;else if(T.S.c==null)tip("เลือกไพ่ที่จะลงก่อน แล้วแตะไพ่อีกใบเป็นเดิมพัน");else tip("แตะไพ่อีกใบเป็นเดิมพัน (ผู้ชนะเก็บทั้งหมด)");drawHand()};
+Q("#wtGo").onclick=function(){var S=T.S;if(S.mode==="play"&&S.c!=null){var ch={c:S.c};if(S.x!=null)ch.x=S.x;submit(ch)}else if(S.mode==="war"&&S.downs.length===T.v.need&&S.up!=null)submit({down:S.downs.slice(),up:S.up})};
+Q("#wtRt").onclick=function(){if(T.S.mode==="war")submit({r:1})};
+Q("#wtQuit").onclick=function(){if(confirm("เลิกเล่นตานี้? (ไม่ได้เหรียญ)"))toSetup()};
+(function init(){loadPrefs();
+ var g=ST.wr.gm==="tac"?"tac":"luck";B.dataset.gm=g;setGm(g,true);paintSet()})();
+window.__wt={engine:wtEngine,PRESET:PRESET,ai:{playDecide:playDecide,warDecide:warDecide},ui:{busy:function(){return !!T.run}}};
+})();
+
 
 /* ===== เกมเลขเพดาน (99 ดัดแปลง) : เพดาน 120/150/200 · 2-4 คน · น้องเบสท์+ทีมงาน หรือเพื่อนส่งเครื่องกัน ===== */
 function callName(n){n=String(n||'').trim();if(!n||n==='เบล'||/^(พี่|น้อง|คุณ|ผู้เล่น)/.test(n)||/AI$/.test(n))return n;return 'พี่'+n}
@@ -4264,6 +4795,7 @@ if ("serviceWorker" in navigator) {
 <script src="online/config.js"></script>
 <script src="online/nn-engine.js"></script>
 <script src="online/online-game.js"></script>
+<script src="online/online-war.js"></script>
 <script src="online/online.js"></script>
 </body>
 </html>

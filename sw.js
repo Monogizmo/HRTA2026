@@ -1,9 +1,9 @@
 // HRTA Offsite - service worker
 // เปลี่ยนเลขเวอร์ชันนี้ทุกครั้งที่แก้ไฟล์ เพื่อบังคับให้เครื่องผู้ใช้โหลดของใหม่
-const VERSION = "v37";
+const VERSION = "v38";
 const CACHE = "hrta-offsite-" + VERSION;
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png",
-  "online/online.css", "online/config.js", "online/nn-engine.js", "online/online-game.js", "online/online.js",
+  "online/online.css", "online/config.js", "online/nn-engine.js", "emoji-fix.js", "online/online-game.js", "online/online-war.js", "online/online.js",
   // รูปที่แยกออกจาก index.html (v26) เก็บไว้ใช้ออฟไลน์เหมือนเดิม
   "img/01-de66637f.jpg",
   "img/02-a13e26d2.jpg",
