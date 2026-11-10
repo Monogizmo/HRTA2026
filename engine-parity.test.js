@@ -1,164 +1,113 @@
-// รัน: node tests/engine-parity.test.js
-// ตรวจ parity ระหว่าง Shared Engine กับสำเนา offline ใน index.html และทดสอบ Tarot rules / private-state handling
+// รัน:  node tests/engine-parity.test.js
+// ตรวจ: (1) engine ที่แยกออกมายังเหมือนใน index.html  (2) ตรรกะเซิร์ฟเวอร์ (nn-server.js) เล่นตาม action เดียวกันแล้วได้สถานะตรงกับ engine ตัวตรง ๆ ทุก action
+//       (ลง/เลือกเป้าหมาย/ข้าม Chariot/เลือกไพ่ที่จะทิ้งของ Moon/แทรก Empress)  (3) กติกาของเซิร์ฟเวอร์ปฏิเสธ action ผิดตา/ผิดไพ่ และข้อมูลลับไม่หลุดสู่ public
 const fs = require("fs"), path = require("path"), assert = require("assert");
 const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const shared = fs.readFileSync(path.join(root, "online/nn-engine.js"), "utf8");
 const NN = require("../online/nn-engine.js");
 const SV = require("../online/nn-server.js");
-const RES = [0, 9, 11, 12, 13, 16, 17, 18, 20];
-const clone = x => JSON.parse(JSON.stringify(x));
+const { prng, agent, wantsInterject } = require("./helpers.js");
 
-const shStart = shared.indexOf("  function nnEngine(o, rnd) {");
-const shEnd = shared.indexOf("\n  var KEYS =", shStart);
-const inStart = html.indexOf("function nnEngine(o,rnd){");
-const inEnd = html.indexOf("\nnnApi.engine=nnEngine;", inStart);
-assert.ok(shStart >= 0 && shEnd > shStart && inStart >= 0 && inEnd > inStart, "engine function not found");
-const shFn = shared.slice(shStart, shEnd).split("\n").map(x => x.replace(/^  /, "")).join("\n").replace("function nnEngine(o, rnd) {", "function nnEngine(o,rnd){");
-const inFn = html.slice(inStart, inEnd).trim();
-assert.strictEqual(inFn.replace("\n    function clone(x){return JSON.parse(JSON.stringify(x));}", ""), shFn,
-  "inline engine must be an exact copy of shared engine (except local clone helper)");
-const offlineFactory = new Function("RES", inFn + "\nreturn nnEngine;")(RES);
-const sharedFactory = new Function("clone", "RES", shared.slice(shStart, shEnd) + "\nreturn nnEngine;")(clone, RES);
-console.log("ok  engine parity: inline and shared engine source/functions match");
+function grab(s) {
+  const a = s.indexOf("function nnEngine(o,rnd){");
+  const b = s.indexOf("return G}", a) + "return G}".length;
+  return s.slice(a, b).split("\n").map(l => l.trim()).join("\n");
+}
+assert.strictEqual(grab(shared), grab(html), "nn-engine.js ไม่ตรงกับ engine ใน index.html");
+console.log("ok  (1) engine text identical to index.html");
 
-function prng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function mk(n = 3, cap = 120) {
-  const G = NN.engine({ n, cap }, prng(8)); G.deal();
-  G.hands = Array.from({ length: n }, (_, p) => [0, 1, 2].map((v) => ({ n: v + p * 3, id: p * 10 + v })));
-  G.deck = Array.from({ length: 30 }, (_, i) => ({ n: i % 22, id: 100 + i })); G.disc = [];
-  G.total = 0; G.prev = 0; G.turn = 0; G.cur = 0; G.over = -1; G.dir = 1;
-  G.pending = null; G.phase = "await_play"; G.shield = Array(n).fill(false); G.sealed = Array(n).fill(false);
-  G.skipDraw = Array(n).fill(false); G.starSafe = Array(n).fill(0); G.devil = Array(n).fill(false); G.force = -1;
-  G.revealed = -1; G.revealedHand = {}; G.sunOptions = {};
-  G.turnState = { p: 0, kind: "normal", played: 0, need: 1, sunChosen: false, postDraw: [] };
-  return G;
+const FIELDS = ["cap", "hb", "total", "prev", "dir", "cur", "over", "turn", "shield", "seal", "owe", "calm", "dbl", "force", "hands", "deck", "disc"];
+const snapG = G => JSON.stringify(FIELDS.map(k => G[k]));
+let games = 0, steps = 0; const kinds = { play: 0, pass: 0, swap: 0, interject: 0 };
+for (const n of [2, 3, 4]) for (const cap of [120, 150, 200]) for (let seed = 1; seed <= 120; seed++) {
+  const rA = prng(seed * 7919 + n * 31 + cap), rC = prng(seed * 7919 + n * 31 + cap), mv = prng(seed * 104729 + n), mi = prng(seed * 13 + n);
+  const A = NN.engine({ cap, n }, rA); A.deal(); A.cur = Math.floor(rA() * n);
+  const players = Array.from({ length: n }, (_, i) => ({ user_id: "u" + i, seat: i + 1, name: "P" + i, avatar: "" }));
+  const S0 = SV.startGame(players, cap, rC);
+  let snap = { pub: S0.pub, secret: S0.secret, hands: S0.hands, uids: S0.uids, extras: {} };
+  assert.strictEqual(snap.pub.cur, A.cur);
+  let guard = 0;
+  const apply = (res) => {
+    assert.ok(!res.error, "server error " + res.error);
+    snap = { pub: res.pub, secret: res.secret, hands: Object.assign({}, snap.hands, res.hands), uids: snap.uids, extras: Object.assign({}, snap.extras) };
+    Object.keys(res.extras || {}).forEach(u => { if (res.extras[u]) snap.extras[u] = res.extras[u]; else delete snap.extras[u]; });
+  };
+  const same = () => {
+    const p = snap.pub;
+    assert.strictEqual(p.total, A.total); assert.strictEqual(p.cur, A.cur); assert.strictEqual(p.over, A.over); assert.strictEqual(p.turn, A.turn);
+    assert.strictEqual(p.dir, A.dir); assert.strictEqual(p.force, A.force);
+    assert.strictEqual(JSON.stringify(p.shield), JSON.stringify(A.shield)); assert.strictEqual(JSON.stringify(p.seal), JSON.stringify(A.seal));
+    assert.strictEqual(JSON.stringify(p.owe), JSON.stringify(A.owe)); assert.strictEqual(JSON.stringify(p.calm), JSON.stringify(A.calm));
+    assert.strictEqual(JSON.stringify(p.dbl), JSON.stringify(A.dbl));
+    assert.strictEqual(JSON.stringify(snap.uids.map(u => snap.hands[u])), JSON.stringify(A.hands));
+    assert.strictEqual(JSON.stringify(snap.secret.deck), JSON.stringify(A.deck));
+    assert.strictEqual(JSON.stringify(snap.secret.disc), JSON.stringify(A.disc));
+    assert.strictEqual(JSON.stringify(p.pend && { t: p.pend.t, p: p.pend.p }), JSON.stringify(A.pend && { t: A.pend.t, p: A.pend.p }));
+    if (A.pend && A.pend.cards) assert.strictEqual(JSON.stringify(snap.secret.pend), JSON.stringify(A.pend.cards));
+    assert.strictEqual(JSON.stringify(p.rev.map(r => r.p)), JSON.stringify(A.rev.map((x, i) => x ? i : -1).filter(i => i >= 0)));
+    const all = [].concat(...A.hands, A.deck, A.disc, A.pend && A.pend.cards ? A.pend.cards : []);
+    const base = all.filter(c => c.id < 900).map(c => c.id);
+    assert.strictEqual(base.length, 44); assert.strictEqual(new Set(base).size, 44);
+  };
+  while (A.over < 0) {
+    if (++guard > 6000) throw new Error("game did not end");
+    // แทรก Empress (ถ้ามี) ก่อนผู้เล่นปัจจุบันลง
+    const iu = wantsInterject(snap, mi, 0.4);
+    if (iu) {
+      const q = snap.uids.indexOf(iu);
+      if (A.canInterject(q) >= 0) { assert.ok(A.interject(q)); apply(SV.applyInterject(snap, iu, rC)); kinds.interject++; steps++; same(); if (A.over >= 0) break; continue; }
+      assert.strictEqual(SV.applyInterject(snap, iu, rC).error, "cant_interject");      // เช่นถูกบังคับลงใบสูงสุดแต่ Empress ไม่ใช่ใบสูงสุด
+    }
+    const a = agent(snap, mv), p = snap.uids.indexOf(a.uid);
+    if (a.kind === "swap") { assert.ok(A.swap(p, a.ix)); apply(SV.applySwap(snap, a.uid, a.ix, rC)); kinds.swap++; }
+    else if (a.kind === "pass") { assert.ok(A.pass(p)); apply(SV.applyPass(snap, a.uid, rC)); kinds.pass++; }
+    else {
+      const i = A.hands[p].findIndex(c => c.id === a.card_id);
+      assert.ok(A.legal(p).includes(i));
+      A.play(p, i, a.k, a.tg == null ? undefined : a.tg);
+      const res = SV.applyPlay(snap, a.uid, a.card_id, rC, { k: a.k, tg: a.tg });
+      if (A.over >= 0) { assert.ok(!res.error, res.error); assert.strictEqual(res.over, p); snap = { pub: res.pub, secret: res.secret, hands: Object.assign({}, snap.hands, res.hands), uids: snap.uids, extras: {} }; kinds.play++; steps++; break; }
+      apply(res); kinds.play++;
+    }
+    steps++; same();
+  }
+  assert.strictEqual(snap.pub.over, A.over);
+  games++;
 }
-function card(G, p, n, i = 0) { G.hands[p][i] = { n, id: 1000 + p * 100 + i }; return i; }
-function play(G, p, n, choice = {}, i = 0) { G.cur = p; G.turnState.p = p; return G.play(p, card(G, p, n, i), 0, choice); }
+console.log(`ok  (2) ${games} games, ${steps} actions (${JSON.stringify(kinds)}): server logic == engine on every action`);
 
-// Priestess: swap tens / units first, then +2; preserve hundreds.
-{
-  let G = mk(2); G.total = 47; let r = play(G, 0, 2); assert.strictEqual(r.after, 76);
-  G = mk(2, 200); G.total = 120; r = play(G, 0, 2); assert.strictEqual(r.after, 104);
-  console.log("ok  Priestess: 47→76 and 120→104");
-}
-// Heat boundary, Star exception and two-own-turn protection; World ignores Heat.
-{
-  let G = mk(3); G.turn = 20; G.total = 10; let r = play(G, 0, 1); assert.strictEqual(r.heat, 1); assert.strictEqual(r.after, 12);
-  G = mk(3); G.turn = 20; G.total = 100; r = play(G, 0, 17, { value: -17 });
-  assert.strictEqual(r.heat, 0); assert.strictEqual(r.after, 83); assert.strictEqual(G.starSafe[0], 1);
-  play(G, 1, 1); play(G, 2, 1); r = play(G, 0, 1); assert.strictEqual(r.heat, 0); assert.strictEqual(G.starSafe[0], 0);
-  G = mk(2); G.turn = 80; G.total = 20; r = play(G, 0, 21); assert.strictEqual(r.after, 120); assert.strictEqual(r.heat, 0); assert.strictEqual(r.bust, false);
-  console.log("ok  Heat: threshold, Star current+next own turn, World immunity");
-}
-// Emperor seals exactly the next played card: face value only, without its ability.
-{
-  const G = mk(3); G.sealed[1] = true; G.total = 10; G.cur = 1; G.turnState = { p: 1, kind: "normal", played: 0, need: 1, sunChosen: false, postDraw: [] };
-  const r = play(G, 1, 8); assert.strictEqual(r.sealed, true); assert.strictEqual(r.after, 18); assert.strictEqual(G.sealed[1], false);
-  console.log("ok  Emperor seal: Strength is +8, not ×2, and seal is consumed");
-}
-// Chariot prompts for a second card; skip ends normally; no third card can be granted.
-{
-  let G = mk(2); card(G, 0, 7); let r = G.play(0, 0, 0, {});
-  assert.strictEqual(r.pending.type, "chariot"); assert.strictEqual(G.cur, 0); assert.strictEqual(G.hands[0].length, 2);
-  r = G.play(0, 0, 0, {}); assert.strictEqual(G.cur, 1); assert.strictEqual(G.hands[0].length, 3);
-  G = mk(2); card(G, 0, 7); r = G.play(0, 0, 0, {}); assert.ok(G.skip(0).ok); assert.strictEqual(G.cur, 1);
-  console.log("ok  Chariot: extra play or skip, draw count follows cards played");
-}
-// Devil: forced two cards, no interim refill; even a Chariot cannot add a third.
-{
-  const G = mk(2); let r = play(G, 0, 15); assert.strictEqual(G.turnState.kind, "devil"); assert.strictEqual(G.cur, 1);
-  const len = G.hands[1].length; card(G, 1, 7); r = G.play(1, 0, 0, {});
-  assert.strictEqual(G.cur, 1); assert.strictEqual(G.hands[1].length, len - 1); assert.strictEqual(r.pending, null);
-  r = G.play(1, 0, 0, {}); assert.strictEqual(G.cur, 0); assert.strictEqual(G.hands[1].length, len);
-  console.log("ok  Devil: two consecutive plays, no Chariot stacking, refill two afterward");
-}
-// Sun: 3 private options, one selected instead of a normal draw, two go to bottom.
-{
-  const G = mk(2); card(G, 0, 19); const deckBefore = G.deck.length;
-  const r = G.play(0, 0, 0, {}); assert.strictEqual(r.pending.type, "sun");
-  assert.strictEqual(G.sunOptions[0].length, 3); assert.strictEqual(G.phase, "await_sun");
-  const selected = G.sunOptions[0][1]; const chosen = G.choose(0, { index: 1 });
-  assert.ok(chosen.ok); assert.strictEqual(chosen.chosen.id, selected.id); assert.ok(G.hands[0].some(c => c.id === selected.id));
-  assert.strictEqual(G.deck.length, deckBefore - 1); assert.strictEqual(G.hands[0].length, 3);
-  console.log("ok  Sun: private 3-card choice replaces refill; unselected cards return to deck bottom");
-}
-// Empress interruption scores and heats immediately, then her next own turn is draw-only.
-{
-  const G = mk(3); card(G, 1, 3); card(G, 2, 3); const before = G.hands[1].length;
-  let r = G.interrupt(1, 0); assert.strictEqual(r.interrupt, true); assert.strictEqual(G.total, 3); assert.strictEqual(G.cur, 0);
-  assert.strictEqual(G.hands[1].length, before - 1); assert.strictEqual(G.skipDraw[1], true);
-  assert.strictEqual(G.canInterrupt(2), true); // another eligible player may still interrupt
-  play(G, 0, 1); assert.strictEqual(G.cur, 2); // p1 skipped and drew one
-  assert.strictEqual(G.hands[1].length, before); assert.strictEqual(G.skipDraw[1], false);
-  assert.ok(G.interrupt(1, 0).error);
-  console.log("ok  Empress: off-turn +3, no immediate refill, next own turn draw-only");
-}
-// Remaining score/state abilities.
-{
-  let G = mk(3); G.total = 80; G.prev = 42; let r = play(G, 0, 13); assert.strictEqual(r.after, 42); // score-only rollback
-  G = mk(3); G.total = 51; r = play(G, 0, 14); assert.strictEqual(r.after, 86); assert.strictEqual(G.dir, -1);
-  G = mk(3); G.total = 70; G.shield[0] = true; r = play(G, 0, 8); assert.strictEqual(r.saved, true); assert.strictEqual(r.after, 105); assert.strictEqual(G.shield[0], false);
-  G = mk(3); G.total = 10; card(G, 0, 4); r = G.play(0, 0, 0, { target: 2 }); assert.strictEqual(G.sealed[2], true);
-  G = mk(3); card(G, 0, 0); r = G.play(0, 0, 0, { target: 0 }); assert.strictEqual(G.hands[0].length, 3);
-  G = mk(3); card(G, 0, 18); r = G.play(0, 0, 0, { target: 2 }); assert.strictEqual(G.revealed, 2); assert.ok(G.revealedHand[2]);
-  console.log("ok  Rebirth, Temperance, Hermit shield, Emperor target, Fool swap, Moon reveal smoke tests");
-}
-
-// Server public state never contains Sun options; Moon's exposed hand is deliberately public.
+// (3) กติกาของเซิร์ฟเวอร์
 {
   const players = [0, 1, 2].map(i => ({ user_id: "u" + i, seat: i + 1, name: "P" + i, avatar: "" }));
-  const S0 = SV.startGame(players, 150, prng(123), "one_loser");
-  const snap = { pub: S0.pub, secret: S0.secret, hands: S0.hands, private: S0.private, uids: S0.uids };
-  const p = snap.pub.cur, uid = snap.uids[p];
-  snap.hands[uid] = [{ n: 19, id: 700 }, { n: 1, id: 701 }, { n: 2, id: 702 }];
-  let res = SV.applyPlay(snap, uid, 700, prng(3), {}); assert.ok(!res.error, res.error);
-  assert.strictEqual(res.pub.pending.type, "sun");
-  assert.ok(res.private[uid] && res.private[uid].pending.sunOptions.length === 3);
-  assert.ok(!JSON.stringify(res.pub).includes("sunOptions"));
-  const optIds = res.private[uid].pending.sunOptions.map(x => x.id);
-  assert.ok(optIds.every(id => !JSON.stringify(res.pub).includes(String(id))));
-  const sunSnap = { pub: res.pub, secret: res.secret, hands: Object.assign({}, snap.hands, res.hands),
-    private: Object.assign({}, snap.private, res.private), uids: snap.uids };
-  const choice = SV.applyChoose(sunSnap, uid, 0, prng(4)); assert.ok(!choice.error, choice.error);
-  const moonSnap = { pub: S0.pub, secret: S0.secret, hands: Object.assign({}, S0.hands), private: S0.private, uids: S0.uids };
-  const mu = moonSnap.uids[moonSnap.pub.cur], mp = moonSnap.pub.cur, target = moonSnap.pub.alive.find(x => x !== mp);
-  moonSnap.hands[mu] = [{ n: 18, id: 800 }, { n: 3, id: 801 }, { n: 4, id: 802 }];
-  res = SV.applyPlay(moonSnap, mu, 800, prng(5), { target }); assert.ok(!res.error, res.error);
-  assert.deepStrictEqual(res.pub.revealedHand[target], moonSnap.hands[moonSnap.uids[target]]);
-  console.log("ok  server privacy: Sun options only in actor private state; Moon reveal is public and scoped");
-  // A live Moon reveal must refresh if a later effect changes the exposed player's hand.
-  const G = mk(4); card(G, 0, 18); G.play(0, 0, 0, { target: 3 });
-  assert.strictEqual(G.revealed, 3); const oldHand = clone(G.revealedHand[3]);
-  card(G, 1, 20); G.play(1, 0, 0, {});
-  assert.deepStrictEqual(G.revealedHand[3], G.hands[3]);
-  assert.notDeepStrictEqual(G.revealedHand[3], oldHand);
-  // If the Sun chooser forfeits while the choice is pending, all 3 cards return to deck bottom.
-  const S1 = SV.startGame(players, 150, prng(303), "elimination");
-  const fsnap = { pub: S1.pub, secret: S1.secret, hands: S1.hands, private: S1.private, uids: S1.uids };
-  const fp = fsnap.pub.cur, fu = fsnap.uids[fp];
-  fsnap.hands[fu] = [{ n: 19, id: 990 }, { n: 1, id: 991 }, { n: 2, id: 992 }];
-  const fr = SV.applyPlay(fsnap, fu, 990, prng(304), {});
-  const pendingSnap = { pub: fr.pub, secret: fr.secret, hands: Object.assign({}, fsnap.hands, fr.hands),
-    private: Object.assign({}, fsnap.private, fr.private), uids: fsnap.uids };
-  const beforeCount = pendingSnap.secret.deck.length + Object.values(pendingSnap.private).reduce((a, x) => a + ((x.pending && x.pending.sunOptions) || []).length, 0);
-  const forfeited = SV.applyForfeit(pendingSnap, fp, "left", prng(305));
-  assert.ok(!forfeited.error, forfeited.error); assert.strictEqual(forfeited.pub.pending, null);
-  assert.strictEqual(forfeited.secret.deck.length, pendingSnap.secret.deck.length + 3);
-  assert.strictEqual(beforeCount, forfeited.secret.deck.length + Object.values(forfeited.private).reduce((a, x) => a + ((x.pending && x.pending.sunOptions) || []).length, 0));
-  console.log("ok  pending edge cases: Moon live-refresh; forfeiting during Sun conserves all three options");
-}
-
-// Run representative decisions through both factories and check deterministic same-output behavior.
-{
-  const A = offlineFactory({ cap: 150, n: 3 }, prng(99)); A.deal();
-  const B = sharedFactory({ cap: 150, n: 3 }, prng(99)); B.deal();
-  assert.deepStrictEqual(A.hands, B.hands); assert.deepStrictEqual(A.deck, B.deck);
-  const p = A.cur, i = A.legal(p)[0], c = A.hands[p][i];
-  const choice = c.n === 17 ? { value: 17 } : c.n === 0 ? { target: p } : (c.n === 4 || c.n === 18) ? { target: (p + 1) % 3 } : {};
-  assert.deepStrictEqual(A.play(p, i, 0, choice), B.play(p, i, 0, clone(choice)));
-  assert.deepStrictEqual(A.hands, B.hands); assert.strictEqual(A.total, B.total); assert.strictEqual(A.cur, B.cur);
-  console.log("ok  deterministic offline/shared engine parity");
+  const r = prng(42), S0 = SV.startGame(players, 150, r);
+  const snap = { pub: S0.pub, secret: S0.secret, hands: S0.hands, uids: S0.uids, extras: {} };
+  const cur = snap.pub.cur, other = (cur + 1) % 3;
+  const myCard = snap.hands[snap.uids[cur]][0].id, otherCard = snap.hands[snap.uids[other]][0].id;
+  assert.strictEqual(SV.applyPlay(snap, snap.uids[other], otherCard, r).error, "not_your_turn");
+  assert.strictEqual(SV.applyPlay(snap, snap.uids[cur], otherCard, r).error, "card_not_in_hand");
+  assert.strictEqual(SV.applyPlay(snap, snap.uids[cur], 99999, r).error, "card_not_in_hand");
+  assert.strictEqual(SV.applyPlay(snap, "stranger", myCard, r).error, "not_in_game");
+  assert.strictEqual(SV.applyPlay(snap, snap.uids[cur], myCard, r, { k: 9 }).error, "bad_option");
+  assert.strictEqual(SV.applyPass(snap, snap.uids[cur], r).error, "no_pending");
+  assert.strictEqual(SV.applySwap(snap, snap.uids[cur], [], r).error, "no_pending");
+  assert.strictEqual(SV.applyInterject(snap, snap.uids[cur], r).error, "cant_interject");
+  // บังคับใบสูงสุด
+  const s2 = JSON.parse(JSON.stringify(snap)); s2.pub.force = cur;
+  s2.hands[s2.uids[cur]] = [{ n: 5, id: 5 }, { n: 17, id: 17 }, { n: 9, id: 9 }];
+  assert.strictEqual(SV.applyPlay(s2, s2.uids[cur], 5, r).error, "illegal_card");
+  assert.ok(!SV.applyPlay(s2, s2.uids[cur], 17, r, { k: 0 }).error);
+  // ต้องเลือกเป้าหมายเมื่อมี 3 คนขึ้นไป (Fool / Emperor) — Moon ไม่ต้องเลือกเป้าหมายแล้ว
+  const s3 = JSON.parse(JSON.stringify(snap)); s3.hands[s3.uids[cur]] = [{ n: 0, id: 0 }, { n: 4, id: 4 }, { n: 18, id: 18 }];
+  assert.ok(!SV.applyPlay(s3, s3.uids[cur], 18, r, { k: 0 }).error);
+  [0, 4].forEach(id => { assert.strictEqual(SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0 }).error, "need_target"); assert.strictEqual(SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0, tg: cur }).error, "need_target"); assert.ok(!SV.applyPlay(s3, s3.uids[cur], id, r, { k: 0, tg: other }).error); });
+  // จบเกมแล้วลงไม่ได้
+  const s4 = JSON.parse(JSON.stringify(snap)); s4.pub.over = 0;
+  assert.strictEqual(SV.applyPlay(s4, s4.uids[cur], myCard, r).error, "game_over");
+  // public ไม่มีมือ/สำรับ/ไพ่ที่รอเลือก
+  assert.ok(!/"deck"|"disc"|"secret"|"cards"/.test(JSON.stringify(S0.pub)), "public leaks");
+  assert.strictEqual(SV.startGame(players.slice(0, 1), 150, r).error, "bad_player_count");
+  assert.strictEqual(SV.startGame(players, 99, r).error, "bad_cap");
+  console.log("ok  (3) turn/card/option/target/force/game-over rules enforced; public state has no hands/deck/pending cards");
 }
 console.log("ALL PASSED");

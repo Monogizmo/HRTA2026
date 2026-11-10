@@ -49,6 +49,8 @@
       if (a.p_over >= 0) { g.status = "finished"; g.loser_p = a.p_over; T.rooms.find(function (x) { return x.id === g.room_id; }).status = "finished"; }
       var s = T.game_secrets.find(function (x) { return x.game_id === g.id; }); s.deck = clone(a.p_secret.deck); s.disc = clone(a.p_secret.disc);
       Object.keys(a.p_hands).forEach(function (u) { T.player_private_states.find(function (x) { return x.game_id === g.id && x.user_id === u; }).hand = clone(a.p_hands[u]); });
+      Object.keys(a.p_extras || {}).forEach(function (u) { T.player_private_states.find(function (x) { return x.game_id === g.id && x.user_id === u; }).extra = a.p_extras[u]; });
+      s.pend = a.p_secret.pend ? clone(a.p_secret.pend) : null;
       T.game_actions.push({ game_id: g.id, seq: g.version, user_id: a.p_user, request_id: a.p_request });
       return { ok: true, version: g.version };
     },
@@ -72,16 +74,36 @@
   var admin = { from: builder, rpc: function (n, a) { return Promise.resolve({ data: clone(rpcs[n](clone(a))), error: null }); } };
   var api = NNApi.create({ admin: admin, rnd: rnd });
 
-  // บอทเล่นแทนเพื่อน: ทุก 350ms ถ้าถึงตาบอท ลงไพ่ที่ถูกกติกาแบบสุ่ม
+  // บอทเล่นแทนเพื่อน: ทุก 350ms ถ้าถึงตาบอท ตัดสินใจแบบสุ่มที่ถูกกติกา (เลือกเป้าหมาย / เลือกไพ่ Sun / ข้าม Chariot / บางครั้งแทรก Empress)
+  function snapOf(g) {
+    var pub = g.public_state, rows = T.player_private_states.filter(function (x) { return x.game_id === g.id; });
+    var uids = pub.players.map(function (pl) { return rows.find(function (r) { return r.seat === pl.seat; }).user_id; }), hands = {}, extras = {};
+    rows.forEach(function (r) { hands[r.user_id] = r.hand; if (r.extra) extras[r.user_id] = r.extra; });
+    return { pub: pub, hands: hands, uids: uids, extras: extras };
+  }
+  function botAction(snap, uid) {
+    var pub = snap.pub, actor = pub.pend ? pub.pend.p : pub.cur, hand = snap.hands[uid];
+    if (pub.pend && pub.pend.t === "moon") return { action: "swap", ix: hand.map(function (c, i) { return i; }).filter(function () { return Math.random() < .5; }) };
+    if (pub.pend && pub.pend.t === "extra" && Math.random() < .5) return { action: "pass" };
+    var cand = hand.slice();
+    if (pub.force === actor) { var mx = Math.max.apply(null, cand.map(function (c) { return c.n; })); cand = cand.filter(function (c) { return c.n === mx; }); }
+    var c = cand[Math.floor(Math.random() * cand.length)];
+    var G = NNEngine.engine({ cap: pub.cap, n: pub.alive.length }); G.total = pub.total; G.prev = pub.prev;
+    var os = pub.seal[actor] ? [{ fx: "" }] : G.opts(c.n), k = Math.floor(Math.random() * os.length), tg = null;
+    if (!pub.seal[actor] && G.needsTarget(os[k].fx) && pub.alive.length > 2) { var others = pub.alive.filter(function (o) { return o !== actor; }); tg = others[Math.floor(Math.random() * others.length)]; }
+    return { action: "play", card_id: c.id, k: k, tg: tg };
+  }
   setInterval(function () {
     var g = T.games.filter(function (x) { return x.status === "playing"; })[0]; if (!g) return;
-    var pub = g.public_state, pl = pub.players[pub.cur];
-    var row = T.player_private_states.find(function (x) { return x.game_id === g.id && x.seat === pl.seat; });
-    if (BOTS.indexOf(row.user_id) < 0) return;
-    var hand = row.hand.slice();
-    if (pub.force === pub.cur) { var mx = Math.max.apply(null, hand.map(function (c) { return c.n; })); hand = hand.filter(function (c) { return c.n === mx; }); }
-    var c = hand[Math.floor(Math.random() * hand.length)];
-    api.handle(row.user_id, { action: "play", game_id: g.id, card_id: c.id, request_id: uuid(), expected_version: g.version }).then(fire);
+    var snap = snapOf(g), pub = snap.pub, actor = pub.pend ? pub.pend.p : pub.cur, uid = snap.uids[actor];
+    var base = { game_id: g.id, request_id: uuid(), expected_version: g.version };
+    if (BOTS.indexOf(uid) < 0) {            // ตาของผู้เล่นจริง: บอทอาจแทรก Empress คั่น (นานๆ ครั้ง)
+      if (!pub.pend && !pub.seq && Math.random() < .08) {
+        for (var o = 0; o < snap.uids.length; o++) { var bu = snap.uids[o]; if (BOTS.indexOf(bu) >= 0 && snap.hands[bu].some(function (c) { return c.n === 3; })) { api.handle(bu, Object.assign({ action: "interject" }, base)).then(fire); break; } }
+      }
+      return;
+    }
+    api.handle(uid, Object.assign(botAction(snap, uid), base)).then(fire);
   }, 350);
 
   var realFetch = window.fetch;

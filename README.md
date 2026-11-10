@@ -11,15 +11,14 @@
 Supabase: Auth (anonymous) · Postgres + RLS · Edge Function · Realtime
 ```
 - เซิร์ฟเวอร์เป็นผู้ตัดสินทุกอย่าง client ส่งแค่ "ขอลงไพ่ใบนี้" ; สำรับ/กองทิ้งอ่านไม่ได้ ; มือคนอื่นอ่านไม่ได้ (RLS)
-- เกมเลขเพดานใช้กติกาชุดเดียวกันทั้ง AI / ส่งเครื่อง / ออนไลน์ (`online/nn-engine.js` และ inline copy ใน `index.html` ต้องตรงกัน; ตรวจด้วย `tests/engine-parity.test.js`)
-- พลังไพ่ Tarot 22 ใบเหมือนกันใน 2–4 คน · รองรับขั้นตอนเลือกค้าง (Sun / Chariot), Empress แทรกเทิร์น, Emperor seal, Star protection และ Moon live reveal
+- engine เป็นไฟล์เดียวกับในเกมออฟไลน์ (`online/nn-engine.js` คัดลอกตรงจาก `index.html` และมีเทสต์เทียบทุกตา)
 - โหมดเกม: **แพ้ 1 คน** (ที่เหลือชนะ) และ **คัดออก** (4→3→2 เหลือผู้ชนะ 1 คน; ตกรอบแล้วกองรีเซ็ตเป็น 0 และเมื่อเหลือ 2 คนใช้พลังไพ่แบบ 2 คน)
 - เวลา: ตาละ 60 วินาที · หลุดการเชื่อมต่อรอได้ 120 วินาที · หมดเวลา/หลุดนาน/ออกจากเกม = ยอมแพ้ · Host หายเกิน 60 วินาที ย้ายให้คนอื่นอัตโนมัติ · ไม่มี AI แทนผู้เล่น
 - ยังไม่มีเหรียญรางวัลในโหมดออนไลน์ (เหรียญของแอปเก็บใน localStorage แก้ได้จากเครื่อง จึงไม่ปลอดภัยพอ)
 
 ## 2) ติดตั้ง (ทำตามลำดับ)
 **Supabase**
-1. SQL Editor → รันไฟล์ใน `supabase/migrations/` **ตามลำดับ 001 → 002 → 003 → 004 → 005** (ทีละไฟล์ ต้องขึ้น Success) · `005_tarot_abilities.sql` เพิ่มคอลัมน์ `pending` แบบ private สำหรับตัวเลือก Sun และอัปเดต RPC commit action
+1. SQL Editor → รันไฟล์ใน `supabase/migrations/` **ตามลำดับ 001 → 002 → 003 → 004 → 005** (005 ต้องรัน **ก่อน** วางโค้ด Edge Function ใหม่ เพราะฟังก์ชันอ่านคอลัมน์ใหม่) (ทีละไฟล์ ต้องขึ้น Success)
 2. Authentication → Sign In / Providers → เปิด **Allow anonymous sign-ins**
 3. Edge Functions → สร้างฟังก์ชันชื่อ **`nn-api`** → วางทั้งไฟล์ `supabase/functions/nn-api/index.ts` → Deploy
    - ปิด "Verify JWT" ของฟังก์ชันนี้ (โค้ดตรวจ JWT ผู้เล่นเองแล้ว)
@@ -49,23 +48,23 @@ Supabase: Auth (anonymous) · Postgres + RLS · Edge Function · Realtime
 - กันลงซ้ำ/ชนกัน: `request_id` + เลข version ; กันเดารหัสห้อง: จำกัด 10 ครั้ง/นาที ; ชื่อ ≤ 12 ตัว ตัดอักขระอันตราย
 
 ## 6) ทดสอบ
-อัตโนมัติ (ในเครื่องผู้พัฒนา ใช้ฐานข้อมูลจำลอง): `node tests/engine-parity.test.js` · `node tests/api.test.js` · `node tests/elimination.test.js` · `node tests/edge-wrapper.test.js` · `python3 tests/e2e.test.py` (ต้อง `python3 -m http.server 8765` และ playwright)
+อัตโนมัติ (ในเครื่องผู้พัฒนา ใช้ฐานข้อมูลจำลอง): `node tests/engine-parity.test.js` · `node tests/api.test.js` · `node tests/engine-cards.test.js` (พลังไพ่ทีละใบ + จำลอง AI) · `node tests/elimination.test.js` · `node tests/edge-wrapper.test.js` · `python3 tests/e2e.test.py` และ `python3 tests/offline-e2e.test.py` (ต้อง `python3 -m http.server 8765` และ playwright)
 ด้วยเครื่องจริง (ต้องทำ): สร้างห้อง 2/3/4 เครื่อง · ทั้งสองโหมดจนจบ + Rematch · ปล่อยหมดเวลา · ปิดแอปกลางเกมแล้วกลับมา · Host หลุด · ออกจากห้องกลางเกม · ลองอ่านข้อมูลคนอื่นด้วย `rls_check.sql` · Android Chrome / iPhone Safari / เดสก์ท็อป
 
 ## 7) แก้ปัญหาที่พบบ่อย
 | อาการ | สาเหตุ/วิธีแก้ |
 |---|---|
-| หน้าเว็บยังเป็นของเก่า | อัปโหลดไฟล์ ZIP ทั้งก้อนแทนไฟล์ข้างใน / Pages ยัง deploy ไม่เสร็จ / แคช → ดู `…/sw.js` ว่าเป็น v31 แล้วล้างแคช |
+| หน้าเว็บยังเป็นของเก่า | อัปโหลดไฟล์ ZIP ทั้งก้อนแทนไฟล์ข้างใน / Pages ยัง deploy ไม่เสร็จ / แคช → ดู `…/sw.js` ว่าเป็น v32 แล้วล้างแคช |
 | "โหลดตัวเชื่อมต่อออนไลน์ไม่สำเร็จ" | ไม่มีอินเทอร์เน็ต หรือโหลด jsDelivr ไม่ได้ (เวอร์ชัน supabase-js ล็อกไว้ใน `config.js`) |
 | "ผู้ดูแลยังไม่ได้เปิด Anonymous sign-ins" | เปิดตามข้อ 2.2 |
-| เริ่มเกมแล้วขึ้น server_error / ไม่ตอบ | ฟังก์ชันชื่อไม่ใช่ `nn-api` · ยังไม่ได้รัน SQL ครบ 001–005 หรือยังใช้ Edge Function รุ่นเก่า · วางโค้ดไม่ครบ · ดู Logs ของ Edge Function |
+| เริ่มเกมแล้วขึ้น server_error / ไม่ตอบ | ฟังก์ชันชื่อไม่ใช่ `nn-api` · ยังไม่ได้รัน SQL ครบ 001–004 · วางโค้ดไม่ครบ · ดู Logs ของ Edge Function |
 | CORS / 401 | เปิดจากโดเมนที่ไม่อยู่ใน `ALLOWED_ORIGINS` · ลืมปิด Verify JWT |
 | เกมค้างไม่ขยับ | รอครบ 60 วิ แล้วระบบตัดสินหมดเวลาเอง (ต้องมีผู้เล่นอย่างน้อย 1 คนเปิดแอปอยู่) ; ถ้าทุกคนปิดแอป เกมค้างจนห้องหมดอายุ 6 ชม. |
 | รูปไพ่ไม่ขึ้น | ตรวจว่าอัปโหลดโฟลเดอร์ `img/` ครบ 48 ไฟล์ และเปิดผ่านเว็บ (ไม่ใช่ดับเบิลคลิกไฟล์) |
 
 ## 8) โครงสร้างไฟล์
-`index.html` (แอปเดิม + จุดส่งออก `__nn.ui`) · `sw.js` · `img/` · `online/` (`config.js`, `online.js` ห้อง/ล็อบบี้, `online-game.js` หน้าเกม, `nn-engine.js` / `nn-server.js` / `nn-api-core.js` ฝั่งเซิร์ฟเวอร์, `online.css`) · `supabase/migrations/001–005` · `supabase/functions/nn-api/index.ts` (สร้างด้วย `tools/build-edge.js`) · `supabase/tests/rls_check.sql` · `tests/` (มี Tarot rules / private-state tests) · `docs/` (`history/` = คู่มือแยกตาม Phase)
+`index.html` (แอปเดิม + จุดส่งออก `__nn.ui`) · `sw.js` · `img/` · `online/` (`config.js`, `online.js` ห้อง/ล็อบบี้, `online-game.js` หน้าเกม, `nn-engine.js` / `nn-server.js` / `nn-api-core.js` ฝั่งเซิร์ฟเวอร์, `online.css`) · `supabase/migrations/001–005` · `supabase/functions/nn-api/index.ts` (สร้างด้วย `tools/build-edge.js`) · `supabase/tests/rls_check.sql` · `tests/` · `docs/` (`history/` = คู่มือแยกตาม Phase)
 
 ## 9) ข้อจำกัดที่ยังมี
 - ล้างข้อมูลเบราว์เซอร์ = เสียที่นั่ง (Anonymous Auth) · ยังไม่มีเหรียญออนไลน์ · ยังไม่มีงานเบื้องหลังตัดสินเมื่อทุกคนปิดแอป
-- **SQL migration 005 และ Edge Function v31 ยังไม่ได้ถูก deploy/ทดสอบกับ Supabase จริงในขั้นตอนจัดทำชุดไฟล์นี้** · ต้องรัน Migration 005 และ Deploy Edge Function ใหม่ก่อนเล่นออนไลน์ · ยังต้องทดสอบบน iPhone/Android จริง
+- **SQL 003–005 และ Edge Function รุ่นล่าสุดยังไม่เคยถูกทดสอบกับ Supabase จริงโดยผู้พัฒนา** (ผู้ใช้ทดสอบ Phase 1–2 ไปแล้ว) ; ยังไม่ได้ทดสอบบน iPhone/Android จริงในส่วน Phase 3–4

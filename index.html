@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
-<script src="emoji-fix.js"></script>
 <title>HRTA Offsite Meeting · กาญจนบุรี</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap" rel="stylesheet">
@@ -42,8 +41,9 @@ section{display:none}
 section.on{display:block}
 h2{font-size:20px;margin:22px 0 10px;color:var(--olive)}
 h2:first-child{margin-top:4px}
-.row{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:108px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
 .row time{color:var(--brown);font-weight:700;font-size:15px}
+.row time .dur{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:2px}
 .row b{display:block}
 .row .loc{color:var(--muted);font-size:15px}
 .map{display:inline-block;margin-top:4px;font-size:14px;color:var(--olive);border:1px solid var(--olive);border-radius:999px;padding:1px 12px;text-decoration:none}
@@ -54,6 +54,10 @@ h2:first-child{margin-top:4px}
 .ppl{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
 .ppl li{background:var(--sand);border-radius:8px;padding:3px 11px}
 .ppl li.hit,.mis.hit{background:var(--hi)}
+.hallSub{color:var(--brown);font-weight:700;margin:-6px 0 10px}
+.hallL{margin:6px 0 0;padding-left:0;list-style:none}.hallL li{padding:7px 0;border-top:1px solid var(--line)}.hallL li:first-child{border-top:0}
+.hallPrep{background:#fff;border:1px dashed var(--olive);border-radius:12px;padding:10px 14px;margin:14px 0}
+[data-theme="dark"] .hallPrep{background:#1f1c17}
 .fig{width:100%;border-radius:14px;display:block;margin:6px 0 14px;border:1px solid var(--line)}
 .cap{color:var(--muted);font-size:14px;margin:-6px 0 14px}
 .mis{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:10px 8px;border-top:1px solid var(--line);border-radius:8px}
@@ -677,35 +681,6 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
 @keyframes wrRif{0%{transform:translate(-34px,0) rotate(-9deg)}25%{transform:translate(-6px,-10px) rotate(0)}50%{transform:translate(34px,0) rotate(9deg)}75%{transform:translate(6px,-10px) rotate(0)}100%{transform:translate(-34px,0) rotate(-9deg)}}
 </style>
 <link rel="stylesheet" href="online/online.css">
-<style id="wtCss">
-#wrB[data-gm="tac"] #wrSet,#wrB[data-gm="tac"] #wrPlay,#wrB[data-gm="tac"] #wrBan,#wrB[data-gm="tac"] #wrEnd{display:none!important}
-#wrB:not([data-gm="tac"]) #wtSet,#wrB:not([data-gm="tac"]) #wtPlay,#wrB:not([data-gm="tac"]) #wtEnd{display:none!important}
-.wtModes{display:flex;gap:6px;padding:6px 8px}.wtModes button{flex:1;padding:9px 6px;border-radius:12px;border:2px solid var(--wr-gold);background:#13283a;color:var(--wr-cream);font:inherit;font-weight:700;cursor:pointer}.wtModes button.on{background:var(--wr-gold);color:#2b1a08}
-.wtPlay{padding:6px 8px;display:flex;flex-direction:column;gap:6px;color:var(--wr-cream)}
-.wtBar{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12px;font-weight:700}.wtBar .wrIc{margin-left:auto}
-.wtOpp{display:flex;align-items:center;gap:8px;min-height:50px}.wtOpp .bks{display:flex}.wtOpp .bks .wtC{margin-left:-32px}.wtOpp .bks .wtC:first-child{margin-left:0}.wtOpp .st{font-size:12px;flex:1;text-align:right}
-.wtC{width:76px;height:112px;border-radius:9px;background:#f6efd9;border:2px solid var(--wr-gold);position:relative;overflow:hidden;flex:0 0 auto;color:#2b1a08;font-size:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;user-select:none}
-.wtC .im{position:absolute;inset:0;background:#d9c9a0}.wtC .im img{width:100%;height:100%;object-fit:cover;display:block}
-.wtC .nb{position:absolute;left:3px;top:2px;background:#2b1a08;color:var(--wr-gold);border-radius:6px;padding:0 5px;font-size:13px}
-.wtC .tg{position:absolute;right:2px;top:2px;background:var(--wr-gold);color:#2b1a08;font-style:normal;font-weight:700;border-radius:6px;padding:0 4px;font-size:10px}
-.wtC.sel,.wtC.up,.wtC.stk{transform:translateY(-8px);box-shadow:0 6px 14px rgba(0,0,0,.45)}.wtC.sel{border-color:#7fe3a0}.wtC.up{border-color:#ffd24a}.wtC.stk{border-color:#ee8f78}
-.wtC.bk{background:repeating-linear-gradient(45deg,#1b4768,#1b4768 6px,#143650 6px,#143650 12px);cursor:default}
-.wtC.sm{width:62px;height:90px}
-.wtHand.many .wtC{width:60px;height:90px}
-.wtTbl{display:flex;align-items:center;justify-content:center;gap:10px;min-height:104px}.wtSw{display:flex;flex-direction:column;align-items:center;gap:2px}.wtSl{min-width:62px;min-height:90px;border:2px dashed rgba(230,193,90,.4);border-radius:10px;display:flex;align-items:center;justify-content:center}
-.wtSl.win{border-color:#7fe3a0;box-shadow:0 0 14px #7fe3a0}.wtSl.lose{opacity:.55}.wtSl.war{border-color:#ee8f78}.wtSl .wtC{cursor:default}
-.wtVs{font-weight:900;color:var(--wr-gold)}.wtKk{font-size:11px;min-height:14px}.wtPot{text-align:center;font-size:12px;min-height:16px}
-.wtTip{font-size:12px;min-height:34px;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.28)}
-.wtHand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:120px;padding-top:10px}
-.wtAct{display:flex;gap:8px;flex-wrap:wrap}.wtAct .wrBtn{flex:1;min-width:120px}.wtAct .wrBtn.on{outline:3px solid #7fe3a0}.wtAct button:disabled{opacity:.45}
-.wtEnd{text-align:center;padding:14px 10px;color:var(--wr-cream)}.wtEnd .big{font-size:34px;font-weight:900;margin:2px 0}
-@media (prefers-reduced-motion:reduce){.wtC{transition:none}}
-@media (max-width:420px){.wtC{width:70px;height:104px}.wtC.sm{width:56px;height:82px}}
-.qlb{margin-top:18px}.qlb h3{margin:0 0 8px}
-.qlbTabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.qlbTabs button{padding:7px 12px;border-radius:999px;border:1px solid var(--line,#d9cfb8);background:#fff;font:inherit;cursor:pointer}.qlbTabs button.on{background:#4f6b3a;color:#fff;border-color:#4f6b3a}
-.qlbWrap{overflow-x:auto}.qlbT{border-collapse:collapse;width:100%;font-size:14px}.qlbT th,.qlbT td{padding:7px 8px;text-align:left;border-bottom:1px solid rgba(0,0,0,.08);white-space:nowrap}.qlbT th{font-size:12px;opacity:.7}.qlbT td:nth-child(1){width:38px;text-align:center}.qlbT tr.me td{background:rgba(224,182,74,.22);font-weight:700}
-.qlbErr{color:#a4452c}
-</style>
 </head>
 <body>
 <main>
@@ -740,6 +715,7 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
   <button class="tab" role="tab" data-t="bingo">บิงโก</button>
   <button class="tab" role="tab" data-t="wheel">วงล้อ</button>
   <button class="tab" role="tab" data-t="color">Color Hunting</button>
+  <button class="tab" role="tab" data-t="hall">Hall of Appreciation</button>
   <button class="tab" role="tab" data-t="fortune">ดูดวง</button>
   <button class="tab" role="tab" data-t="game">🎮 เกม</button>
 </nav>
@@ -770,13 +746,6 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
     <ul class="gTips">
       <li>👆 แตะหน้าจอ (หรือกด Space) = กระโดด · แตะสองทีติดกัน = กระโดดสองชั้น</li>
       <li>👇 ปัดนิ้วลง (หรือกด ↓ / S) = สไลด์ลอดซุ้ม/ราว/คานที่ห้อยต่ำ (ซุ้มมีลายตามธีมของแต่ละด่าน และมีเหรียญอยู่ข้างใต้) · ปัดลงกลางอากาศ = ทิ้งตัวลงเร็ว เหยียบศัตรูได้ (+1 🪙 แล้วเด้งขึ้น) และดูดเหรียญรอบตัว</li>
-      <li>👉 ปัดนิ้วไปทางขวา (หรือกด → / D) = แดช พุ่งทะลุสิ่งกีดขวางเล็กๆ (ซุ้มทะลุไม่ได้) และลอยข้ามหลุมสั้นๆ ได้ · คูลดาวน์ ~2.5 วินาที ดูวงแหวนมุมขวาล่าง</li>
-      <li>⚡ เฉียดสิ่งกีดขวางโดยไม่ชน (ห่างไม่เกิน ~9 พิกเซล) = +1 🪙 และเติมพลังความสวย เฉียดเป๊ะจะสโลว์โมชั่นสั้นๆ · เฉียดติดกัน 3 ครั้ง = โบนัสเพิ่ม</li>
-      <li>👟 ทิ้งตัวเหยียบอุปสรรคติดกันหลายอัน = คอมโบเหยียบ (ยิ่งต่อเนื่องยิ่งได้เหรียญเพิ่ม สูงสุด +5 ต่อครั้ง) · บางจังหวะอุปสรรคจะวางห่างพอดีให้เหยียบต่อกัน มีเหรียญเรียงเป็นโค้งบอกทาง</li>
-      <li>🎁 กล่องสุ่ม = ของขวัญสุ่ม · 🎈 ลูกโป่ง = ลอยตัวเบา 6 วินาที · 🐢 เต่า = เกมช้าลงสบายๆ 6 วินาที · 🟡 แท่นสปริง = เด้งสูงไปเก็บเหรียญเป็นแถว</li>
-      <li>🚂 ด่านสะพานแคว มีรถไฟวิ่งผ่านเป็นระยะ · มีป้ายบอกระยะทางและคำเชียร์ทุก 500 หน่วย · เปลี่ยนด่านมีพลุ</li>
-      <li>🔥 FEVER: เก็บเหรียญ เฉียด เหยียบ แดชชน หรือเก็บไอเท็ม = เติมหลอด FEVER มุมขวาบน เต็มแล้วเข้าสู่ FEVER TIME 7 วินาที เหรียญที่เก็บได้ ×2 พร้อมริบบิ้นรุ้งและประกาย</li>
-      <li>☔ บางด่านมีฝนตก (หลังฝนอาจมีรุ้ง 🌈) · พุ่มไม้/ดอกไม้ฉากหน้าเลื่อนผ่านขอบล่าง · น้องเบสท์พูดโต้ตอบเวลาทำท่าเจ๋งๆ</li>
       <li>🐘 ช้างวิ่งสวนในด่านวัด / น้ำตก / ป่าไผ่ — กระโดดข้ามหรือทิ้งตัวเหยียบ</li>
       <li>❤️ มีหัวใจ 3 ดวง ชนสิ่งกีดขวางหรือนกเสีย 1 ดวง หมดแล้วจบเกม</li>
       <li>🕳️ ตกหลุม = จบเกมทันที!</li>
@@ -810,7 +779,6 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
         <button type="button" class="wrIc" id="wrRl" aria-label="อ่านกติกาสงครามไพ่">📖</button>
         <button type="button" class="wrIc" id="wrQuit" aria-label="ออกจากเกมนี้" hidden>✕</button>
       </div>
-      <div class="wtModes" id="wtModes" role="group" aria-label="เลือกโหมดสงครามไพ่"><button type="button" data-g="luck" class="on">🎲 วัดดวง</button><button type="button" data-g="tac">🧠 ยุทธวิธี</button></div>
       <div class="wrDl" id="wrDl">
         <svg class="sc" viewBox="0 0 470 166" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>
@@ -838,33 +806,9 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
         <div class="wrShuf" id="wrShuf" hidden aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div class="wrSay" id="wrSay" aria-live="polite"><span class="wrWho">🎩 น้องเบสท์ · เจ้ามือ</span><span class="t" id="wrSayT"></span></div>
-      <div class="wrPanel" id="wtSet">
-        <div class="wrRow"><div class="wrLb">① ระดับโคลน (น้องเบสท์)</div>
-          <div class="wrOpt" id="wtOLv"><button type="button" data-v="novice">😊 มือใหม่</button><button type="button" data-v="normal" class="on">🎯 ปกติ</button><button type="button" data-v="hard">😈 ตัวโหด</button></div></div>
-        <div class="wrRow"><div class="wrLb">② เมื่อไหร่ถึงเรียกว่า “ชนกัน”</div>
-          <div class="wrOpt" id="wtOCl"><button type="button" data-v="u" class="on">🎯 หลักหน่วยเหมือนกัน</button><button type="button" data-v="un">🔥 + ห่าง 1</button><button type="button" data-v="eq">📜 เลขเท่ากัน</button></div></div>
-        <div class="wrRow"><div class="wrLb">③ “คนโง่ล้มเจ้าโลก”</div>
-          <div class="wrOpt" id="wtOFl"><button type="button" data-v="1" class="on">🃏 เปิด</button><button type="button" data-v="0">ปิด</button></div></div>
-        <div class="wrRow"><button type="button" class="wrBtn wrGo" id="wtStart">⚔️ เริ่มกับโคลน</button>
-          <p class="wrDesc" id="wtDRw"></p>
-          <button type="button" class="wrBtn alt" data-onl-open>🌐 ออนไลน์ 2 คน (สร้างห้อง / เข้าห้อง)</button>
-          <p class="wrDesc">เล่นเครื่องเดียวกับเพื่อนไม่ได้ เพราะไพ่ที่เลือกเป็นความลับ — เล่นกับโคลน หรือออนไลน์คนละเครื่อง</p></div>
-        <p class="wrDesc">ถือไพ่ 3 ใบ เลือกลงพร้อมกัน เลขมากชนะ เก็บไพ่ทั้งสองใบ · เพิ่มเดิมพันได้ 2 ครั้ง/เกม · ชนกันเป็นสงคราม สู้หรือถอยก็ได้</p>
-      </div>
-      <div class="wtPlay" id="wtPlay" hidden>
-        <div class="wtBar"><span id="wtRd"></span><span id="wtDk"></span><span id="wtPl"></span><span id="wtDd"></span><button type="button" class="wrIc" id="wtQuit" aria-label="เลิกเล่นตานี้">✕</button></div>
-        <div class="wtOpp" id="wtOpp"></div>
-        <div class="wtTbl"><div class="wtSw"><div class="wtSl" id="wtS0"></div><span class="wtKk" id="wtK0"></span></div><span class="wtVs">VS</span><div class="wtSw"><div class="wtSl" id="wtS1"></div><span class="wtKk" id="wtK1"></span></div></div>
-        <div class="wtPot" id="wtPot"></div>
-        <div class="wtTip" id="wtTip" aria-live="polite"></div>
-        <div class="wtHand" id="wtHand"></div>
-        <div class="wtAct"><button type="button" class="wrBtn alt" id="wtRz" hidden></button><button type="button" class="wrBtn alt" id="wtRt" hidden></button><button type="button" class="wrBtn" id="wtGo" hidden></button></div>
-        <details class="wrLogBox"><summary>📜 บันทึกสนามรบ <span id="wtLogN" class="gTips"></span></summary><ol id="wtLog" reversed></ol></details>
-      </div>
-      <div class="wtEnd" id="wtEnd" hidden></div>
       <div class="wrPanel" id="wrSet">
         <div class="wrRow"><div class="wrLb">① เลือกคู่ต่อสู้</div>
-          <div class="wrOpt" id="wrOMode"><button type="button" data-v="friend" class="on">👫 เพื่อนเครื่องเดียวกัน</button><button type="button" data-v="dealer">🎩 เล่นกับโคลน (น้องเบสท์)</button></div>
+          <div class="wrOpt" id="wrOMode"><button type="button" data-v="friend" class="on">👫 เพื่อน 2 คน</button><button type="button" data-v="dealer">🎩 ท้าเจ้ามือน้องเบสท์</button></div>
           <p class="wrDesc" id="wrDMode"></p></div>
         <div class="wrRow"><div class="wrLb">② ชื่อผู้เล่น</div>
           <div class="wrNames"><input class="wrIn c0" id="wrI0" maxlength="12" autocomplete="off" aria-label="ชื่อผู้เล่นฝั่งซ้าย"><input class="wrIn c1" id="wrI1" maxlength="12" autocomplete="off" aria-label="ชื่อผู้เล่นฝั่งขวา"></div></div>
@@ -897,8 +841,6 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
 
 <section id="rooms">
   <h2>ผังที่พัก X River Kwai</h2>
-  <img class="fig" src="img/02-a13e26d2.jpg" alt="ภาพมุมสูงของที่พักพร้อมชื่อผู้พักในแต่ละห้อง">
-  <p class="cap">ภาพประกอบตำแหน่งห้องพัก (ห้อง X Float Luxe Cabin อยู่ริมน้ำ ไม่อยู่ในภาพ)</p>
   <div id="roomList"></div>
 </section>
 
@@ -962,9 +904,6 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
   <p>20 ข้อ เลือกชื่อของคุณก่อนเริ่ม ทำได้ไม่จำกัดครั้ง ลำดับข้อและตัวเลือกสลับทุกรอบ ระบบจะจำคะแนนสูงสุดของคุณในเครื่องนี้</p>
   <select id="qzName" aria-label="เลือกชื่อ"><option value="">เลือกชื่อของคุณ</option></select>
   <div id="qzBody"></div>
-  <div id="qzLb" class="qlb"><h3>🏆 ลีดเดอร์บอร์ด Quiz</h3>
-    <div class="qlbTabs"><button type="button" class="on" data-m="team">🌐 ทั้งทีม</button><button type="button" data-m="local">📱 เครื่องนี้</button><button type="button" id="qlbRef" aria-label="รีเฟรชอันดับ">↻ รีเฟรช</button></div>
-    <div id="qlbBody" aria-live="polite"></div></div>
 </section>
 
   <section id="soulmate">
@@ -1002,6 +941,23 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
   <div id="wRes" class="wres"></div>
   <div id="wChips" class="wch"></div>
   <div id="wHist"></div>
+</section>
+
+<section id="hall">
+  <h2>Hall of Appreciation</h2>
+  <p class="hallSub">หอเกียรติยศแห่งคำขอบคุณ</p>
+  <img class="fig" src="img/49-0c58c354.jpg" alt="Hall of Appreciation หอเกียรติยศแห่งคำขอบคุณ — ทีมงานนั่งล้อมวงฟังเพื่อนพูดขอบคุณ">
+  <p>เพราะความสำเร็จในการทำงานไม่ได้เกิดขึ้นจากคนเพียงคนเดียว แต่เกิดจากการสนับสนุน ความช่วยเหลือ และน้ำใจของเพื่อนร่วมงานทุกคน และนี่คือ <b>โอกาส</b>ที่จะได้บอกเล่าเรื่องราวดี ๆ ที่อาจไม่เคยได้พูดออกไป ให้เพื่อนได้รับรู้ว่าเขาหรือเธอมีความหมายต่อเรามากเพียงใด</p>
+  <div class="card">
+    <h3>กิจกรรมของเรา</h3>
+    <ul class="hallL">
+      <li>📣 ทุกคนในทีมออกมาพูดขอบคุณและบอกความในใจ ให้กับเพื่อนร่วมงานที่เราประทับใจ คอยช่วยเหลือตลอดมา</li>
+      <li>👥 คนในทีมออกมาพูดกันทีละคน จนครบ 20 คน</li>
+      <li>💬 สามารถเล่าถึงเหตุการณ์ ความประทับใจ หรือสิ่งที่เพื่อนร่วมงานคนนั้นเคยช่วยเหลือจนรู้สึกซาบซึ้งใจ</li>
+      <li>😊 เน้นการแบ่งปันเรื่องราวเชิงบวก สร้างรอยยิ้ม และกำลังใจให้แก่กัน</li>
+    </ul>
+  </div>
+  <p class="hallPrep">📅 <b>เตรียมตัวมาก่อนงาน</b> พูดถึงคนละประมาณ 1-2 คน</p>
 </section>
 
 <section id="fortune">
@@ -1076,13 +1032,13 @@ const PLAN = [
  ]}
 ];
 const ROOMS = [
- ["X Float Luxe Cabin",["ปีเตอร์","เบียร์"]],
- ["Luxe Cabin 1",["ปุ๊","อาฟเตอร์","ฝน"]],
- ["Luxe Cabin 2",["บุ๋ม","เบสท์","กระแต"]],
- ["Luxe Cabin 3",["นุ","ต๊ะ","นิว"]],
- ["Poolxide Cabin 1",["ทราย","รุ่ง","เจน"]],
- ["Poolxide Cabin 2",["ยุ้ย","บี","จ๊ะเอ๋"]],
- ["Poolxide Cabin 3",["เจนนี่","โม","เบล"]]
+ ["Luxe Cabin 1",["ยุ้ย","จ๊ะเอ๋"]],
+ ["Luxe Cabin 2",["ทราย","รุ่ง"]],
+ ["Luxe Cabin 3",["เจน","บี"]],
+ ["Poolxide Cabin 1",["บุ๋ม","เบสท์","กระแต"]],
+ ["Poolxide Cabin 2",["เจนนี่","โม","เบล"]],
+ ["Poolxide Cabin 3",["อาฟเตอร์","ปุ๊","ฝน"]],
+ ["2 Bed Room Fallingwater Pool Villa",["ปีเตอร์","เบียร์","ต๊ะ","นิว","นุ"]]
 ];
 const CARS = [
  ["รถคันที่ 1","ปีเตอร์","บางหว้า",["ปีเตอร์","ทราย","จ๊ะเอ๋","ต๊ะ","อาฟเตอร์","เจน"]],
@@ -1903,67 +1859,6 @@ function qDraw(){
     $("#qzNx").onclick = () => { QS.locked = false; if (QS.i === 19) qFinish(); else { QS.i++; qDraw(); } };
   });
 }
-/* ---------- Quiz Leaderboard: อันดับทั้งทีม (Supabase quiz_submit / quiz_leaderboard) + อันดับเฉพาะเครื่องนี้ ---------- */
-const QB = { mode: "team", rows: null, err: "", loading: false };
-function qPend(){ try { const a = JSON.parse(localStorage.getItem("hrta-quiz-pending") || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
-function qPendSave(a){ try { localStorage.setItem("hrta-quiz-pending", JSON.stringify(a.slice(-60))); } catch (e) {} }
-async function qbClient(){ if (!window.HRTAOnline || !HRTAOnline.getClient) throw new Error("no_online"); return await HRTAOnline.getClient(); }
-/* ส่งคะแนนที่ค้างอยู่ขึ้นเซิร์ฟเวอร์ (เรียงตามลำดับ) — คืน true ถ้าส่งหมด; ที่ error ถาวร (ชื่อ/คะแนนไม่ถูกต้อง, เกินโควตา) ทิ้งไป ไม่ติดคิว */
-async function qbFlush(){
-  const p = qPend(); if (!p.length) return true;
-  const sb = await qbClient(), rest = [];
-  for (let i = 0; i < p.length; i++){
-    let r; try { r = await sb.rpc("quiz_submit", { p_name: p[i].n, p_score: p[i].s }); } catch (e) { r = { error: { message: "network" } }; }
-    if (r.error && !/bad_name|bad_score|rate_limited/.test(r.error.message || "")) { rest.push(...p.slice(i)); break; }
-  }
-  qPendSave(rest); return rest.length === 0;
-}
-function qbLocalRows(){
-  const l = qLocal();
-  return Object.keys(l).map(n => { const r = l[n], h = r.h || []; return { name: n, best: r.best || 0, last: r.last == null ? r.best : r.last, plays: r.attempts || h.length, avg: h.length ? Math.round(h.reduce((a, b) => a + b, 0) / h.length * 10) / 10 : r.best || 0 }; })
-    .sort((a, b) => b.best - a.best || a.plays - b.plays || a.name.localeCompare(b.name, "th"));
-}
-function qbRender(){
-  const el = $("#qlbBody"); if (!el) return;
-  const local = QB.mode === "local", rows = local ? qbLocalRows() : QB.rows, me = ($("#qzName") || {}).value;
-  let note = "";
-  if (!local && QB.loading && !rows) { el.innerHTML = `<p class="cap">กำลังโหลดอันดับ…</p>`; return; }
-  if (!local && QB.err) note = `<p class="cap qlbErr">${esc(QB.err)}${QB.rows ? " (แสดงอันดับที่โหลดไว้ล่าสุด)" : ""}</p>`;
-  if (!rows || !rows.length){ el.innerHTML = note + `<p class="cap">${local ? "ยังไม่มีใครทำ Quiz ในเครื่องนี้" : QB.err ? "" : "ยังไม่มีใครทำ Quiz — เป็นคนแรกเลย!"}</p>`; return; }
-  const medal = i => i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1);
-  const tot = rows.reduce((a, r) => a + (r.plays || 0), 0);
-  el.innerHTML = note + `<p class="cap">${local ? "เฉพาะเครื่องนี้" : "ทั้งทีม"} · ผู้เล่น ${rows.length} คน · เล่นรวม ${tot} ครั้ง</p>` +
-    `<div class="qlbWrap"><table class="qlbT"><thead><tr><th>#</th><th>ชื่อ</th><th>สูงสุด</th><th>เฉลี่ย</th><th>เล่น (ครั้ง)</th></tr></thead><tbody>` +
-    rows.map((r, i) => `<tr class="${r.name === me ? "me" : ""}"><td>${medal(i)}</td><td>${esc(r.name)}</td><td><b>${r.best}</b>/20</td><td>${r.avg}</td><td>${r.plays}</td></tr>`).join("") + `</tbody></table></div>`;
-}
-async function qbLoad(){
-  if (QB.mode === "local"){ qbRender(); return; }
-  if (QB.loading) return; QB.loading = true; QB.err = ""; qbRender();
-  try {
-    await qbFlush();
-    const sb = await qbClient(), r = await sb.rpc("quiz_leaderboard");
-    if (r.error) throw r.error;
-    QB.rows = Array.isArray(r.data) ? r.data : [];
-  } catch (e) {
-    const m = (e && e.message) || "";
-    QB.err = m === "no_online" || /failed to fetch|network|load failed|lib_missing/i.test(m) ? "ดึงอันดับทีมไม่ได้ (ไม่มีอินเทอร์เน็ต?)" : /anonymous/i.test(m) ? "ผู้ดูแลยังไม่ได้เปิด Anonymous sign-ins ใน Supabase" : /quiz_leaderboard|schema cache|does not exist/i.test(m) ? "ยังไม่ได้ติดตั้งตารางอันดับ (migration 007) บนเซิร์ฟเวอร์" : "ดึงอันดับทีมไม่สำเร็จ";
-  }
-  QB.loading = false; qbRender();
-}
-function qbInit(){
-  const box = $("#qzLb"); if (!box) return;
-  box.querySelectorAll(".qlbTabs button[data-m]").forEach(b => b.onclick = () => { QB.mode = b.dataset.m; box.querySelectorAll(".qlbTabs button[data-m]").forEach(x => x.classList.toggle("on", x === b)); qbLoad(); });
-  $("#qlbRef").onclick = () => qbLoad();
-  document.querySelectorAll('.tab[data-t="quiz"]').forEach(t => t.addEventListener("click", () => qbLoad()));
-  const nm = $("#qzName"); if (nm) nm.addEventListener("change", () => qbRender());
-  qbRender();
-}
-async function qbAfterFinish(n, s){
-  const p = qPend(); p.push({ n: n, s: s, t: Date.now() }); qPendSave(p);
-  let ok = false; try { ok = await qbFlush(); } catch (e) { ok = false; }
-  const sv = $("#qzSave"); if (sv) sv.textContent = ok ? "บันทึกคะแนนสูงสุดไว้ในเครื่องนี้ และส่งขึ้นอันดับทีมแล้ว ✓" : "บันทึกไว้ในเครื่องนี้แล้ว ✓ · ยังส่งอันดับทีมไม่ได้ (จะลองส่งใหม่ให้อัตโนมัติ)";
-  if (QB.mode === "team") qbLoad(); else qbRender();
-}
 async function qFinish(){
   const n = QS.name, s = QS.score, miss = QS.miss; QS.done = true;
   const msg = s === 20 ? "เต็ม 20! ผู้รู้กาญจน์ตัวจริง 🏆" : s >= 16 ? "เก่งมาก! แทบเป็นไกด์แล้ว 🎉" : s >= 11 ? "ผ่านฉลุย 👍" : s >= 6 ? "ยังไหว ลองใหม่อีกรอบนะ 💪" : "ไปทริปนี้แล้วจะรู้เองค่ะ 😆";
@@ -1973,12 +1868,10 @@ async function qFinish(){
   const loc = qLocal(), r = loc[n] || { name: n, h: [], attempts: 0 };
   r.h = (r.h || []).concat(s).slice(-50); r.best = Math.max(...r.h); r.attempts = (r.attempts || 0) + 1; r.last = s; loc[n] = r;
   try { localStorage.setItem("hrta-quiz", JSON.stringify(loc)); } catch (e) {}
-  const sv = $("#qzSave"); if (sv) sv.textContent = "บันทึกคะแนนสูงสุดไว้ในเครื่องนี้แล้ว ✓ · กำลังส่งขึ้นอันดับทีม…";
-  qbAfterFinish(n, s);
+  const sv = $("#qzSave"); if (sv) sv.textContent = "บันทึกคะแนนสูงสุดไว้ในเครื่องนี้แล้ว ✓";
   window.bestSay && bestSay("ได้ " + s + "/20 ค่ะ " + msg); window.gameQuiz && gameQuiz(s);
 }
 function qzInit(){
-  qbInit();
   const sel = $("#qzName"); Object.keys(MIS).forEach(n => { const o = document.createElement("option"); o.value = n; o.textContent = n; sel.appendChild(o); });
   sel.onchange = () => { QS = null; qDraw(); };
   qDraw();
@@ -2283,7 +2176,7 @@ function fxInit(){
 }
 function reactInit(){
   const say = t => window.bestSay && bestSay(t), jump = () => window.bestJump && bestJump();
-  const TAB = { plan: "นี่คือกำหนดการค่ะ ดูแผนที่ด้านบนด้วยนะคะ 🗺️", rooms: "ห้องพักค่ะ กดชื่อเพื่อดูพาสปอร์ตของเพื่อนได้นะคะ 🛏️", cars: "ดูว่าต้องขึ้นรถคันไหนนะคะ กดชื่อดูพาสปอร์ตได้ค่ะ 🚐", dress: "ธีมนักสำรวจป่าค่ะ แต่งแบบน้องเบสท์เลย 🧢", gift: "โจทย์ของขวัญค่ะ ขูดดูของตัวเองในพาสปอร์ตได้เลยนะคะ 🎁", quiz: "Quiz 20 ข้อค่ะ ทำได้ไม่จำกัดครั้งนะคะ 🧠", bingo: "บิงโกค่ะ! เจอเหตุการณ์ไหนก็แตะได้เลย 🎲", wheel: "วงล้อสุ่มชื่อค่ะ หมุนเลย 🎡", color: "Color Hunting ค่ะ ถ่ายให้ครบ 9 รูปนะคะ 📸" };
+  const TAB = { plan: "นี่คือกำหนดการค่ะ ดูแผนที่ด้านบนด้วยนะคะ 🗺️", rooms: "ห้องพักค่ะ กดชื่อเพื่อดูพาสปอร์ตของเพื่อนได้นะคะ 🛏️", cars: "ดูว่าต้องขึ้นรถคันไหนนะคะ กดชื่อดูพาสปอร์ตได้ค่ะ 🚐", dress: "ธีมนักสำรวจป่าค่ะ แต่งแบบน้องเบสท์เลย 🧢", gift: "โจทย์ของขวัญค่ะ ขูดดูของตัวเองในพาสปอร์ตได้เลยนะคะ 🎁", quiz: "Quiz 20 ข้อค่ะ ทำได้ไม่จำกัดครั้งนะคะ 🧠", bingo: "บิงโกค่ะ! เจอเหตุการณ์ไหนก็แตะได้เลย 🎲", wheel: "วงล้อสุ่มชื่อค่ะ หมุนเลย 🎡", color: "Color Hunting ค่ะ ถ่ายให้ครบ 9 รูปนะคะ 📸", hall: "Hall of Appreciation ค่ะ เตรียมคำขอบคุณถึงเพื่อน 1-2 คนไว้นะคะ 💛" };
   document.addEventListener("click", e => {
     const t = e.target.closest && e.target.closest(".tab"); if (t){ say(TAB[t.dataset.t]); return; }
     const o = e.target.closest && e.target.closest(".qo");
@@ -2326,10 +2219,16 @@ const keys = n => [n, ...(ALIAS[n] || [])].map(x => x.toLowerCase());
 const isHit = n => !!term && keys(n).some(k => k.includes(term));
 const chips = (a, skip) => `<ul class="ppl">` + a.map(p => `<li class="${isHit(p) ? "hit" : ""}"><button type="button" class="nl pill" data-n="${esc(p)}"><span class="av">${avatar(p)}</span>${esc(p)}</button></li>`).join("") + `</ul>`;
 
+function durOf(s){
+  const m = /^(\d{1,2}):(\d{2})[–-](\d{1,2}):(\d{2})$/.exec(s); if (!m) return "";
+  const d = (+m[3] * 60 + +m[4]) - (+m[1] * 60 + +m[2]); if (d <= 0) return "";
+  const h = Math.floor(d / 60), mi = d % 60;
+  return `<span class="dur">${h ? h + " ชม." : ""}${h && mi ? " " : ""}${mi ? mi + " นาที" : ""}</span>`;
+}
 function renderStatic(){
   $("#plan").innerHTML = PLAN.map((d, di) =>
     `<h2>${esc(d.day)}</h2>` + mapSvg(di) + d.rows.map(r =>
-      `<div class="row"><time>${esc(r[0])}</time><div><b>${r[1]} ${esc(r[2])}</b>` +
+      `<div class="row"><time>${esc(r[0])}${durOf(r[0])}</time><div><b>${r[1]} ${esc(r[2])}</b>` +
       (r[3] ? `<span class="loc">${esc(r[3])}</span>` : "") +
       (r[4] ? `<br><a class="map" href="${r[4]}" target="_blank" rel="noopener">แผนที่</a>` : "") +
       `</div></div>`).join("")).join("");
@@ -2352,7 +2251,7 @@ function renderResult(){
 function render(){ renderLists(); renderColors(); renderResult(); initScratch($("#res")); }
 
 function show(t){
-  if (!["plan","rooms","cars","dress","gift","quiz","soulmate","bingo","wheel","color","fortune","game"].includes(t)) t = "plan";
+  if (!["plan","rooms","cars","dress","gift","quiz","soulmate","bingo","wheel","color","hall","fortune","game"].includes(t)) t = "plan";
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === t));
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.t === t));
   if (t === "plan") setTimeout(mapsInit, 60);
@@ -2991,13 +2890,13 @@ var STG=[
 {n:"ดูดาวยามค่ำคืน",e:"🌙",sk:["#10173a","#3a3d78"],hl:"#26305a",gr:"#2f3a4f",nt:1,ob:[["🦉",30,24,26],["🪨",30,24,22],["🔥",30,20,26]]},
 {n:"เมืองคริสต์มาส",e:"🎄",sk:["#cfe3f7","#ffffff"],hl:"#dfe9f2",gr:"#eef3f8",ob:[["⛄",40,28,38],["🎁",30,26,24],["🎄",40,26,38]]}];
 var STARS=[];for(var si=0;si<40;si++)STARS.push([(si*97)%W,(si*53)%120,si%3]);
-var R={dec:[],fw:[],pt:[],tr:[],shk:0,hv:0,sqz:0,kb:0,pT:0,pst:0,ft:0,st:"idle",z:0,vz:0,o:[],sc:0,co:0,bn:0,sp:4,t:0,nx:80,stage:0,sb:0,sh:0,last:0,earn:0,overAt:0,cl:[[60,30],[220,50],[380,24]],flash:0,mult:1,gt:0,star:0,fx:[],hp:3,inv:0,mag:0,jumps:0,fall:0,fp:null,air:0,cch:0,cT:0,lp:0,lset:[0,0,0,0],lt:0,ll:0,lmg:0,lhp:0,lsh:0,lbg:0,bt:0,bq:0,why:""};
+var R={pt:[],tr:[],shk:0,hv:0,sqz:0,kb:0,pT:0,pst:0,ft:0,st:"idle",z:0,vz:0,o:[],sc:0,co:0,bn:0,sp:4,t:0,nx:80,stage:0,sb:0,sh:0,last:0,earn:0,overAt:0,cl:[[60,30],[220,50],[380,24]],flash:0,mult:1,gt:0,star:0,fx:[],hp:3,inv:0,mag:0,jumps:0,fall:0,fp:null,air:0,cch:0,cT:0,lp:0,lset:[0,0,0,0],lt:0,ll:0,lmg:0,lhp:0,lsh:0,lbg:0,bt:0,bq:0,why:""};
 /* ปรับค่าเกมได้ตรงนี้ */
 var MAXHP=5,COINV=.95,DISTDIV=115,STB=2,MAGT=8,BC=45,BD=7,STL=750,VMAX=5; /* STL=คะแนนต่อ 1 ด่าน, ความเร็วสูงสุด=4+VMAX=9 */
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* ไอเท็มแต่ละชนิดสุ่มระยะเกิดครั้งถัดไปเอง (หน่วยเป็นคะแนนระยะทาง) ปรับช่วงตัวเลขได้ใน spawn() */
 /* BC=วินาทีที่พลังความสวยชาร์จเต็ม, BD=วินาทีที่วิ่งชนได้ | ระยะห่างการเกิดของไอเท็มปรับได้ใน spawn() */
-function reset(){R.z=0;R.vz=0;R.o=[];R.sc=0;R.co=0;R.bn=0;R.sp=4;R.t=0;R.nx=80;R.stage=0;R.sb=110;R.flash=0;R.gt=0;R.star=0;R.sl=0;R.slc=0;R.qs=0;R.dv=0;R.lg=-999;R.hint=0;R.dh=0;R.dc=0;R.nmc=0;R.nmL=-999;R.slow=0;R.fx=[];R.pt=[];R.tr=[];R.shk=0;R.hv=0;R.sqz=0;R.kb=0;R.pT=0;R.pst=0;R.ft=0;R.hp=3;R.inv=0;R.mag=0;R.jumps=0;R.fall=0;R.fp=null;R.air=0;R.cch=0;R.cT=0;R.lp=0;R.sh=0;R.lt=0;R.lset=[0,0,0,0];R.ll=0;R.lmg=0;R.lhp=0;R.lsh=0;R.lbg=0;R.bt=0;R.bq=0;R.why="";R.nL=rnd(350,650);R.nSh=rnd(600,1300);R.nMg=rnd(900,1700);R.nHp=rnd(1400,2400);R.nBg=rnd(160,400);R.nBw=rnd(400,900);R.li=-999;R.nGf=rnd(800,1500);R.nBl=rnd(1200,2000);R.nTt=rnd(1500,2400);R.stc=0;R.stT=-999;R.s1=0;R.s2=0;R.s3=0;R.s4=0;R.fl=0;R.tl=0;R.dec=[];R.dcT=140;R.tn=null;R.tnT=rnd(900,1500);R.lastSign=0;R.fw=[];R.ch=null;R.fev=0;R.fvT=0;R.bsay=null;R.bsayCd=0;R.rn=0;R.rnT=rnd(1500,2800);R.rb=0}
+function reset(){R.z=0;R.vz=0;R.o=[];R.sc=0;R.co=0;R.bn=0;R.sp=4;R.t=0;R.nx=80;R.stage=0;R.sb=110;R.flash=0;R.gt=0;R.star=0;R.sl=0;R.slc=0;R.qs=0;R.dv=0;R.lg=-999;R.hint=0;R.fx=[];R.pt=[];R.tr=[];R.shk=0;R.hv=0;R.sqz=0;R.kb=0;R.pT=0;R.pst=0;R.ft=0;R.hp=3;R.inv=0;R.mag=0;R.jumps=0;R.fall=0;R.fp=null;R.air=0;R.cch=0;R.cT=0;R.lp=0;R.sh=0;R.lt=0;R.lset=[0,0,0,0];R.ll=0;R.lmg=0;R.lhp=0;R.lsh=0;R.lbg=0;R.bt=0;R.bq=0;R.why="";R.nL=rnd(350,650);R.nSh=rnd(300,800);R.nMg=rnd(550,1100);R.nHp=rnd(800,1500);R.nBg=rnd(160,400);R.nBw=rnd(250,600);R.li=-999}
 /* ---------- เสียงเกมวิ่ง (สังเคราะห์ด้วย WebAudio ไม่ใช้ไฟล์เสียง) ---------- */
 var SND=true;try{SND=localStorage.getItem("hrta-gsnd")!=="0"}catch(e){}
 var GA=null,GM=null,MG=null,GN=null,mT=0,mS=0,mNext=0,mOn=false,mTr=0;
@@ -3030,11 +2929,6 @@ function sfx(k,a){var c=ga();if(!c)return;var t=c.currentTime+.01;
   case"slide":nz(t,.22,.14,1800);tone(260,t,.2,"sine",.05,140);break;
   case"dive":tone(900,t,.2,"sawtooth",.05,180);break;
   case"pound":nz(t,.18,.25,500);tone(110,t,.2,"sine",.14,50);break;
-  case"dash":nz(t,.25,.2,2400);tone(300,t,.22,"sawtooth",.05,900);break;
-  case"near":tone(1318,t,.07,"triangle",.07);tone(1760,t+.06,.1,"triangle",.07);break;
-  case"spring":tone(300,t,.2,"sine",.09,950);tone(620,t+.05,.12,"triangle",.05,1100);break;
-  case"train":tone(392,t,.55,"square",.035);tone(494,t,.55,"square",.035);tone(392,t+.7,.5,"square",.035);tone(494,t+.7,.5,"square",.035);break;
-  case"fever":[523,659,784,1047,1319].forEach(function(f,i){tone(f,t+i*.07,.14,"triangle",.07)});break;
   case"over":[67,64,60,55].forEach(function(n,i){tone(mid(n),t+i*.22,.32,"triangle",.1)});break;
  }}
 /* เพลงประกอบ: ลูป 8 ห้อง เร็วขึ้นตามความเร็ววิ่ง เปลี่ยนคีย์ตามด่าน */
@@ -3076,37 +2970,32 @@ function spawn(){var S=STG[R.stage],r=Math.random(),far=R.sc>90,xs=W+30,i,ity=fu
   if(R.hp<MAXHP&&R.sc>=R.nHp)el.push("Hp");
   if(R.sc>=R.nBg)el.push("Bg");
   if(R.sc>=R.nBw)el.push("Bw");
-  if(R.sc>=R.nGf)el.push("Gf");
-  if(R.sc>=R.nBl)el.push("Bl");
-  if(R.sc>=R.nTt)el.push("Tt");
-  if(el.length&&Math.random()<.5){var k=el[Math.floor(Math.random()*el.length)];R.li=R.sc;
+  if(el.length&&Math.random()<.55){var k=el[Math.floor(Math.random()*el.length)];R.li=R.sc;
    if(k==="L"){R.nL=R.sc+rnd(450,900);var ms=[];for(var q=0;q<4;q++)if(!R.lset[q])ms.push(q);var li=ms[Math.floor(Math.random()*ms.length)];R.o.push({let:"BEST".charAt(li),li:li,w:30,h:30,x:xs,y:ity()})}
-   else if(k==="Sh"){R.nSh=R.sc+rnd(1100,2200);R.o.push({nd:1,e:"🍜",f:28,w:26,h:26,x:xs,y:ity()})}
-   else if(k==="Mg"){R.nMg=R.sc+rnd(1200,2400);R.o.push({mg:1,e:"🍰",f:26,w:24,h:24,x:xs,y:ity()})}
-   else if(k==="Hp"){R.nHp=R.sc+rnd(2200,4000);R.o.push({hp:1,e:"🥭",f:26,w:24,h:24,x:xs,y:ity()})}
+   else if(k==="Sh"){R.nSh=R.sc+rnd(700,1500);R.o.push({nd:1,e:"🍜",f:28,w:26,h:26,x:xs,y:ity()})}
+   else if(k==="Mg"){R.nMg=R.sc+rnd(800,1600);R.o.push({mg:1,e:"🍰",f:26,w:24,h:24,x:xs,y:ity()})}
+   else if(k==="Hp"){R.nHp=R.sc+rnd(1300,2500);R.o.push({hp:1,e:"🥭",f:26,w:24,h:24,x:xs,y:ity()})}
    else if(k==="Bg"){R.nBg=R.sc+rnd(360,700);R.o.push({c:1,big:1,e:"💰",f:34,w:30,h:30,x:xs,y:GY-70})}
-   else if(k==="Gf"){R.nGf=R.sc+rnd(1100,2000);R.o.push({it:1,gf:1,e:"🎁",f:28,w:26,h:26,x:xs,y:ity()})}
-   else if(k==="Bl"){R.nBl=R.sc+rnd(1700,3000);R.o.push({it:1,bl:1,e:"🎈",f:28,w:26,h:26,x:xs,y:ity()})}
-   else if(k==="Tt"){R.nTt=R.sc+rnd(2000,3300);R.o.push({it:1,tt:1,e:"🐢",f:26,w:26,h:24,x:xs,y:ity()})}
-   else{R.nBw=R.sc+rnd(500,1100);R.o.push({bw:1,e:["💄","👑","💅","🌺"][Math.floor(Math.random()*4)],f:26,w:24,h:24,x:xs,y:ity()})}
+   else{R.nBw=R.sc+rnd(350,800);R.o.push({bw:1,e:["💄","👑","💅","🌺"][Math.floor(Math.random()*4)],f:26,w:24,h:24,x:xs,y:ity()})}
    return 0}
  }
  /* อุปสรรค: ช่วงแรกเบาบาง ค่อย ๆ เพิ่มความถี่และชนิดตามระยะทาง (dif 0→1 ที่ประมาณคะแนน 2500) */
- if(R.sc>150&&Math.random()<.06)return padSpawn(xs);
- if(R.sc>180&&R.sc-R.lg>240&&Math.random()<.17+.10*dif){R.lg=R.sc;var rr=xs;R.o.forEach(function(q){if(!q.gate)rr=Math.max(rr,q.x+(q.w||0))});var gx=Math.max(xs,rr+Math.round(250+R.sp*20));
+ if(R.sc>180&&R.sc-R.lg>240&&Math.random()<.17+.10*dif){R.lg=R.sc;var gx=xs;
+  if(R.sc>600&&Math.random()<.38){var o0=S.ob[0];R.o.push({e:o0[0],f:o0[1],w:o0[2],h:o0[3],x:xs,y:GY-o0[3]});gx=xs+Math.round(140+R.sp*15)}
   R.o.push({gate:1,st:R.stage,x:gx,w:60,h:GY-34+20,y:-20});
   for(i=0;i<3;i++)R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:gx+8+i*16,y:GY-28});
   if(!R.hint){R.hint=1;pop(W-100,62,"👇 ปัดลง = สไลด์",14)}
-  return gx-xs+170}
+  return gx-xs+120}
  var a1=.31+.14*dif,b1=a1+(R.sc>220?.05+.10*dif:0),c1=b1+(R.sc>320&&R.sc-R.lp>150?.05+.09*dif:0),d1=c1+(R.sc>450?.04+.08*dif:0);
- if(r<a1){if((R.stage===1||R.stage===3||R.stage===5)&&R.sc>260&&Math.random()<.2){R.o.push({el:1,e:"🐘",f:42,w:42,h:38,x:xs,y:GY-38,vx:1.5});return 0}if(R.sc>220&&Math.random()<.15)return chainSpawn(S,xs);var o=S.ob[Math.floor(Math.random()*3)];R.o.push({e:o[0],f:o[1],w:o[2],h:o[3],x:xs,y:GY-o[3]});
+ if(r<a1){if((R.stage===1||R.stage===3||R.stage===5)&&R.sc>260&&Math.random()<.2){R.o.push({el:1,e:"🐘",f:42,w:42,h:38,x:xs,y:GY-38,vx:1.5});return 0}var o=S.ob[Math.floor(Math.random()*3)];R.o.push({e:o[0],f:o[1],w:o[2],h:o[3],x:xs,y:GY-o[3]});
+  if(R.sc>340&&Math.random()<.08+.28*dif){var o2=S.ob[Math.floor(Math.random()*3)];R.o.push({e:o2[0],f:o2[1],w:o2[2],h:o2[3],x:xs+46,y:GY-o2[3]})}
   if(R.sc>60&&Math.random()<.55){for(var ci=0;ci<3;ci++)R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:xs-6+ci*26,y:GY-o[3]-50-Math.sin(ci/2*3.14)*14})}return 0}
  if(r<b1){var by=[GY-128,GY-108,GY-88][Math.floor(Math.random()*3)];R.o.push({bird:1,e:S.nt?"🦇":"🐦",f:28,w:28,h:20,x:xs,y:by,by:by,ph:Math.random()*6,vx:2.4});sfx("bird");return 0}
  if(r<c1){var w=Math.round(76+R.sp*6),n=w>115?4:3;R.o.push({pit:1,x:xs,w:w,h:0,y:GY});R.lp=R.sc;
   for(i=0;i<n;i++)R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:xs+w*(.2+.6*i/(n-1))-10,y:GY-64-Math.sin(i/(n-1)*3.14)*38});return w+30}
  /* มะพร้าวหล่น: มีเครื่องหมาย ⚠️ เตือนบนพื้นก่อนตก */
  if(r<d1){R.o.push({fl:1,e:"🥥",f:26,w:24,h:24,x:xs,y:6});return 0}
- if(R.sc>100&&Math.random()<.5)return coinShape(xs);var n2=2+Math.floor(Math.random()*3),hy=Math.random()<.5?GY-26:GY-100;for(i=0;i<n2;i++)R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:xs+i*28,y:hy-(hy<GY-60?Math.sin(i/(n2-1||1)*3.14)*12:0)});return 0}
+ var n2=2+Math.floor(Math.random()*3),hy=Math.random()<.5?GY-26:GY-100;for(i=0;i<n2;i++)R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:xs+i*28,y:hy-(hy<GY-60?Math.sin(i/(n2-1||1)*3.14)*12:0)});return 0}
 function over(){R.st="over";R.overAt=Date.now();R.mag=0;sfx("over");tick();R.mult=(1+beauty()/200)*(ST.sick?.5:1);
  var base=R.co*COINV+R.bn+R.sc/DISTDIV;R.earn=Math.round(base*R.mult);
  if(Math.floor(R.sc)>ST.hi)ST.hi=Math.floor(R.sc);if(!ST.sick)ST.h=Math.min(100,ST.h+4);save();if(R.earn>0)addCoins(R.earn,"เกมวิ่งลุยกาญจน์");buzz(60)}
@@ -3118,62 +3007,53 @@ function step(d){
  R.t+=d;
  if(R.star>0){R.star-=d/60;if(R.star<=0){R.star=0;sfx("starEnd");toast("พลังความสวยหมดแล้ว ระวังสิ่งกีดขวางนะ 😅")}}
  else{R.gt+=d/60;if(R.gt>=BC){R.gt=0;R.star=BD;sfx("star");starFx();toast("✨ พลังความสวยเต็ม! วิ่งชนได้ทุกอย่าง "+BD+" วิ");buzz([30,40,30,40,60])}}
- var spT=(4+VMAX*(1-Math.exp(-R.sc/3500)))*(R.star>0?1.12:1);R.sp+=(spT-R.sp)*Math.min(1,.03*d);var spm=R.dh>0?1.8:1;R.sc+=R.sp*spm*d*.12;
+ var spT=(4+VMAX*(1-Math.exp(-R.sc/3500)))*(R.star>0?1.12:1);R.sp+=(spT-R.sp)*Math.min(1,.03*d);R.sc+=R.sp*d*.12;
  if(R.inv>0)R.inv-=d;
  if(R.mag>0){R.mag-=d/60;if(R.mag<=0){R.mag=0;pop(PX+27,GY-R.z-60,"🧲 หมดแล้ว",14)}}
  R.fx.forEach(function(p){p.x+=p.vx*d;p.y+=p.vy*d;p.vy+=.3*d;p.l-=d});R.fx=R.fx.filter(function(p){return p.l>0});vfxStep(d);
  /* ฟิสิกส์ตัวละคร: กระโดด 2 ชั้น + ตกหลุม */
  var pcx=PX+27,onPit=null;
  if(!R.fall)R.o.forEach(function(o){if(o.pit&&pcx>o.x+8&&pcx<o.x+o.w-8)onPit=o});
- R.vz-=(R.fl>0?.34:.55)*d;R.z+=R.vz*d;
+ R.vz-=.55*d;R.z+=R.vz*d;
  if(R.z>140){R.z=140;if(R.vz>0)R.vz=0}
  if(R.fall){if(R.z<-62){if(fallDone())return}}
  else if(R.z<=0){
   if(onPit){
    if(R.star>0){R.z=0;R.vz=11.4;R.jumps=1;R.air=1;sfx("jump")}
-   else if(R.dh>0){R.z=0;R.vz=0}
    else if(R.z<-10){R.fall=1;R.fp=onPit;sfx("fall");buzz([30,30,30]);fallFx(onPit)}
   }else{if(R.air){sfx("land");landFx(Math.min(1,Math.max(.2,-R.vz/11)))}if(R.dv){R.dv=0;poundFx()}R.z=0;R.vz=0;R.jumps=0;R.air=0;if(R.qs>0){R.qs=0;slideStart()}}
  }else R.air=1;
- vfxRun(d,onPit);vfxFun(d);
+ vfxRun(d,onPit);
  /* วางของ */
- R.nx-=R.sp*spm*d;if(R.nx<=0){var ex=spawn()||0;R.nx=(235-70*Math.min(1,R.sc/7500))+Math.random()*(150-25*Math.min(1,R.sc/7500))+R.sp*13+ex}
+ R.nx-=R.sp*d;if(R.nx<=0){var ex=spawn()||0;R.nx=(200-105*Math.min(1,R.sc/7500))+Math.random()*(160-30*Math.min(1,R.sc/7500))+R.sp*13+ex}
  /* BEST TIME: ฝนเหรียญ */
   if(R.bt>0){R.bt-=d;R.bq-=d;if(R.bq<=0){R.bq=4.5;R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:W+30,y:GY-26-Math.random()*86})}}
   /* แม่เหล็กดูดเหรียญ */
  if(R.mag>0){var mx=PX+27,my=GY-R.z-34;R.o.forEach(function(o){if(!o.c)return;var dx=mx-(o.x+o.w/2),dy=my-(o.y+o.h/2),dd=Math.sqrt(dx*dx+dy*dy);
   if(dd<230&&dd>1){var v=(5+R.sp*.9)*d*(1+(230-dd)/230);o.x+=dx/dd*v;o.y+=dy/dd*v}})}
- R.o.forEach(function(o){o.x-=(R.sp*spm+(o.vx||0))*d;if(o.bird)o.y=o.by+Math.sin(R.t*.16+o.ph)*5;
+ R.o.forEach(function(o){o.x-=(R.sp+(o.vx||0))*d;if(o.bird)o.y=o.by+Math.sin(R.t*.16+o.ph)*5;
    if(o.fl){if(!o.dr&&o.x<PX+40+R.sp*34)o.dr=1;if(o.dr===1){o.vy=(o.vy||0)+.5*d;o.y+=o.vy*d;if(o.y>GY-o.h){o.y=GY-o.h;o.vy=0;o.dr=2}}}});
  R.o=R.o.filter(function(o){return o.x+(o.pit?o.w:0)>-70});
  /* ชน/เก็บของ */
  var hx=PX+14,hw=26,hb=GY-R.z,ht=hb-(R.sl>0?30:60);
  if(!R.fall)for(var i=R.o.length-1;i>=0;i--){var o=R.o[i];if(o.pit)continue;var ox=o.x+4,ow=o.w-8,ot=o.y+4;
-  if(hx<ox+ow&&hx+hw>ox&&ht<o.y+o.h&&hb>ot){if(o.mg||o.hp||o.nd||o.let||o.bw||o.it)itemFx(o);
-   if(o.c){coinFx(o);if(R.fvT>0)R.co+=o.big?10:1;fevAdd(o.big?8:1.6);if(R.t-R.cT>40)R.cch=0;if(o.big){R.co+=10;pop(o.x+o.w/2,o.y,"💰 +10",18)}else R.co++;R.o.splice(i,1);buzz(6);sfx("coin",R.cch);R.cch++;R.cT=R.t;if(R.cch%12===0){R.bn+=1;comboFx();pop(PX+27,GY-R.z-70,"🔥 คอมโบ ×"+R.cch+" +1🪙",14)}}
-   else if(o.pad){R.o.splice(i,1);R.vz=13;R.z=Math.max(R.z,2);R.air=1;R.jumps=1;R.sl=0;sfx("spring");buzz([10,20]);padFx(o);pop(o.x+o.w/2,GY-24,"🟡 เด้งดึ๋ง!",15)}
-   else if(o.gf){R.o.splice(i,1);sfx("heart");buzz([15,30,15]);giftFx(o)}
-   else if(o.bl){R.o.splice(i,1);R.fl=360;sfx("mag");buzz([15,30,15]);pop(o.x+o.w/2,o.y,"🎈 ลอยตัวเบา!",15)}
-   else if(o.tt){R.o.splice(i,1);R.tl=360;sfx("mag");buzz([15,30,15]);pop(o.x+o.w/2,o.y,"🐢 ช้าลงสบายๆ",15)}
+  if(hx<ox+ow&&hx+hw>ox&&ht<o.y+o.h&&hb>ot){if(o.mg||o.hp||o.nd||o.let||o.bw)itemFx(o);
+   if(o.c){coinFx(o);if(R.t-R.cT>40)R.cch=0;if(o.big){R.co+=10;pop(o.x+o.w/2,o.y,"💰 +10",18)}else R.co++;R.o.splice(i,1);buzz(6);sfx("coin",R.cch);R.cch++;R.cT=R.t;if(R.cch%12===0){R.bn+=1;comboFx();pop(PX+27,GY-R.z-70,"🔥 คอมโบ ×"+R.cch+" +1🪙",14)}}
    else if(o.mg){R.mag=rnd(5,10);R.o.splice(i,1);sfx("mag");buzz(20);pop(o.x+o.w/2,o.y,"🧲 ดูดเหรียญ!",15)}
    else if(o.hp){R.o.splice(i,1);sfx("heart");buzz([15,30,15]);if(R.hp<MAXHP){R.hp++;pop(o.x+o.w/2,o.y,"❤️ +1",18)}else{R.bn++;pop(o.x+o.w/2,o.y,"🪙 +1",16)}}
    else if(o.bw){R.o.splice(i,1);sfx("heart");buzz([15,30,15]);if(R.star>0){R.star=Math.min(BD,R.star+2);pop(o.x+o.w/2,o.y,"✨ +2 วิ",16)}else{R.gt=Math.min(BC,R.gt+10);pop(o.x+o.w/2,o.y,"✨ พลังความสวย -10 วิ",14)}}
     else if(o.nd){R.o.splice(i,1);R.sh=1;sfx("mag");buzz([15,30,15]);pop(o.x+o.w/2,o.y,"🍜 บาเรีย!",16)}
     else if(o.let){R.o.splice(i,1);if(!R.lset[o.li]){R.lset[o.li]=1;R.lt++}sfx("heart");buzz([15,30,15]);pop(o.x+o.w/2,o.y,"🔤 "+o.let,20);
      if(R.lt>=4){R.lt=0;R.lset=[0,0,0,0];R.bn+=15;R.bt=240;R.bq=0;sfx("stage");toast("🎉 BEST TIME! ฝนเหรียญ +15 🪙");buzz([30,40,30,40,60])}}
-    else if(R.dh>0&&!o.gate){var sm2=R.o.splice(i,1)[0];R.sc+=4;buzz(20);sfx("smash");smashFx(sm2);R.s3++;fevAdd(7);pop(sm2.x+sm2.w/2,sm2.y-6,"💨 พุ่งชน!",13)}
-    else if(R.dv&&!o.gate&&hb<=o.y+18){R.o.splice(i,1);R.sc+=8;R.stc=(R.t-R.stT<110)?R.stc+1:1;R.stT=R.t;var sb2=Math.min(5,R.stc);R.bn+=sb2;R.s1++;R.vz=9;R.dv=0;R.jumps=1;R.air=1;sfx("smash");buzz([15,25,15]);stompFx(o);fevAdd(11);beSay(R.stc>1?"คอมโบ! 🔥":"ตุ้บ! 👟");pop(o.x+o.w/2,o.y-6,R.stc>1?"💥 คอมโบเหยียบ ×"+R.stc+" +"+sb2+"🪙":"👟 เหยียบ! +1🪙",R.stc>1?15:14)}
+    else if(R.dv&&!o.gate&&hb<=o.y+18){R.o.splice(i,1);R.sc+=8;R.bn+=1;R.vz=9;R.dv=0;R.jumps=1;R.air=1;sfx("smash");buzz([15,25,15]);stompFx(o);pop(o.x+o.w/2,o.y-6,"👟 เหยียบ! +1🪙",14)}
     else if(R.star>0){var sm=R.o.splice(i,1)[0];R.sc+=4;buzz(25);sfx("smash");smashFx(sm);R.fx.push({x:sm.x+sm.w/2,y:sm.y+sm.h/2,vx:0,vy:-1,l:22,e:"💥",s:30});for(var fq=0;fq<4;fq++)R.fx.push({x:sm.x+sm.w/2,y:sm.y+sm.h/2,vx:(Math.random()-.3)*4,vy:-2-Math.random()*3,l:20,e:"✨",s:16})}
    else if(R.inv>0){/* เพิ่งโดนชน: ไม่นับซ้ำชั่วคราว */}
     else if(R.sh>0){R.sh=0;R.inv=70;R.o.splice(i,1);buzz([20,30,20]);sfx("smash");shieldFx();pop(PX+27,GY-R.z-70,"🍜🛡️ กันไว้ได้!",15);for(var sq=0;sq<5;sq++)R.fx.push({x:PX+27,y:GY-R.z-34,vx:(sq-2)*1.6,vy:-1.5-Math.random()*2,l:20,e:"🍜",s:14})}
    else{R.o.splice(i,1);R.hp--;R.flash=10;R.inv=100;buzz(40);sfx("hit");hitFx(o);R.fx.push({x:o.x+o.w/2,y:o.y+o.h/2,vx:0,vy:-1,l:20,e:"💥",s:28});if(R.hp<=0){R.why="หัวใจหมดแล้ว! 💔";over();return}}
   }}
- if(!R.fall)R.o.forEach(function(o){if(o.pit||o.gate||o.c||o.mg||o.hp||o.nd||o.let||o.bw||o.it||o.pad||o.nm)return;var ox=o.x+4,ow=o.w-8,ot=o.y+4;
-  if(hx<ox+ow&&hx+hw>ox){o.ov=1;var g1=hb<ot?ot-hb:(ht>o.y+o.h?ht-(o.y+o.h):-1);if(g1<0)o.bad=1;else o.mgp=Math.min(o.mgp==null?99:o.mgp,g1)}
-  else if(o.ov){o.nm=1;if(!o.bad&&o.mgp!=null&&o.mgp<=9)nearMissFx(o.mgp,hb,ht)}});
- var s=Math.floor(R.sc/STL);if(s!==R.sb&&s>0){R.sb=s;R.bn+=STB;R.pst=R.stage;R.pT=70;R.stage=s%STG.length;R.stNew=110;stageFx();beSay("ถึง"+STG[R.stage].n+"แล้ว! "+STG[R.stage].e,1);sfx("stage");toast("ผ่านด่านแล้ว! +"+STB+" 🪙 โบนัส")}
+ var s=Math.floor(R.sc/STL);if(s!==R.sb&&s>0){R.sb=s;R.bn+=STB;R.pst=R.stage;R.pT=70;R.stage=s%STG.length;R.stNew=110;stageFx();sfx("stage");toast("ผ่านด่านแล้ว! +"+STB+" 🪙 โบนัส")}
  if(R.stNew>0)R.stNew-=d;if(R.flash>0)R.flash-=d;
- if(R.sl>0){R.sl-=d;if(R.sl<=0){R.sl=0;R.slc=6;R.sqz=-.12}}if(R.slc>0)R.slc-=d;if(R.qs>0)R.qs-=d;if(R.dh>0)R.dh-=d;if(R.dc>0)R.dc-=d;if(R.fl>0)R.fl-=d;
+ if(R.sl>0){R.sl-=d;if(R.sl<=0){R.sl=0;R.slc=6;R.sqz=-.12}}if(R.slc>0)R.slc-=d;if(R.qs>0)R.qs-=d;
 }
 function txt(t,x,y,sz,col,al){g.font="700 "+sz+"px "+FF;g.textAlign=al||"center";g.fillStyle=col;g.fillText(t,x,y)}
 var PX=46,RUNP=[{lx:[-2,2],ly:[0,0],ay:[2,-2],bob:0},{lx:[0,0],ly:[4,0],ay:[0,0],bob:-1},{lx:[2,-2],ly:[0,0],ay:[-2,2],bob:0},{lx:[0,0],ly:[0,4],ay:[0,0],bob:-1}],JMP={lx:[0,0],ly:[3,3],ay:[0,0],up:[1,1],bob:-1,hp:1};
@@ -3188,8 +3068,7 @@ function runner(){
   g.font="16px sans-serif";g.textAlign="center";g.fillStyle="#000";for(var q=0;q<5;q++){var a=R.t*.12+q*1.2566;g.fillText("✨",cxm+Math.cos(a)*44,cym+Math.sin(a)*40)}}}
  if(R.sh>0){var sp0=1+.05*Math.sin(R.t*.2);g.save();g.fillStyle="rgba(130,220,255,.22)";g.strokeStyle="rgba(255,255,255,.85)";g.lineWidth=2.5;g.beginPath();g.arc(cxm,cym,42*sp0,0,6.283);g.fill();g.stroke();g.font="14px sans-serif";g.textAlign="center";g.fillStyle="#000";g.fillText("🍜",cxm+Math.cos(R.t*.1)*40,cym+Math.sin(R.t*.1)*40);g.restore()}
   var blk=R.inv>0&&Math.floor(R.inv/4)%2;
- if(!blk){g.save();if(R.fall&&R.fp){g.beginPath();g.rect(0,0,W,GY);g.rect(R.fp.x,GY,R.fp.w,H-GY);g.clip()}g.imageSmoothingEnabled=false;if(R.fall)g.globalAlpha=Math.max(.3,1+R.z/95);var ay=R.air?Math.min(.12,Math.abs(R.vz)*.01):0,sy=1+R.sqz+ay,sx=1/Math.sqrt(Math.max(.6,sy)),rot=R.air?Math.max(-.14,Math.min(.14,-R.vz*.012)):Math.min(.08,(R.sp-4)*.016);var lay=R.sl>0;if(R.dv){sy=1.18;sx=.88;rot=.12}if(R.dh>0){sy=.9;sx=1.14;rot=.22}if(lay){g.translate(cxm+30+(R.kb||0),GY-13);g.rotate(-1.48);g.scale(.7,1);g.drawImage(RF[1],-27,-65,54,66)}else{g.translate(cxm+(R.kb||0),GY-R.z);g.rotate(rot);g.scale(sx,sy);g.drawImage(RF[idx],-27,-65,54,66)}g.restore()}
- if(R.fl>0&&!R.fall){var by2=GY-R.z-92+Math.sin(R.t*.1)*3;g.strokeStyle="rgba(255,255,255,.75)";g.lineWidth=1;g.beginPath();g.moveTo(cxm+9,by2+6);g.lineTo(cxm+2,GY-R.z-58);g.stroke();g.font="24px sans-serif";g.textAlign="center";g.fillStyle="#000";g.fillText("🎈",cxm+10,by2+4)}
+ if(!blk){g.save();if(R.fall&&R.fp){g.beginPath();g.rect(0,0,W,GY);g.rect(R.fp.x,GY,R.fp.w,H-GY);g.clip()}g.imageSmoothingEnabled=false;if(R.fall)g.globalAlpha=Math.max(.3,1+R.z/95);var ay=R.air?Math.min(.12,Math.abs(R.vz)*.01):0,sy=1+R.sqz+ay,sx=1/Math.sqrt(Math.max(.6,sy)),rot=R.air?Math.max(-.14,Math.min(.14,-R.vz*.012)):Math.min(.08,(R.sp-4)*.016);if(R.sl>0){sy=.52;sx=1.32;rot=-.1}if(R.dv){sy=1.18;sx=.88;rot=.12}g.translate(cxm+(R.kb||0),GY-R.z);g.rotate(rot);g.scale(sx,sy);g.drawImage(RF[idx],-27,-65,54,66);g.restore()}
  if(R.hp>0&&!R.fall){var hy=Math.max(8,GY-R.z-65-15),hx0=PX+27-(R.hp*15-3)/2+6;for(var hi=0;hi<R.hp;hi++)dHeart(hx0+hi*15,hy,13)}
 }
 function shade(c){var n=parseInt(c.slice(1),16),r=(n>>16)&255,gg=(n>>8)&255,b=n&255;return "rgb("+Math.round(r*.78)+","+Math.round(gg*.78)+","+Math.round(b*.78)+")"}
@@ -3269,14 +3148,14 @@ function vDebris(x,y,n,cols,spd){for(var i=0;i<n;i++){var a=-Math.random()*3.14,
 function jumpFx(k){if(!k){R.sqz=-.18;vDust(PX+27,GY-Math.max(0,R.z),4,2.4)}else{R.sqz=-.14;var y=GY-R.z-2;vRing(PX+27,y,4,24,16,"rgba(255,240,170,.9)",.32,2);vRing(PX+27,y,2,14,12,"rgba(255,255,255,.8)",.32,1.5);vBurst(PX+27,y,6,["#fff6b0","#ffd23f"],1.6,16,.05)}}
 function landFx(im){R.sqz=.1+.22*im;vDust(PX+27,GY,3+Math.round(im*5),2.6);if(im>.65){vRing(PX+27,GY-1,6,30,14,"rgba(255,255,255,.55)",.28,2);R.shk=Math.max(R.shk,1.6)}}
 function coinFx(o){var x=o.x+o.w/2,y=o.y+o.h/2;if(o.big){vBurst(x,y,16,["#ffd23f","#fff6b0","#ffb300"],3.2,22,.1);vRing(x,y,6,30,16,"rgba(255,215,64,.9)",1,3)}else{vBurst(x,y,6,["#ffd23f","#fff6b0"],2.2,15,.08);vRing(x,y,3,12,10,"rgba(255,226,110,.8)",1,1.5)}}
-function itemFx(o){fevAdd(6);var x=o.x+o.w/2,y=o.y+o.h/2,c=o.mg?"#e9468c":o.hp?"#ff5a5a":o.nd?"#7fd8ff":o.let?["#e53935","#fb8c00","#43a047","#1e88e5"][o.li]:o.gf?"#ff9ecf":o.bl?"#ff6b8b":o.tt?"#7fe3a0":"#ffd6f0";vBurst(x,y,12,[c,"#ffffff"],3,22,.06);vRing(x,y,5,34,18,c,1,3);vRing(x,y,2,20,14,"rgba(255,255,255,.8)",1,2)}
+function itemFx(o){var x=o.x+o.w/2,y=o.y+o.h/2,c=o.mg?"#e9468c":o.hp?"#ff5a5a":o.nd?"#7fd8ff":o.let?["#e53935","#fb8c00","#43a047","#1e88e5"][o.li]:"#ffd6f0";vBurst(x,y,12,[c,"#ffffff"],3,22,.06);vRing(x,y,5,34,18,c,1,3);vRing(x,y,2,20,14,"rgba(255,255,255,.8)",1,2)}
 function comboFx(){var x=PX+27,y=GY-R.z-34;vRing(x,y,10,40,18,"rgba(255,120,40,.9)",1,3);vBurst(x,y,14,["#ff7043","#ffd23f","#fff"],3.2,22,.05)}
-function hitFx(o){beSay("โอ๊ย! 😵",1);R.shk=9;R.hv=36;R.kb=-11;var x=o.x+o.w/2,y=o.y+o.h/2;vDebris(x,y,10,["#8d6e63","#cfa27a","#6d4c41","#fff"],4);vBurst(x,y,8,["#fff","#ffeb3b","#ff5252"],3.6,16,.05);vRing(x,y,6,36,14,"rgba(255,255,255,.85)",1,3);for(var i=0;i<4;i++)vp(0,PX+27+(Math.random()-.5)*16,GY-R.z-60,(Math.random()-.5)*1.2,-1.2,28,3,"#ff5a7a",.05,{sh:1})}
+function hitFx(o){R.shk=9;R.hv=36;R.kb=-11;var x=o.x+o.w/2,y=o.y+o.h/2;vDebris(x,y,10,["#8d6e63","#cfa27a","#6d4c41","#fff"],4);vBurst(x,y,8,["#fff","#ffeb3b","#ff5252"],3.6,16,.05);vRing(x,y,6,36,14,"rgba(255,255,255,.85)",1,3);for(var i=0;i<4;i++)vp(0,PX+27+(Math.random()-.5)*16,GY-R.z-60,(Math.random()-.5)*1.2,-1.2,28,3,"#ff5a7a",.05,{sh:1})}
 function smashFx(o){R.shk=Math.max(R.shk,5);var x=o.x+o.w/2,y=o.y+o.h/2;var cs=["#ff4d6d","#ffd23f","#5cd66b","#4db8ff","#c77dff"];vRing(x,y,6,46,18,"rgba(255,255,255,.9)",1,4);vDebris(x,y,12,cs,4.6)}
 function shieldFx(){var x=PX+27,y=GY-R.z-34;R.shk=Math.max(R.shk,3);vRing(x,y,18,38,18,"rgba(130,220,255,.95)",1,3);vDebris(x,y,10,["#bdeaff","#7fd8ff","#fff"],3.8)}
-function fallFx(p){R.sl=0;R.dv=0;R.dh=0;R.shk=Math.max(R.shk,3);vDust(PX+27,GY,8,3.4,1.6);for(var i=0;i<8;i++)vp(1,p.x+(Math.random()<.5?0:p.w),GY+2,(Math.random()-.5)*1.4,.2,28,2,"#8d6e63",.18)}
+function fallFx(p){R.sl=0;R.dv=0;R.shk=Math.max(R.shk,3);vDust(PX+27,GY,8,3.4,1.6);for(var i=0;i<8;i++)vp(1,p.x+(Math.random()<.5?0:p.w),GY+2,(Math.random()-.5)*1.4,.2,28,2,"#8d6e63",.18)}
 function starFx(){var x=PX+27,y=GY-R.z-34;R.shk=Math.max(R.shk,3);vRing(x,y,8,70,26,"rgba(255,230,120,.9)",1,4);vRing(x,y,4,48,20,"rgba(255,120,220,.8)",1,3);vBurst(x,y,20,["#ff6b6b","#ffd23f","#6bff95","#6bc8ff","#d26bff"],4,26,.02)}
-function stageFx(){R.fw=[{t:6,x:rnd(80,200),y:rnd(36,80)},{t:22,x:rnd(220,340),y:rnd(30,70)},{t:38,x:rnd(360,440),y:rnd(36,84)}];for(var i=0;i<(LQ?18:38);i++)vp(1,Math.random()*W,-6,(Math.random()-.5)*1.4,rnd(1,2.6),rnd(60,95),rnd(1.6,3),"hsl("+Math.floor(Math.random()*360)+",90%,60%)",.05,{vr:(Math.random()-.5)*.6})}
+function stageFx(){for(var i=0;i<(LQ?18:38);i++)vp(1,Math.random()*W,-6,(Math.random()-.5)*1.4,rnd(1,2.6),rnd(60,95),rnd(1.6,3),"hsl("+Math.floor(Math.random()*360)+",90%,60%)",.05,{vr:(Math.random()-.5)*.6})}
 function vfxStep(d){
  R.shk=Math.max(0,(R.shk||0)-.9*d);R.hv=Math.max(0,(R.hv||0)-d);R.sqz=(R.sqz||0)*Math.pow(.8,d);R.kb=(R.kb||0)*Math.pow(.85,d);if(R.pT>0)R.pT-=d;
  var A=R.pt,sp=R.st==="run"?R.sp:0;for(var i=0;i<A.length;i++){var p=A[i];p.x+=(p.vx-(p.w?sp:0))*d;p.y+=p.vy*d;p.vy+=p.g*d;p.r+=p.vr*d;p.l-=d}
@@ -3285,7 +3164,6 @@ function vfxRun(d,onPit){
  if(R.tr.length&&R.tr.length>0)R.tr.forEach(function(p){p.x-=R.sp*d});R.tr.push({x:PX+27,y:GY-R.z-34});if(R.tr.length>16)R.tr.shift();
  R.ft-=d;if(R.ft<=0&&!R.air&&R.z<=0&&!R.fall&&!onPit){R.ft=Math.max(3.5,9-R.sp*.6);vDust(PX+17,GY,1+(R.sp>6?1:0),1.3,.5)}
  if(R.sl>0&&Math.random()<.55*d)vDust(PX+8,GY,1,2,.4);
- if(R.dh>0){for(var dq=0;dq<2;dq++)vp(0,PX+8,GY-R.z-6-Math.random()*52,-2-Math.random()*2.5,(Math.random()-.5)*.6,12,2,"rgba(140,225,255,.9)",0,{sh:1})}
  if(R.dv)vp(0,PX+20+Math.random()*14,GY-R.z-58,0,-1.4,9,2,"rgba(255,255,255,.75)",0,{sh:1});
  R.o.forEach(function(o){
   if(o.pull&&o.c){var pdx=PX+27-(o.x+o.w/2),pdy=GY-30-(o.y+o.h/2),pd=Math.sqrt(pdx*pdx+pdy*pdy)||1;o.x+=pdx/pd*10*d;o.y+=pdy/pd*10*d}
@@ -3332,14 +3210,14 @@ function drawAmb(S){
   else if(st===6){y=GY-20-((a[1]*90+R.t*(.3+a[2]*.4))%90);g.fillStyle=a[3]>.7?"rgba(255,150,60,.85)":"rgba(105,90,82,"+(.28*(1-(GY-20-y)/90))+")";g.beginPath();g.arc(x,y,a[3]>.7?1.3:3+a[2]*4+(GY-20-y)*.04,0,6.283);g.fill()}
   else if(st===7){if(i<6){y=GY-30-a[1]*70;g.fillStyle="rgba(240,246,252,.13)";g.beginPath();g.ellipse(x,y,46+a[2]*34,7+a[3]*5,0,0,6.283);g.fill()}}
   else{y=GY*.22+a[1]*GY*.68+Math.sin(R.t*.03+a[3]*9)*7;r=1+a[2]*1.5;g.fillStyle=st===1?"rgba(255,214,120,.7)":st===4?"rgba(255,226,90,.75)":"rgba(255,255,255,.65)";g.beginPath();g.arc(x,y,r,0,6.283);g.fill()}}}
-function drawTrail(){var T=R.tr;if(R.dh>0&&T&&T.length>9&&RF&&RF.length){g.save();g.imageSmoothingEnabled=false;[3,6,9].forEach(function(k,qi){var p=T[T.length-1-k];g.globalAlpha=.34-qi*.1;g.drawImage(RF[1],p.x-27,p.y+34-65,54,66)});g.restore()}if((R.star>0||R.fvT>0)&&T&&T.length>1){g.lineCap="round";for(var i=1;i<T.length;i++){var a=T[i-1],b=T[i];g.strokeStyle="hsla("+((R.t*8+i*22)%360)+",95%,62%,"+(i/T.length*.6)+")";g.lineWidth=2+i*.55;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke()}g.lineCap="butt"}}
+function drawTrail(){var T=R.tr;if(R.star>0&&T&&T.length>1){g.lineCap="round";for(var i=1;i<T.length;i++){var a=T[i-1],b=T[i];g.strokeStyle="hsla("+((R.t*8+i*22)%360)+",95%,62%,"+(i/T.length*.6)+")";g.lineWidth=2+i*.55;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke()}g.lineCap="butt"}}
 function drawPt(){var A=R.pt;for(var i=0;i<A.length;i++){var p=A[i],a=Math.max(0,Math.min(1,p.l/p.m));g.globalAlpha=a*(p.a==null?1:p.a);
   if(p.k===2){var rr=p.s+(1-a)*p.gr;g.strokeStyle=p.c;g.lineWidth=p.lw*a+.4;g.beginPath();g.ellipse(p.x,p.y,rr,rr*p.ry,0,0,6.283);g.stroke()}
   else if(p.k===1){g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;g.fillRect(-p.s,-p.s*.5,p.s*2,p.s);g.restore()}
   else{g.fillStyle=p.c;g.beginPath();g.arc(p.x,p.y,p.s*(p.sh?(.4+.6*a):1),0,6.283);g.fill()}}g.globalAlpha=1}
-function speedLines(){var k=Math.max(0,(R.sp-5.4)/3.6)+(R.star>0?.5:0)+(R.dh>0?.9:0)+(R.fvT>0?.4:0);if(k<=0||R.st!=="run")return;g.strokeStyle="rgba(255,255,255,"+Math.min(.34,.1+.2*k)+")";g.lineWidth=1;g.beginPath();
+function speedLines(){var k=Math.max(0,(R.sp-5.4)/3.6)+(R.star>0?.5:0);if(k<=0||R.st!=="run")return;g.strokeStyle="rgba(255,255,255,"+Math.min(.34,.1+.2*k)+")";g.lineWidth=1;g.beginPath();
  for(var i=0;i<(LQ?4:8);i++){var y=18+hr(i*3.1)*(GY-34),x=(((hr(i*7.7)*W*2-R.t*R.sp*(1.6+hr(i+2)))%(W+90))+W+90)%(W+90)-70;g.moveTo(x,y);g.lineTo(x+16+hr(i*2.3)*38*Math.min(1,k),y)}g.stroke()}
-function overlays(S){tintRain(S);
+function overlays(S){
  if(R.pT>0){g.globalAlpha=Math.min(.5,R.pT/70*.5);g.fillStyle=mixc(STG[R.pst||0].sk[1],"#ffffff",.35);g.fillRect(-10,-10,W+20,GY+10);g.globalAlpha=1}
  var low=R.st==="run"&&R.hp===1,hv=R.hv>0?R.hv/36:0,v=Math.max(hv,low?(.3+.18*Math.sin(R.t*.22)):0);
  if(v>0){var vg=g.createRadialGradient(W/2,H/2,H*.42,W/2,H/2,W*.62);vg.addColorStop(0,"rgba(225,30,45,0)");vg.addColorStop(1,"rgba(225,30,45,"+Math.min(.6,v*.62)+")");g.fillStyle=vg;g.fillRect(-10,-10,W+20,H+20)}
@@ -3350,7 +3228,7 @@ function slideStart(){
  if(R.st!=="run"||R.fall)return;
  if(R.air){if(R.z>=26&&!R.dv){R.dv=1;R.vz=-14.5;R.jumps=2;R.sqz=-.2;sfx("dive");buzz(10)}else R.qs=12;return}
  if(R.sl>0||R.slc>0)return;
- R.sl=44;R.s4++;sfx("slide");buzz(8);vDust(PX+17,GY,5,3,.5);vRing(PX+14,GY-2,4,18,10,"rgba(255,255,255,.5)",.3,1.5)}
+ R.sl=44;sfx("slide");buzz(8);vDust(PX+17,GY,5,3,.5);vRing(PX+14,GY-2,4,18,10,"rgba(255,255,255,.5)",.3,1.5)}
 function poundFx(){var x=PX+27;R.shk=Math.max(R.shk,5);buzz([20,30,40]);sfx("pound");
  vRing(x,GY-1,8,64,18,"rgba(255,230,140,.9)",.3,3);vRing(x,GY-1,4,40,14,"rgba(255,255,255,.8)",.3,2);vDust(x,GY,10,4.2,1.4);
  R.o.forEach(function(o){if(!o.c)return;if(Math.abs(o.x+o.w/2-x)<100&&Math.abs(o.y+o.h/2-(GY-24))<120)o.pull=1})}
@@ -3381,144 +3259,26 @@ function drawGate(o){
  g.strokeStyle="rgba(0,0,0,.28)";g.lineWidth=1;g.strokeRect(x0+.5,by+.5,bw-1,bh-1);
  if(o.x>PX+10){var ba2=Math.sin(R.t*.2)*3;poly("rgba(255,214,0,.95)",[o.x+o.w/2-7,by-30+ba2,o.x+o.w/2+7,by-30+ba2,o.x+o.w/2,by-19+ba2])}}
 
-/* ================= ระยะที่ 3: แดช (ปัดขวา) · เฉียดอุปสรรค (Near-miss) ================= */
-function dashStart(){if(R.st!=="run"||R.fall||R.dh>0||R.dc>0)return;R.dh=18;R.dc=140;R.sl=0;sfx("dash");buzz([12,10]);dashFx()}
-function dashFx(){var x=PX+16,y=GY-R.z-34;R.shk=Math.max(R.shk,2);vRing(x,y,8,22,12,"rgba(130,225,255,.95)",1.7,3);vRing(x,y,4,34,16,"rgba(255,255,255,.7)",1.7,2);vDust(PX+10,GY,6,3.6,.6);vBurst(x,y,8,["#7fe3ff","#ffffff"],3,14,0)}
-function nearMissFx(gp,hbb,htt){R.s2++;
- var perfect=gp<=4,x=PX+27,y=(hbb+htt)/2;fevAdd(9);beSay(perfect?"เฉียดเป๊ะ! 😆":"โอ้โห เฉียด!");R.nmc=(R.sc-R.nmL<140)?R.nmc+1:1;R.nmL=R.sc;R.bn+=1;
- if(R.star<=0)R.gt=Math.min(BC,R.gt+1.5);
- var msg=(perfect?"⚡ เฉียดเป๊ะ! ":"✨ เฉียด! ")+"+1🪙";
- if(R.nmc%3===0){R.bn+=2;msg="🔥 เฉียดติดกัน ×"+R.nmc+" +3🪙"}
- pop(x,y-44,msg,perfect?15:13);sfx("near");buzz(8);
- vRing(x+8,y,5,28,14,"rgba(255,240,150,.95)",1,2.5);vBurst(x+10,y,perfect?12:7,["#fff6b0","#ffd23f","#ffffff"],2.8,16,.02);
- if(perfect)R.slow=12}
-function dashHud(){if(R.st!=="run")return;feverHud();var cx0=8;g.textAlign="left";g.font="700 11px Mali,sans-serif";if(R.fl>0){g.fillStyle="rgba(0,0,0,.4)";g.fillRect(cx0-3,H-26,54,17);g.fillStyle="#fff";g.fillText("🎈 "+Math.ceil(R.fl/60)+" วิ",cx0,H-13);cx0+=58}if(R.tl>0){g.fillStyle="rgba(0,0,0,.4)";g.fillRect(cx0-3,H-26,54,17);g.fillStyle="#fff";g.fillText("🐢 "+Math.ceil(R.tl/60)+" วิ",cx0,H-13)}
- if(R.ch){var ca=Math.min(1,R.ch.t/20,(90-R.ch.t)/10+.2);g.globalAlpha=Math.max(0,Math.min(1,ca));g.textAlign="center";g.font='700 15px Mali,sans-serif';g.lineWidth=4;g.strokeStyle="rgba(0,0,0,.45)";g.strokeText(R.ch.m,W/2,106);g.fillStyle="#fff";g.fillText(R.ch.m,W/2,106);g.globalAlpha=1}
- var x=W-24,y=H-22,r=11,rd=R.dc>0?1-Math.max(0,R.dc)/140:1;
- g.fillStyle="rgba(0,0,0,.35)";g.beginPath();g.arc(x,y,r+3,0,6.283);g.fill();
- g.strokeStyle=rd>=1?"#7fe3ff":"rgba(255,255,255,.55)";g.lineWidth=3;g.beginPath();g.arc(x,y,r,-1.5708,-1.5708+6.283*rd);g.stroke();
- g.fillStyle=rd>=1?"#e6fbff":"rgba(255,255,255,.55)";g.font="700 12px sans-serif";g.textAlign="center";g.fillText("➤",x+1,y+4.5);
- if(rd>=1&&R.dh<=0){var pu=.5+.5*Math.sin(R.t*.2);g.strokeStyle="rgba(127,227,255,"+(.25+.25*pu)+")";g.lineWidth=2;g.beginPath();g.arc(x,y,r+4+pu*2,0,6.283);g.stroke()}}
-
-/* ================= กิมมิค v36: คอมโบเหยียบ · ไอเท็มสนุก · ฉากมีชีวิต · รถไฟบนสะพาน ================= */
-function chainSpawn(S,xs){
- var n=(R.sc>1200&&Math.random()<.4)?3:2,dist=Math.round(R.sp*29),k,i;
- for(k=0;k<n;k++){var o=S.ob[Math.floor(Math.random()*3)],ox=xs+k*dist;R.o.push({e:o[0],f:o[1],w:o[2],h:o[3],x:ox,y:GY-o[3]});
-  if(k<n-1)for(i=0;i<3;i++){var t=[8,15,22][i],z=22+9*t-.275*t*t;R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:ox+o[2]/2+R.sp*t-10,y:GY-z-44})}}
- return (n-1)*dist+40}
-function coinShape(xs){
- var k=Math.random()<.5?0:1,i,c=function(x,y){R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:x,y:y})};
- if(k===0){for(i=0;i<9;i++)c(xs+i*24,GY-58-Math.sin(i*.7)*34);return 60}
- for(i=0;i<14;i++){var t=i/14*6.2832,hx2=16*Math.pow(Math.sin(t),3),hy2=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));c(xs+22+hx2*1.5,GY-92+hy2*1.5)}
- return 40}
-function padSpawn(xs){
- R.o.push({pad:1,w:34,h:10,x:xs,y:GY-10});
- for(var i=0;i<6;i++){var t=[8,14,20,26,32,38][i],z=Math.min(140,13*t-.275*t*t);R.o.push({c:1,e:"🪙",f:22,w:20,h:20,x:xs+17+R.sp*t-10,y:GY-z-44})}
- return Math.round(R.sp*44)+110}
-function padFx(o){beSay("เด้งดึ๋ง~!");var x=o.x+o.w/2;R.shk=Math.max(R.shk,2);vRing(x,GY-6,5,30,14,"rgba(255,214,0,.95)",.35,3);vDust(x,GY,6,3,1.2);vBurst(x,GY-8,10,["#ffd23f","#ff7043","#fff"],3,18,.08)}
-function giftFx(o){
- var k=Math.floor(Math.random()*5),x=o.x+o.w/2,y=o.y;fevAdd(16);beSay("ว้าว ของขวัญ! 🎁");
- if(k===0){R.bn+=6;pop(x,y,"🎁 +6🪙",16)}
- else if(k===1&&R.sh<=0){R.sh=1;pop(x,y,"🎁 🍜 บาเรีย!",15)}
- else if(k===2){R.mag=Math.max(R.mag,rnd(5,8));pop(x,y,"🎁 🧲 ดูดเหรียญ!",15)}
- else if(k===3&&R.hp<MAXHP){R.hp++;pop(x,y,"🎁 ❤️ +1",16)}
- else{R.bt=Math.max(R.bt,150);R.bq=0;pop(x,y,"🎁 ฝนเหรียญ!",16)}
- for(var i=0;i<(LQ?10:22);i++)vp(1,x,y+8,(Math.random()-.5)*5,-1-Math.random()*4,rnd(30,50),rnd(1.6,3),"hsl("+Math.floor(Math.random()*360)+",90%,60%)",.1,{vr:(Math.random()-.5)*.7})}
-function fwBurst(f){var P=[["#ff6b6b","#ffd23f"],["#6bc8ff","#ffffff"],["#d26bff","#ff9ecf"],["#6bff95","#fff6b0"]][Math.floor(Math.random()*4)];
- vBurst(f.x,f.y,LQ?12:26,P,3.4,40,.055);vRing(f.x,f.y,4,34,22,"rgba(255,255,255,.7)",1,2)}
-var CHEER=["สู้ๆ น้องเบสท์! 💪","เก่งมากเลย ✨","ไปต่อ ไปต่อ! 🔥","ทีม HRTA เชียร์อยู่นะ 📣","สุดยอด! 🎉","ลุยกาญจน์ไปด้วยกัน 🚀"];
-function spawnDecor(){
- var st=R.stage,T={0:[["🕊️",20,"r",-.6,4,0],["🛶",18,GY-10,-.3,1.5,0]],1:[["🕊️",20,"r",-.5,4,0],["🪁",22,"r",-.4,6,2]],2:[["🛶",20,GY-10,-.4,1.5,0],["🦆",16,GY-9,-.25,1,0]],3:[["🦋",16,"r",-.5,8,10]],4:[["🦋",16,"r",-.5,8,10],["🐝",14,"r",-.7,6,8]],5:[["🐼",22,GY-16,-.2,0,0],["🦜",18,"r",-.6,5,0]],6:[["🦅",22,"r",-.8,5,0]],7:[["🎈",30,"r",-.15,5,0]],8:[["🏮",20,"r",-.1,6,0],["🦉",18,"r",-.3,3,0]],9:[["🛷",26,"r",-1.2,3,0],["⛄",20,GY-12,0,0,0]]}[st]||[];
- if(!T.length||R.dec.length>=3)return;var c=T[Math.floor(Math.random()*T.length)];
- R.dec.push({e:c[0],f:c[1],x:W+30,y:c[2]==="r"?rnd(24,90):c[2],vx:c[3],bob:c[4],fl:c[5],ph:Math.random()*6})}
-function vfxFun(d){
- if(R.st!=="run")return;
- vfxFun2(d);R.dcT-=d;if(R.dcT<=0){R.dcT=rnd(380,820);spawnDecor()}
- R.dec.forEach(function(q){if(q.k==="s")q.x-=R.sp*(R.dh>0?1.8:1)*d;else q.x+=(q.vx-R.sp*.18)*d});R.dec=R.dec.filter(function(q){return q.x>-60});
- var ms=Math.floor(R.sc/500);if(ms>R.lastSign){R.lastSign=ms;R.dec.push({k:"s",x:W+30,m:ms*500});R.ch={t:90,m:CHEER[Math.floor(Math.random()*CHEER.length)]}}
- if(R.ch)R.ch.t-=d;if(R.ch&&R.ch.t<=0)R.ch=null;
- if(R.fw.length){R.fw.forEach(function(f){f.t-=d});R.fw=R.fw.filter(function(f){if(f.t<=0){fwBurst(f);return false}return true})}
- R.tnT-=d;if(!R.tn&&R.stage===0&&R.tnT<=0&&R.sc>150){R.tn={x:W+30};sfx("train")}
- if(R.tn){R.tn.x-=3.4*d;if(Math.random()<.35*d)vp(0,R.tn.x+10,GY-110,-.4,-.7,30,3,"rgba(240,240,240,.8)",-.004,{sh:1});if(R.tn.x<-260){R.tn=null;R.tnT=rnd(1800,3200)}}}
-function drawTrain(t){
- var y=GY-78,x=t.x,i;g.fillStyle="#262626";g.fillRect(x,y-20,46,20);g.fillStyle="#b71c1c";g.fillRect(x+24,y-30,22,30);g.fillStyle="#262626";g.fillRect(x+6,y-30,8,12);g.fillStyle="#ffd54f";g.fillRect(x+30,y-26,10,9);g.fillStyle="#37474f";g.fillRect(x-2,y-6,50,4);
- for(i=0;i<3;i++){var cx=x+50+i*42;g.fillStyle=i%2?"#c9a14a":"#b5523b";g.fillRect(cx,y-22,38,22);g.fillStyle="#ffe9a8";for(var w2=0;w2<3;w2++)g.fillRect(cx+4+w2*11,y-17,8,8);g.fillStyle="#3e2723";g.fillRect(cx,y-3,38,3)}
- for(i=0;i<9;i++){g.fillStyle="#111";g.beginPath();g.arc(x+6+i*19,y+1,2.6,0,6.283);g.fill()}}
-function drawDecor(S){
- drawRainbow();if(R.tn)drawTrain(R.tn);
- R.dec.forEach(function(q){
-  if(q.k==="s"){g.fillStyle="#6d4c41";g.fillRect(q.x-1,GY-26,3,26);g.fillStyle="#8d5a2b";g.fillRect(q.x-31,GY-42,62,17);g.strokeStyle="#fde68a";g.lineWidth=1;g.strokeRect(q.x-30.5,GY-41.5,61,16);g.fillStyle="#fff";g.font='700 9px "Mali",sans-serif';g.textAlign="center";g.fillText("ลุยแล้ว "+q.m+" ม.",q.x,GY-30)}
-  else{g.globalAlpha=.92;g.font=q.f+"px sans-serif";g.textAlign="center";g.fillStyle="#000";g.fillText(q.e,q.x+Math.sin(R.t*.12+q.ph)*q.fl,q.y+Math.sin(R.t*.05+q.ph)*q.bob);g.globalAlpha=1}})}
-function drawPad(o){var x=o.x,y=GY-10;g.fillStyle="rgba(0,0,0,.18)";g.beginPath();g.ellipse(x+17,GY+3,18,3,0,0,6.283);g.fill();
- g.fillStyle="#6d4c41";g.fillRect(x+2,GY-3,30,3);g.strokeStyle="#cfd8dc";g.lineWidth=2;g.beginPath();g.moveTo(x+8,GY-3);for(var i=0;i<5;i++)g.lineTo(x+(i%2?25:9),GY-4-i*1.2);g.stroke();
- g.fillStyle="#e53935";g.fillRect(x,y,34,4);g.fillStyle="#ff8a80";g.fillRect(x,y,34,1.5);
- var bl=.5+.5*Math.sin(R.t*.2);g.fillStyle="rgba(255,235,59,"+(.5+.4*bl)+")";g.font="700 11px sans-serif";g.textAlign="center";g.fillText("▲",x+17,y-5-bl*2)}
-
-/* ================= v37: FEVER · ฝน/รุ้ง · ฉากหน้า · คำพูดน้องเบสท์ · โทนสีตามด่าน ================= */
-function fevAdd(n){if(R.fvT>0||R.st!=="run")return;R.fev=Math.min(100,(R.fev||0)+n);if(R.fev>=100){R.fev=0;R.fvT=420;feverStart()}}
-function feverStart(){var x=PX+27,y=GY-R.z-34;sfx("fever");buzz([20,30,20,30,40]);R.shk=Math.max(R.shk,3);
- vRing(x,y,10,70,24,"rgba(255,210,60,.95)",1,4);vRing(x,y,5,48,18,"rgba(255,255,255,.85)",1,3);vBurst(x,y,24,["#ffd23f","#ff9f1c","#fff6b0","#ffffff"],4.2,28,.04);
- R.ch={t:100,m:"🔥 FEVER TIME! เหรียญ ×2"};beSay("FEVER!! 🔥",1)}
-function beSay(m,f){if(!f&&(R.bsayCd>0||(R.bsay&&R.bsay.t>30)))return;R.bsay={t:72,m:m};R.bsayCd=f?60:110}
-function vfxFun2(d){
- if(R.bsayCd>0)R.bsayCd-=d;if(R.bsay){R.bsay.t-=d;if(R.bsay.t<=0)R.bsay=null}
- if(R.fvT>0){R.fvT-=d;if(Math.random()<.7*d)vp(0,PX+10+Math.random()*34,GY-R.z-6-Math.random()*62,-1.2-Math.random()*1.6,(Math.random()-.5)*.8,16,2,["#ffd23f","#fff6b0","#ff9f1c"][Math.floor(Math.random()*3)],0,{sh:1});if(R.fvT<=0){R.fvT=0;beSay("เหนื่อยแต่สนุก! 😆")}}
- R.rnT-=d;
- if(R.rn>0){R.rn-=d;var cnt=LQ?1:3;for(var i=0;i<cnt;i++)if(Math.random()<.6*d)vp(0,Math.random()*W,GY+2+Math.random()*10,0,-.7,10,1.4,"rgba(205,232,255,.85)",.06,{sh:1});if(R.rn<=0){R.rn=0;if(Math.random()<.65)R.rb=900}}
- else if(R.rnT<=0&&R.sc>300&&(R.stage===2||R.stage===3||R.stage===4||R.stage===5)&&Math.random()<.0025*d){R.rn=rnd(540,900);R.rnT=rnd(2600,4400);beSay("ฝนตก! ☔")}
- if(R.rb>0)R.rb-=d}
-function feverHud(){
- var x=W-128,y=58,w=116,h=8,on=R.fvT>0,fr=on?R.fvT/420:(R.fev||0)/100;
- g.fillStyle="rgba(0,0,0,.35)";g.fillRect(x-1,y-1,w+2,h+2);
- if(fr>0){var gg=g.createLinearGradient(x,0,x+w,0);gg.addColorStop(0,"#ff9f1c");gg.addColorStop(1,on?"#fff176":"#ffd23f");g.fillStyle=gg;g.fillRect(x,y,w*fr,h)}
- if(on){g.globalAlpha=.25+.25*Math.sin(R.t*.4);g.fillStyle="#fff";g.fillRect(x,y,w*fr,h);g.globalAlpha=1}
- g.textAlign="left";g.font="700 9px Mali,sans-serif";g.fillStyle=on?"#fff176":"#ffe9b0";g.fillText(on?"🔥 FEVER ×2":"🔥 FEVER",x,y-3)}
-function sayDraw(){
- if(!R.bsay||R.st!=="run")return;var s0=R.bsay,a=Math.max(0,Math.min(1,s0.t/12,(72-s0.t)/6+.3));
- g.font='700 11px Mali,sans-serif';var tw=g.measureText(s0.m).width+14,bx=Math.min(W-tw-4,PX+44),by=Math.max(6,GY-R.z-112);
- g.globalAlpha=a;g.fillStyle="rgba(255,255,255,.96)";g.strokeStyle="rgba(0,0,0,.25)";g.lineWidth=1;
- g.beginPath();g.moveTo(bx+8,by);g.lineTo(bx+tw-8,by);g.quadraticCurveTo(bx+tw,by,bx+tw,by+8);g.lineTo(bx+tw,by+14);g.quadraticCurveTo(bx+tw,by+22,bx+tw-8,by+22);g.lineTo(bx+14,by+22);g.lineTo(bx-2,by+30);g.lineTo(bx+4,by+22);g.quadraticCurveTo(bx,by+22,bx,by+14);g.lineTo(bx,by+8);g.quadraticCurveTo(bx,by,bx+8,by);g.closePath();g.fill();g.stroke();
- g.fillStyle="#5d2e46";g.textAlign="left";g.fillText(s0.m,bx+7,by+15);g.globalAlpha=1}
-function tintRain(S){
- var TN=["","rgba(255,170,60,.07)","","rgba(60,190,190,.05)","rgba(255,220,80,.05)","rgba(90,200,90,.05)","rgba(255,120,40,.09)","rgba(110,150,255,.07)","","rgba(255,255,255,.03)"][R.stage]||"";
- if(TN){g.fillStyle=TN;g.fillRect(-10,-10,W+20,H+20)}
- if(R.rn>0){var ra=Math.min(1,R.rn/60,(900-Math.min(900,R.rn))/60+.5);g.fillStyle="rgba(40,64,96,"+.14*Math.min(1,ra)+")";g.fillRect(-10,-10,W+20,H+20);
-  g.strokeStyle="rgba(215,235,255,.5)";g.lineWidth=1;g.beginPath();var n=LQ?24:50;for(var i=0;i<n;i++){var x=((i*53.7+R.t*2.6)%(W+40))-10,y=((i*37.3+R.t*15)%(H+20))-10;g.moveTo(x,y);g.lineTo(x-3,y+10)}g.stroke()}
- if(R.fvT>0){var fp=.16+.08*Math.sin(R.t*.3),fg=g.createRadialGradient(W/2,H/2,H*.4,W/2,H/2,W*.62);fg.addColorStop(0,"rgba(255,200,60,0)");fg.addColorStop(1,"rgba(255,200,60,"+fp+")");g.fillStyle=fg;g.fillRect(-10,-10,W+20,H+20)}
- sayDraw()}
-function drawRainbow(){
- if(!(R.rb>0))return;var al=Math.min(.34,R.rb/90*.34,(900-R.rb)/90*.34+.02),cx=W*.58,cy=GY+26,r0=150,cs=["#ff5252","#ff9800","#ffeb3b","#66bb6a","#42a5f5","#5c6bc0","#ab47bc"];
- g.globalAlpha=Math.max(0,al);g.lineWidth=5;for(var i=0;i<7;i++){g.strokeStyle=cs[i];g.beginPath();g.arc(cx,cy,r0-i*5,Math.PI*1.05,Math.PI*1.95);g.stroke()}g.globalAlpha=1}
-function drawFg(S){
- var wx=R.sc/.12*1.6,col=mixc(S.gr,"#000000",.42),k0=Math.floor(wx/44)-1,st=R.stage;
- g.globalAlpha=.92;
- for(var k=k0;k*44-wx<W+44;k++){var x=k*44-wx,h=hr(k+300);
-  if(st===5&&h>.55){g.fillStyle="#6aa832";g.fillRect(x,H-30,5,30);g.fillStyle="#4d8a1f";g.fillRect(x,H-18,5,2);g.fillRect(x,H-9,5,2)}
-  else if(st===4&&h>.62){g.fillStyle="#4d8a1f";g.fillRect(x+3,H-22,2,22);circ("#ffd23f",x+4,H-24,6);circ("#6d4c41",x+4,H-24,2.6)}
-  else if(st===9&&h>.5){g.fillStyle="rgba(255,255,255,.95)";g.beginPath();g.ellipse(x+8,H+2,16,8,0,0,6.283);g.fill()}
-  else if(h>.3){poly(col,[x,H,x+3,H-9-h*10,x+6,H]);poly(col,[x+5,H,x+9,H-13-h*9,x+13,H]);poly(col,[x+12,H,x+14,H-7-h*6,x+17,H])}}
- g.globalAlpha=1}
-
 function draw(){
- var S=STG[R.stage],pt=R.pT>0?R.pT/70:0,PS=STG[R.pst||0];g.save();if(R.shk>.3)g.translate((Math.random()-.5)*R.shk,(Math.random()-.5)*R.shk);if(R.slow>0){var zs=1+.035*Math.min(1,R.slow/6);g.translate(PX+27,GY-30);g.scale(zs,zs);g.translate(-(PX+27),-(GY-30))}var gr=g.createLinearGradient(0,0,0,GY);gr.addColorStop(0,pt?mixc(S.sk[0],PS.sk[0],pt):S.sk[0]);gr.addColorStop(1,pt?mixc(S.sk[1],PS.sk[1],pt):S.sk[1]);g.fillStyle=gr;g.fillRect(-10,-10,W+20,H+20);
+ var S=STG[R.stage],pt=R.pT>0?R.pT/70:0,PS=STG[R.pst||0];g.save();if(R.shk>.3)g.translate((Math.random()-.5)*R.shk,(Math.random()-.5)*R.shk);var gr=g.createLinearGradient(0,0,0,GY);gr.addColorStop(0,pt?mixc(S.sk[0],PS.sk[0],pt):S.sk[0]);gr.addColorStop(1,pt?mixc(S.sk[1],PS.sk[1],pt):S.sk[1]);g.fillStyle=gr;g.fillRect(-10,-10,W+20,H+20);
  if(S.nt)STARS.forEach(function(s){g.fillStyle="rgba(255,255,255,"+(.5+.5*Math.sin(R.t*.05+s[0]))+")";g.fillRect(s[0],s[1],s[2]+1,s[2]+1)});
  g.fillStyle=S.nt?"rgba(255,255,255,.12)":"rgba(255,255,255,.75)";R.cl.forEach(function(c,i){var x=((c[0]-R.t*(.25+i*.08))%(W+120)+W+120)%(W+120)-60;g.fillRect(x,c[1],56,12);g.fillRect(x+10,c[1]-8,32,10)});
  bgFar(R.stage);g.fillStyle=S.hl;g.beginPath();g.moveTo(0,GY);for(var x=0;x<=W;x+=20)g.lineTo(x,GY-34-Math.sin((x+R.t*.6)/58)*18-Math.sin((x+R.t*.3)/21)*5);g.lineTo(W,GY);g.fill();
  bgMid(R.stage);if(!S.nt&&!LQ)godRays();
- g.fillStyle=S.gr;g.fillRect(0,GY,W,H-GY);g.fillStyle="rgba(0,0,0,.14)";for(x=-((R.t*R.sp*.9)%48);x<W;x+=48)g.fillRect(x,GY+14,24,3);groundDetail(S);drawDecor(S);
+ g.fillStyle=S.gr;g.fillRect(0,GY,W,H-GY);g.fillStyle="rgba(0,0,0,.14)";for(x=-((R.t*R.sp*.9)%48);x<W;x+=48)g.fillRect(x,GY+14,24,3);groundDetail(S);
  R.o.forEach(function(o){if(o.pit)drawPit(o,S)});
- R.o.forEach(function(o){if(o.pit)return;if(o.gate){drawGate(o);return}if(o.pad){drawPad(o);return}
+ R.o.forEach(function(o){if(o.pit)return;if(o.gate){drawGate(o);return}
    if(!o.let){var hh=Math.max(0,GY-(o.y+o.h));g.fillStyle="rgba(0,0,0,"+(.2/(1+hh/28))+")";g.beginPath();g.ellipse(o.x+o.w/2,GY+3,Math.max(3,o.w*.5/(1+hh/70)),o.c?2:3,0,0,6.283);g.fill()}
-   if(o.mg||o.hp||o.nd||o.let||o.big||o.bw||o.it){var gl=.28+.18*Math.sin(R.t*.18);g.fillStyle="rgba(255,240,150,"+gl+")";g.beginPath();g.arc(o.x+o.w/2,o.y+o.h/2,o.w*.85,0,6.283);g.fill();if(Math.sin(R.t*.16+o.x*.1)>.55){var sa=R.t*.1+o.x,sx2=o.x+o.w/2+Math.cos(sa)*o.w*.6,sy2=o.y+o.h/2+Math.sin(sa)*o.w*.6;g.fillStyle="rgba(255,255,255,.95)";g.fillRect(sx2-.6,sy2-4,1.2,8);g.fillRect(sx2-4,sy2-.6,8,1.2)}}
+   if(o.mg||o.hp||o.nd||o.let||o.big||o.bw){var gl=.28+.18*Math.sin(R.t*.18);g.fillStyle="rgba(255,240,150,"+gl+")";g.beginPath();g.arc(o.x+o.w/2,o.y+o.h/2,o.w*.85,0,6.283);g.fill();if(Math.sin(R.t*.16+o.x*.1)>.55){var sa=R.t*.1+o.x,sx2=o.x+o.w/2+Math.cos(sa)*o.w*.6,sy2=o.y+o.h/2+Math.sin(sa)*o.w*.6;g.fillStyle="rgba(255,255,255,.95)";g.fillRect(sx2-.6,sy2-4,1.2,8);g.fillRect(sx2-4,sy2-.6,8,1.2)}}
    if(o.let){var lcx=o.x+o.w/2,lcy=o.y+o.h/2+Math.sin(R.t*.12+o.x*.02)*3;g.fillStyle=["#e53935","#fb8c00","#43a047","#1e88e5"][o.li];g.strokeStyle="#fff";g.lineWidth=3;g.beginPath();g.arc(lcx,lcy,o.w/2,0,6.283);g.fill();g.stroke();g.font="900 21px Arial,Helvetica,sans-serif";g.textAlign="center";g.fillStyle="#fff";g.fillText(o.let,lcx,lcy+8);return}
    if(o.fl&&o.dr!==2&&Math.floor(R.t/6)%2){g.font="18px sans-serif";g.textAlign="center";g.fillStyle="#000";g.fillText("⚠️",o.x+o.w/2,GY-4)}
-   var ox2=o.x+o.w/2,oy2=o.y+o.h+(o.c||o.pw||o.mg||o.hp||o.nd||o.bw||o.it?0:2);g.font=o.f+"px sans-serif";g.textAlign="center";g.fillStyle="#000";if(o.c&&!o.big){g.save();g.translate(ox2,oy2-o.f*.35);g.scale(Math.max(.25,Math.abs(Math.cos(R.t*.1+o.x*.03))),1);g.fillText(o.e,0,o.f*.35);g.restore()}else g.fillText(o.e,ox2,oy2)});
+   var ox2=o.x+o.w/2,oy2=o.y+o.h+(o.c||o.pw||o.mg||o.hp||o.nd||o.bw?0:2);g.font=o.f+"px sans-serif";g.textAlign="center";g.fillStyle="#000";if(o.c&&!o.big){g.save();g.translate(ox2,oy2-o.f*.35);g.scale(Math.max(.25,Math.abs(Math.cos(R.t*.1+o.x*.03))),1);g.fillText(o.e,0,o.f*.35);g.restore()}else g.fillText(o.e,ox2,oy2)});
  drawAmb(S);drawTrail();runner();
  if(R.mag>0){R.o.forEach(function(o){if(!o.c)return;var mx2=PX+27-(o.x+o.w/2),my2=GY-R.z-34-(o.y+o.h/2),dm=Math.sqrt(mx2*mx2+my2*my2);if(dm<230&&dm>12){g.strokeStyle="rgba(255,120,190,"+(.35*(1-dm/230))+")";g.lineWidth=1.5;g.beginPath();g.moveTo(o.x+o.w/2,o.y+o.h/2);g.lineTo(o.x+o.w/2+mx2/dm*16,o.y+o.h/2+my2/dm*16);g.stroke()}});g.save();g.setLineDash([7,6]);g.lineDashOffset=-R.t*.6;g.strokeStyle="rgba(233,70,140,"+(.45+.3*Math.sin(R.t*.25))+")";g.lineWidth=2.5;g.beginPath();g.arc(PX+27,GY-R.z-34,50+Math.sin(R.t*.2)*4,0,6.283);g.stroke();g.restore()}
  R.fx.forEach(function(p){g.font=p.s+"px sans-serif";g.textAlign="center";g.fillStyle="#000";g.globalAlpha=Math.max(0,Math.min(1,p.l/14));g.fillText(p.e,p.x,p.y);g.globalAlpha=1});
- drawFg(S);drawPt();speedLines();
+ drawPt();speedLines();
  if(R.flash>0){g.fillStyle="rgba(255,255,255,"+R.flash/28+")";g.fillRect(-10,-10,W+20,H+20)}
- overlays(S);dashHud();g.restore();
+ overlays(S);g.restore();
  var dk=S.nt?"#fff":"#2b2b2b";
  txt("คะแนน "+Math.floor(R.sc)+"   🪙 "+R.co,12,24,16,dk,"left");var ly=66;if(R.sh>0){txt("🍜🛡️ บาเรียพร้อม",12,ly,12,S.nt?"#9fe6ff":"#0277bd","left");ly+=17}if(R.mag>0)txt("🍰🧲 ดูดเหรียญ "+Math.ceil(R.mag)+" วิ",12,ly,12,S.nt?"#ffb3d4":"#c2185b","left");
   for(var bi=0;bi<4;bi++)txt("BEST".charAt(bi),W-76+bi*21,46,18,R.lset[bi]?["#e53935","#fb8c00","#43a047","#1e88e5"][bi]:(S.nt?"rgba(255,255,255,.4)":"rgba(0,0,0,.28)"),"center");
@@ -3531,22 +3291,20 @@ if(R.st==="run"&&R.stNew>0){g.fillStyle="rgba(0,0,0,"+Math.min(.3,R.stNew/50)+")
  if(R.st==="run"&&R.stNew>0)txt("ด่าน "+(Math.floor(R.sc/STL)+1)+": "+S.n,W/2,64,20,"rgba(255,255,255,"+Math.min(1,R.stNew/40)+")");
  if(R.st==="idle")txt(S.n,W/2,68,14,dk);
  if(R.st!=="run"){g.fillStyle="rgba(0,0,0,.4)";g.fillRect(0,0,W,H);
-  if(R.st==="idle"){txt("น้องเบสท์วิ่งลุยกาญจน์ 🏃‍♀️",W/2,88,26,"#fff");txt("แตะเพื่อเริ่ม · แตะ 2 ที = กระโดด 2 ชั้น",W/2,122,15,"#fff");txt("🍜 บาเรียกันชน 1 ครั้ง · 🥭 +❤️ · 🍰 แม่เหล็ก",W/2,146,13,"#ffd400");txt("ระวัง 🐦 นก · 🥥 มะพร้าวหล่น · ตกหลุม = จบเกมทันที!",W/2,166,13,"#ffd400");txt("พลังความสวยเต็ม = วิ่งชนได้ "+BD+" วิ",W/2,186,12,"#fff");txt("เก็บตัวอักษร B-E-S-T ครบ = ฝนเหรียญโบนัส 🔤",W/2,206,12,"#fff");txt("👇 ปัดลง = สไลด์ / ทิ้งตัว · 👉 ปัดขวา = แดชพุ่งชน",W/2,226,12,"#9be7ff")}
-  else{txt(R.why||"หัวใจหมดแล้ว! 💔",W/2,76,28,"#fff");txt("คะแนน "+Math.floor(R.sc)+" · ได้ "+R.earn+" 🪙",W/2,112,18,"#fff");txt("(เหรียญ "+R.co+"×"+COINV+" + ผ่านด่าน "+R.bn+" + ระยะทาง "+Math.floor(R.sc/DISTDIV)+") ×"+R.mult.toFixed(2)+" ตามความสวย"+(ST.sick?" · ป่วยอยู่ 🤒 ได้ครึ่งเดียว":""),W/2,138,12,"#fff");txt("👟 เหยียบ "+R.s1+" · ⚡ เฉียด "+R.s2+" · 💨 แดชชน "+R.s3+" · 🛷 สไลด์ "+R.s4,W/2,154,12,"#cfe9ff");txt("แตะเพื่อเล่นอีกครั้ง",W/2,176,16,"#ffd400")}}
+  if(R.st==="idle"){txt("น้องเบสท์วิ่งลุยกาญจน์ 🏃‍♀️",W/2,88,26,"#fff");txt("แตะเพื่อเริ่ม · แตะ 2 ที = กระโดด 2 ชั้น",W/2,122,15,"#fff");txt("🍜 บาเรียกันชน 1 ครั้ง · 🥭 +❤️ · 🍰 แม่เหล็ก",W/2,146,13,"#ffd400");txt("ระวัง 🐦 นก · 🥥 มะพร้าวหล่น · ตกหลุม = จบเกมทันที!",W/2,166,13,"#ffd400");txt("พลังความสวยเต็ม = วิ่งชนได้ "+BD+" วิ",W/2,186,12,"#fff");txt("เก็บตัวอักษร B-E-S-T ครบ = ฝนเหรียญโบนัส 🔤",W/2,206,12,"#fff");txt("👇 ปัดลง = สไลด์ลอดซุ้ม · ปัดลงกลางอากาศ = ทิ้งตัวเหยียบ",W/2,226,12,"#9be7ff")}
+  else{txt(R.why||"หัวใจหมดแล้ว! 💔",W/2,76,28,"#fff");txt("คะแนน "+Math.floor(R.sc)+" · ได้ "+R.earn+" 🪙",W/2,112,18,"#fff");txt("(เหรียญ "+R.co+"×"+COINV+" + ผ่านด่าน "+R.bn+" + ระยะทาง "+Math.floor(R.sc/DISTDIV)+") ×"+R.mult.toFixed(2)+" ตามความสวย"+(ST.sick?" · ป่วยอยู่ 🤒 ได้ครึ่งเดียว":""),W/2,138,12,"#fff");txt("แตะเพื่อเล่นอีกครั้ง",W/2,170,16,"#ffd400")}}
 }
 var G0=null;
 rc.addEventListener("pointerdown",function(e){e.preventDefault();try{rc.setPointerCapture(e.pointerId)}catch(_){}
  if(R.st!=="run"){jump();return}
  G0={x:e.clientX,y:e.clientY,done:0,sw:0,tm:setTimeout(function(){if(G0&&!G0.done){G0.done=1;G0.tm=0;jump()}},55)}});
 rc.addEventListener("pointermove",function(e){if(!G0||G0.sw)return;var dx=e.clientX-G0.x,dy=e.clientY-G0.y;
- if(dy>16&&dy>Math.abs(dx)*1.2){G0.sw=1;if(G0.tm){clearTimeout(G0.tm);G0.tm=0}G0.done=1;slideStart()}
- else if(dx>18&&dx>Math.abs(dy)*1.2){G0.sw=1;if(G0.tm){clearTimeout(G0.tm);G0.tm=0}G0.done=1;dashStart()}});
+ if(dy>16&&dy>Math.abs(dx)*1.2){G0.sw=1;if(G0.tm){clearTimeout(G0.tm);G0.tm=0}G0.done=1;slideStart()}});
 rc.addEventListener("pointerup",function(){if(G0&&G0.tm){clearTimeout(G0.tm);G0.tm=0;if(!G0.done&&!G0.sw)jump()}G0=null});
 rc.addEventListener("pointercancel",function(){if(G0&&G0.tm)clearTimeout(G0.tm);G0=null});
 document.addEventListener("keydown",function(e){var t=e.target&&e.target.tagName;if(t==="INPUT"||t==="TEXTAREA"||t==="SELECT")return;
  if(vis("#gRun")&&(e.code==="Space"||e.code==="ArrowUp"||e.code==="KeyW")){e.preventDefault();if(!e.repeat)jump()}
- if(vis("#gRun")&&(e.code==="ArrowDown"||e.code==="KeyS")){e.preventDefault();if(!e.repeat)slideStart()}
- if(vis("#gRun")&&(e.code==="ArrowRight"||e.code==="KeyD")){e.preventDefault();if(!e.repeat)dashStart()}});
+ if(vis("#gRun")&&(e.code==="ArrowDown"||e.code==="KeyS")){e.preventDefault();if(!e.repeat)slideStart()}});
 function vis(id){return sec.classList.contains("on")&&!$(id).hidden}
 
 /* ---------- จับคู่ไพ่ความจำ (3 โหมด) ---------- */
@@ -3962,419 +3720,9 @@ wrApi.setSpeed=function(s){W.speed=s};wrApi.state=function(){return{W:W,E:E,R:R}
 (function init(){var S=ST.wr;S.day=S.day||"";S.n=(S.n&&typeof S.n==="object")?S.n:{f:0,d:0};if(S.n.f==null)S.n.f=0;if(S.n.d==null)S.n.d=0;
  var bk=getComputedStyle(document.getElementById("fz")||document.body).getPropertyValue("--fz-back");if(bk)B.style.setProperty("--wr-back",bk.trim());
  buildInfo();applyPrefs();renderStats();paintSndW();say(pick("welcome"),"🃏");W.greeted=true})();
-wrApi.say=say;wrApi.wsfx=wsfx;wrApi.cards=loadCards;wrApi.busy=function(){return W.run};
 /*UI_END*/
 
 })();
-
-/* ===== สงครามไพ่โหมดยุทธวิธี (เล่นกับโคลน = น้องเบสท์) =====
-   engine + AI ฝังจาก online/war-engine.js ด้วย node tools/embed-war.js (ห้ามแก้ระหว่างเครื่องหมาย WT_*) */
-(function(){
-var Q=function(q){return document.querySelector(q)};
-var B=Q("#wrB");if(!B||!Q("#wtSet"))return;
-var wrA=window.__war||{};
-/*WT_ENGINE_START*/
-function wtEngine(R0, rnd) {
-  var R = {clash: "u", fool: 1, hand: 3, wh: 7, cap: 60, raise: 1, raiseMax: 2};
-  for (var k0 in (R0 || {})) R[k0] = R0[k0];
-  rnd = rnd || Math.random;
-  var shuf = function (a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t } return a };
-  var E = {R: R, deck: [], hands: [[], []], piles: [[], []], disc: [], pot: [], up: [null, null], cs: null, stk: [null, null],
-    round: 0, wars: 0, depth: 0, phase: "play", over: null, pub: {}, own: [{}, {}], rz: [0, 0], ev: [],
-    st: {rw: [0, 0], ww: [0, 0], ret: [0, 0], maxd: 0, pot: 0}};
-  var mark = function (cards) { cards.forEach(function (c) { if (c) E.pub[c.id] = 1 }) };
-  var cnum = function (c) { return c ? c.n : -1 };
-  var rmId = function (arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr.splice(i, 1)[0]; return null };
-  var hasId = function (arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return true; return false };
-  var emit = function (o) { E.ev.push(o) };
-
-  E.deal = function () {
-    var d = []; for (var k = 0; k < 2; k++) for (var n = 0; n < 22; n++) d.push({n: n, d: k, id: k * 22 + n});
-    shuf(d); E.hands = [d.slice(0, R.hand), d.slice(R.hand, 2 * R.hand)]; E.deck = d.slice(2 * R.hand);
-    E.piles = [[], []]; E.disc = []; E.pot = []; E.round = 0; E.wars = 0; E.phase = "play"; E.over = null;
-    E.pub = {}; E.own = [{}, {}]; E.rz = [0, 0];
-    return E;
-  };
-  E.clashes = function (a, b) { if (a === b) return true; if (R.clash === "eq") return false; if (a % 10 === b % 10) return true; return R.clash === "un" && Math.abs(a - b) === 1 };
-  E.draw = function (p) { var c = E.deck.shift(); if (!c) return null; E.hands[p].push(c); return c };
-  var drawTo = function (n) { /* จั่วสลับฝั่ง จนมือ >= n หรือกองหมด; ฝั่งที่เริ่มก่อนสลับทุกรอบ */
-    var f = E.round % 2, go = true;
-    while (go && E.deck.length) { go = false; for (var i = 0; i < 2; i++) { var p = (f + i) % 2; if (E.hands[p].length < n && E.deck.length) { E.draw(p); go = true } } }
-  };
-
-  /* ---------- ตรวจการเลือก ---------- */
-  E.legalPlay = function (p, ch) {
-    if (!(ch && E.phase === "play" && !E.over && hasId(E.hands[p], ch.c))) return false;
-    if (ch.x == null) return true;
-    return !!R.raise && E.rz[p] < R.raiseMax && ch.x !== ch.c && hasId(E.hands[p], ch.x);
-  };
-  E.needDown = function (p) { return Math.min(3, Math.max(0, E.hands[p].length - 1)) };
-  E.legalWar = function (p, ch) {
-    if (E.phase !== "war" || E.over) return false;
-    if (!E.hands[p].length) return true;
-    if (!ch) return false; if (ch.r) return true;
-    var h = E.hands[p], d = ch.down || [], nd = E.needDown(p), seen = {};
-    if (d.length !== nd || ch.up == null) return false;
-    var all = d.concat([ch.up]);
-    for (var i = 0; i < all.length; i++) { if (seen[all[i]] || !hasId(h, all[i])) return false; seen[all[i]] = 1 }
-    return true;
-  };
-
-  /* ---------- ขั้นตอนหลัก ---------- */
-  E.step = function (ch) {
-    E.ev = [];
-    if (E.over) return E.ev;
-    if (E.phase === "play") playStep(ch); else warStep(ch);
-    return E.ev;
-  };
-
-  function playStep(ch) {
-    var cs = [], p;
-    for (p = 0; p < 2; p++) { if (!E.legalPlay(p, ch && ch[p])) throw new Error("illegal play p" + p); }
-    for (p = 0; p < 2; p++) cs.push(rmId(E.hands[p], ch[p].c));
-    var stk = [null, null];
-    if (R.raise) for (p = 0; p < 2; p++) if (ch[p].x != null) { stk[p] = rmId(E.hands[p], ch[p].x); E.rz[p]++ }
-    E.stk = stk; mark(stk.filter(Boolean));
-    E.cs = cs; E.round++; E.up = cs.slice(); E.pot = cs.concat(stk.filter(Boolean)); E.depth = 0; mark(cs);
-    emit({t: "flip", r: E.round, up: cs.map(cnum), stk: stk.map(function (c) { return c ? c.n : -1 })});
-    var a = cs[0].n, b = cs[1].n, fw = -1;
-    if (R.fool) { if (a === 0 && b === 21) fw = 0; else if (a === 21 && b === 0) fw = 1 }
-    if (fw >= 0) return settle(fw, false, {fool: true});
-    if (E.clashes(a, b)) return startWar();
-    return settle(a > b ? 0 : 1, false, {});
-  }
-
-  function startWar() {
-    E.wars++; E.depth++; if (E.depth > E.st.maxd) E.st.maxd = E.depth;
-    E.phase = "war";
-    drawTo(R.wh);
-    emit({t: "war", d: E.depth, pot: E.pot.length, ups: E.up.map(cnum)});
-  }
-
-  function warStep(ch) {
-    var p, mode = ["f", "f"];
-    for (p = 0; p < 2; p++) {
-      if (!E.hands[p].length) mode[p] = "x";
-      else { if (!E.legalWar(p, ch && ch[p])) throw new Error("illegal war p" + p); if (ch[p].r) mode[p] = "r" }
-    }
-    if (mode[0] === "f" && mode[1] === "f") {
-      var ups = [], downN = [0, 0];
-      for (p = 0; p < 2; p++) {
-        var dn = ch[p].down.map(function (id) { return rmId(E.hands[p], id) });
-        dn.forEach(function (c) { E.own[p][c.id] = 1 });
-        downN[p] = dn.length; E.pot = E.pot.concat(dn); ups.push(rmId(E.hands[p], ch[p].up));
-      }
-      E.pot = E.pot.concat(ups); E.up = ups; mark(ups);
-      emit({t: "lay", ups: ups.map(cnum), dn: downN, pot: E.pot.length});
-      var a = ups[0].n, b = ups[1].n, fw = -1;
-      if (R.fool) { if (a === 0 && b === 21) fw = 0; else if (a === 21 && b === 0) fw = 1 }
-      if (fw >= 0) return settle(fw, true, {fool: true});
-      if (E.clashes(a, b)) return startWar();
-      return settle(a > b ? 0 : 1, true, {});
-    }
-    /* มีคนถอย/ไพ่หมด */
-    var pot = E.pot.slice(); E.pot = []; E.up = [null, null];
-    var f = mode[0] === "f" ? 0 : mode[1] === "f" ? 1 : -1;
-    for (p = 0; p < 2; p++) if (mode[p] === "r") E.st.ret[p]++;
-    if (f < 0) {
-      mark(pot); E.disc = E.disc.concat(pot); emit({t: "ret", both: true, n: pot.length, d: E.depth});
-    } else {
-      var q = 1 - f;
-      E.piles[f] = E.piles[f].concat(pot); mark(pot);
-      emit({t: "ret", p: q, w: f, n: pot.length, d: E.depth, forfeit: mode[q] === "x"});
-      E.st.rw[f]++; E.st.ww[f]++;
-      if (pot.length > E.st.pot) E.st.pot = pot.length;
-    }
-    E.depth = 0;
-    endRound();
-  }
-
-  function settle(w, war, o) {
-    var pot = E.pot.slice(), depth = E.depth;
-    E.piles[w] = E.piles[w].concat(pot); mark(pot);
-    E.st.rw[w]++; if (war) E.st.ww[w]++; if (pot.length > E.st.pot) E.st.pot = pot.length;
-    if (o.fool) emit({t: "fool", p: w});
-    emit({t: "res", w: w, n: pot.length, war: war ? depth : 0, up: E.up.map(cnum)});
-    endRound();
-  }
-
-  function endRound() {
-    drawTo(R.hand);
-    E.up = [null, null]; E.pot = []; E.phase = "play";
-    if (!E.deck.length && (!E.hands[0].length || !E.hands[1].length)) E.over = "done";
-    else if (E.round >= R.cap) E.over = "cap";
-    if (E.over) emit({t: "end", why: E.over, s: [E.piles[0].length, E.piles[1].length]});
-  }
-  E.result = function () { var a = E.piles[0].length, b = E.piles[1].length; return {w: a > b ? 0 : b > a ? 1 : -1, a: a, b: b} };
-
-  /* ---------- มุมมอง ---------- */
-  E.pubState = function () { /* ข้อมูลสาธารณะ: ไม่มีมือ/กองจั่ว/ไพ่ที่เลือกแต่ยังไม่เปิด/ไพ่คว่ำ */
-    return {round: E.round, phase: E.phase, depth: E.depth, over: E.over, deckN: E.deck.length, handN: [E.hands[0].length, E.hands[1].length],
-      pileN: [E.piles[0].length, E.piles[1].length], discN: E.disc.length, potN: E.pot.length,
-      up: E.up.map(function (c) { return c ? {n: c.n, d: c.d, id: c.id} : null }), cfg: {clash: R.clash, fool: R.fool}};
-  };
-  E.view = function (p) {
-    var v = E.pubState(), unseen = [], i;
-    v.rzLeft = R.raise ? Math.max(0, R.raiseMax - E.rz[p]) : 0; v.p = p; v.hand = E.hands[p].slice(); v.pile = E.piles[p].slice();
-    for (i = 0; i < 44; i++) { if (E.pub[i] || E.own[p][i] || hasId(E.hands[p], i)) continue; unseen.push({n: i % 22, d: Math.floor(i / 22), id: i}) }
-    v.unseen = unseen; v.R = {clash: R.clash, fool: R.fool, hand: R.hand, wh: R.wh, cap: R.cap, raise: R.raise, raiseMax: R.raiseMax};
-    v.need = E.phase === "war" ? E.needDown(p) : 0;
-    return v;
-  };
-
-  /* ---------- บันทึก/โหลดสถานะ (ใช้ในตัวจำลองของ AI และเซิร์ฟเวอร์) ---------- */
-  E.save = function () {
-    return {deck: E.deck.slice(), hands: [E.hands[0].slice(), E.hands[1].slice()], piles: [E.piles[0].slice(), E.piles[1].slice()], disc: E.disc.slice(),
-      pot: E.pot.slice(), up: E.up.slice(), cs: E.cs, stk: E.stk || [null, null], round: E.round, wars: E.wars, depth: E.depth, phase: E.phase, over: E.over,
-      pub: Object.assign({}, E.pub), own: [Object.assign({}, E.own[0]), Object.assign({}, E.own[1])], rz: E.rz.slice(), st: JSON.parse(JSON.stringify(E.st))};
-  };
-  E.load = function (s) {
-    for (var k in s) { var v = s[k]; E[k] = (v && typeof v === "object") ? JSON.parse(JSON.stringify(v)) : v }
-    return E;
-  };
-  return E;
-}
-/*WT_ENGINE_END*/
-/*WT_AI_START*/
-/* ===================== AI "น้องเบสท์" (เล่นแฟร์: รับ view ของตัวเองเท่านั้น) ===================== */
-var LEVELS = {
-  random: {kind: "random"},
-  novice: {kind: "mc", samples: 3, noise: 0.7, count: false},
-  normal: {kind: "mc", samples: 8, noise: 0, count: false},
-  hard:   {kind: "mc", samples: 20, noise: 0, count: true},
-  retreatAlways: {kind: "mc", samples: 8, noise: 0, count: false, war: "retreat"},
-  retreatNever:  {kind: "mc", samples: 8, noise: 0, count: false, war: "fight"}
-};
-var FULL = []; for (var _k = 0; _k < 2; _k++) for (var _n = 0; _n < 22; _n++) FULL.push({n: _n, d: _k, id: _k * 22 + _n});
-
-function pickRand(arr, rnd) { return arr[Math.floor(rnd() * arr.length)] }
-function shuffled(a, rnd) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t } return a }
-
-/* กลุ่มไพ่ที่ฝั่งตรงข้ามน่าจะถืออยู่ (ตามข้อมูลที่ AI เห็นได้) */
-function oppPool(view, lv) {
-  if (lv.count) return view.unseen;
-  var mine = {}; view.hand.forEach(function (c) { mine[c.id] = 1 });
-  return FULL.filter(function (c) { return !mine[c.id] });
-}
-function sampleOpp(view, lv, rnd, n) {
-  var known = [], kid = {};
-  var pool = shuffled(oppPool(view, lv).filter(function (c) { return !kid[c.id] }), rnd);
-  var take = pool.slice(0, Math.max(0, n - known.length));
-  var hh = known.concat(take);
-  while (hh.length < n) hh.push(FULL[Math.floor(rnd() * 44)]); /* ข้อมูลที่เห็นไม่พอ (ไพ่ซ่อนในกองรางวัล) → เติมสุ่ม */
-  return {hand: hh, rest: pool.slice(take.length)};
-}
-
-/* สร้างสถานะจำลองจากมุมมองของ me (ฝั่งตรงข้าม+กองจั่วสุ่มจากสิ่งที่ยังไม่เห็น) */
-function determinize(view, lv, rnd) {
-  var me = view.p, o = 1 - me, R = Object.assign({}, view.R);
-  var s = sampleOpp(view, lv, rnd, view.handN[o]);
-  var dummy = function (n) { var a = []; for (var i = 0; i < n; i++) a.push({n: 5, d: 0, id: 100 + i}); return a };
-  var deck = s.rest.slice(0, view.deckN);
-  while (deck.length < view.deckN) deck.push({n: Math.floor(rnd() * 22), d: 0, id: 200 + deck.length});
-  var sim = wtEngine(R, rnd);
-  var st = {deck: deck, hands: [[], []], piles: [[], []], disc: dummy(view.discN), pot: [], up: [null, null], cs: null, stk: [null, null],
-    round: view.round, wars: 0, depth: 0, phase: "play", over: null, pub: {}, own: [{}, {}],
-    rz: me === 0 ? [Math.max(0, view.R.raiseMax - view.rzLeft), 0] : [0, Math.max(0, view.R.raiseMax - view.rzLeft)],
-    st: {rw: [0, 0], ww: [0, 0], ret: [0, 0], maxd: 0, pot: 0}};
-  st.hands[me] = view.hand.slice(); st.hands[o] = s.hand;
-  st.piles[me] = view.pile.slice(); st.piles[o] = dummy(view.pileN[o]);
-  return sim.load(st);
-}
-
-function rank(c) { return c.n }
-
-/* ตัดสินใจในสงคราม: คืน {r:1} หรือ {down:[ids], up:id} */
-function warDecide(view, lvName, rnd) {
-  var lv = LEVELS[lvName] || LEVELS.normal, h = view.hand.slice().sort(function (a, b) { return a.n - b.n });
-  var nd = view.need;
-  var legalFight = function () { var up = h[h.length - 1]; return {down: h.slice(0, nd).map(function (c) { return c.id }), up: up.id} };
-  if (lv.kind === "random") {
-    if (rnd() < 0.2) return {r: 1};
-    var sh = shuffled(h, rnd); return {down: sh.slice(0, nd).map(function (c) { return c.id }), up: sh[nd].id};
-  }
-  if (lv.war === "retreat") return {r: 1};
-  var fight = legalFight();
-  if (lv.war === "fight") return fight;
-  if (lv.noise && rnd() < lv.noise) { if (rnd() < 0.5) return fight; var sh2 = shuffled(h, rnd); return {down: sh2.slice(0, nd).map(function (c) { return c.id }), up: sh2[nd].id} }
-  /* ประเมินโอกาสชนะใบตัดสิน เทียบมือคู่ต่อสู้ที่สุ่มจากข้อมูลที่เห็น (คู่ต่อสู้เลือกใบสูงสุด) */
-  var mine = h[h.length - 1].n, W = 0, K = 40, oppN = view.handN[1 - view.p];
-  if (!oppN) return fight;
-  for (var i = 0; i < K; i++) {
-    var oh = sampleOpp(view, lv, rnd, oppN).hand, ob = -1; oh.forEach(function (c) { if (c.n > ob) ob = c.n });
-    var cl = (mine === ob) || (view.R.clash !== "eq" && mine % 10 === ob % 10) || (view.R.clash === "un" && Math.abs(mine - ob) === 1);
-    W += cl ? 0.5 : (mine > ob ? 1 : (view.R.fool && mine === 0 && ob === 21 ? 1 : (view.R.fool && mine === 21 && ob === 0) ? 0 : 0));
-  }
-  var p = W / K, T = view.potN + (nd + 1) * 2;
-  var cost = view.potN;
-  return ((2 * p - 1) * T > -cost) ? fight : {r: 1};
-}
-
-/* เลือกไพ่ลงรอบปกติ: คืน {c:id, mag, jud, star, her} */
-function playDecide(view, lvName, rnd) {
-  var lv = LEVELS[lvName] || LEVELS.normal, hand = view.hand;
-  if (lv.kind === "random" || hand.length === 1) { var rc = pickRand(hand, rnd), ro = {c: rc.id}; if (view.rzLeft > 0 && hand.length > 1 && rnd() < 0.3) ro.x = pickRand(hand.filter(function (x) { return x.id !== rc.id }), rnd).id; return ro }
-  if (lv.noise && rnd() < lv.noise) return {c: pickRand(hand, rnd).id};
-  var me = view.p, o = 1 - me, late = view.deckN <= 2;
-  /* ตัวเลือก: ลงใบ c เฉย ๆ หรือลง c + เพิ่มเดิมพันด้วยใบอื่นที่ต่ำสุด */
-  var acts = [];
-  hand.forEach(function (c) {
-    acts.push({c: c.id});
-    if (view.rzLeft > 0 && hand.length > 1) {
-      var low = null; hand.forEach(function (x) { if (x.id !== c.id && (!low || x.n < low.n)) low = x });
-      acts.push({c: c.id, x: low.id});
-    }
-  });
-  var scores = acts.map(function () { return 0 });
-  for (var s = 0; s < lv.samples; s++) {
-    var base = determinize(view, lv, rnd).save();
-    var oh = base.hands[o], oc = pickRand(oh, rnd), ox = null;
-    if (view.R.raise && oh.length > 1 && rnd() < 0.2) ox = pickRand(oh.filter(function (x) { return x.id !== oc.id }), rnd);
-    acts.forEach(function (a, ai) {
-      var sim = wtEngine(view.R, rnd).load(base), oa = {c: oc.id}; if (ox) oa.x = ox.id;
-      try {
-        sim.step(me === 0 ? [a, oa] : [oa, a]);
-        var guard = 0;
-        while (sim.phase === "war" && !sim.over && guard++ < 6) {
-          var ch = [null, null];
-          for (var q = 0; q < 2; q++) ch[q] = warDecide(sim.view(q), "normal", rnd);
-          sim.step(ch);
-        }
-      } catch (e) { return }
-      var diff = sim.piles[me].length - sim.piles[o].length, hq = 0;
-      sim.hands[me].forEach(function (x) { hq += x.n / 21 - 0.5 }); sim.hands[o].forEach(function (x) { hq -= (x.n / 21 - 0.5) * 0 });
-      scores[ai] += diff + (late ? 0 : (lv.keep == null ? 0.5 : lv.keep) * hq);
-    });
-  }
-  var bi = 0; for (var i = 1; i < acts.length; i++) if (scores[i] > scores[bi] + 1e-9) bi = i;
-  return acts[bi];
-}
-
-var PRESET = {clash: "u", fool: 1, hand: 3, wh: 7, cap: 60, raise: 1, raiseMax: 2};
-/*WT_AI_END*/
-var LVN={novice:"😊 มือใหม่",normal:"🎯 ปกติ",hard:"😈 ตัวโหด"};
-var LT={
- intro:["โหมดยุทธวิธีค่ะ! ถือไพ่ในมือ เลือกลงพร้อมกัน แล้วเปิดดูว่าใครชนะ 🧠","คราวนี้ไม่ใช่แค่ดวงนะคะ ต้องวางแผนด้วย ตั้งค่าแล้วมาประลองกัน ⚔️"],
- start:["แจกไพ่ค่ะ! คนละ {h} ใบ เลือกลงใบที่ใช่ แล้วกดยืนยัน","เริ่มศึกยุทธวิธี! เลือกไพ่หนึ่งใบ ใครเลือกแล้วอีกฝั่งไม่เห็นนะคะ"],
- turn:["รอบที่ {r} เลือกไพ่ของคุณได้เลยค่ะ","ถึงตาตัดสินใจแล้วค่ะ รอบที่ {r} เลือกให้ดี","รอบที่ {r} ค่ะ จะลงใบแรงหรือเก็บไว้สู้ในสงครามดีคะ"],
- war:["สงครามเกิดแล้วค่ะ! เลือกไพ่คว่ำ {n} ใบ แล้วเลือกใบตัดสิน หรือถอยก็ได้ 🥁","ชนกัน! ตัดสินใจเลยค่ะ สู้หรือถอย ใบตัดสินควรเป็นใบแรง ๆ นะคะ"],
- win:["รอบนี้คุณชนะค่ะ! 👏","คุณได้ไพ่เข้ากองรางวัลแล้วค่ะ เยี่ยมมาก"],
- lose:["รอบนี้น้องเบสท์ชนะค่ะ ไพ่เข้ากองของฝั่งโน้น","เสียรอบนี้ไป แต่เกมยังอีกยาวนะคะ"],
- oppWin:{novice:["เย้ ชนะแล้ว! โชคดีจัง 😆","หนูชนะรอบนี้นะคะ ขอบคุณที่ใจดีค่ะ"],normal:["รอบนี้ของน้องเบสท์ค่ะ 😏","เป็นไปตามแผนค่ะ"],hard:["อ่านไพ่คุณออกหมดแล้ว 😎","เหนียวแค่ไหนก็ไม่รอดค่ะ"]},
- oppLose:{novice:["โอ๊ย แพ้แล้ว 🥲","คุณเก่งจัง!"],normal:["ก็ได้ รอบนี้ยกให้ค่ะ","เสียรอบหนึ่ง ไม่เป็นไร"],hard:["…จำไว้เลยนะ 😤","นับไพ่ใหม่ก็ได้"]},
- oppRaise:{novice:["หนูลองเพิ่มเดิมพันดูนะ 🤞"],normal:["เพิ่มเดิมพันค่ะ มั่นใจนะ 😏"],hard:["เดิมพันเพิ่ม เตรียมเสียไพ่ได้เลย 😈"]},
- oppRet:{novice:["ไม่ไหวแล้ว ขอถอยค่ะ 🏳️"],normal:["ถอยตั้งหลักค่ะ ตัดขาดทุน"],hard:["ถอยอย่างมีเหตุผลค่ะ ไพ่ไม่ดีไม่ลุย"]},
- end:{win:["คุณชนะน้องเบสท์ได้ในศึกยุทธวิธี! 🏆","เก่งมากค่ะ วางแผนได้เฉียบขาด!"],lose:["ศึกนี้น้องเบสท์ชนะค่ะ แต่คุณสู้ได้ดีมาก สู้ใหม่ได้เสมอ 💪"],draw:["เสมอกัน! สูสีสุด ๆ ค่ะ 🤝"]}
-};
-var lastP={};
-function pk(k,v){var a=LT[k];if(v&&v.sub)a=a[v.sub];if(!a||!a.length)return "";var i=0,n=0;do{i=Math.floor(Math.random()*a.length);n++}while(a.length>1&&lastP[k+(v&&v.sub||"")]===i&&n<6);lastP[k+(v&&v.sub||"")]=i;return a[i].replace(/\{(\w+)\}/g,function(m,x){return v&&v[x]!=null?v[x]:m})}
-var who=Q("#wrSay .wrWho");
-function say(t,emo,opp){if(who)who.textContent=opp?"🧑‍🎤 น้องเบสท์ · คู่ต่อสู้":"🎩 น้องเบสท์ · เจ้ามือ";if(wrA.say)wrA.say(t,emo)}
-function sfx(k){try{wrA.wsfx&&wrA.wsfx(k)}catch(e){}}
-function reduce(){try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}}
-var T={tok:0,run:false,E:null,R:null,v:null,S:{},opp:""},PF={lv:"normal",clash:"u",fool:1},CI=null,E=null;
-function tacS(){var S=ST.wr;if(!S.tac||typeof S.tac!=="object")S.tac={};var t=S.tac;if(!t.sm||typeof t.sm!=="object")t.sm={w:0,l:0,d:0};t.sm.w=t.sm.w||0;t.sm.l=t.sm.l||0;t.sm.d=t.sm.d||0;t.day=t.day||"";t.n=t.n||0;return t}
-function loadPrefs(){var p=ST.wr.tacPref;if(p&&typeof p==="object"){if(LVN[p.lv])PF.lv=p.lv;if(["u","un","eq"].indexOf(p.clash)>=0)PF.clash=p.clash;PF.fool=p.fool?1:0}}
-function savePrefs(){ST.wr.tacPref=PF;save()}
-function seg(id,v){Q(id).querySelectorAll("button").forEach(function(b){b.classList.toggle("on",String(b.dataset.v)===String(v))})}
-function paintSet(){seg("#wtOLv",PF.lv);seg("#wtOCl",PF.clash);seg("#wtOFl",PF.fool);
- var t=tacS().sm,R=reward0(PF.lv);Q("#wtDRw").textContent="🪙 ชนะ "+R.w+" · เสมอ "+R.d+" · แพ้ "+R.l+"  |  สถิติโหมดนี้: ชนะ "+t.w+" · แพ้ "+t.l+" · เสมอ "+t.d}
-function reward0(lv){var tb={novice:10,normal:14,hard:19},X=window.COIN_X?COIN_X.card:2;return{w:Math.round(tb[lv]*X),d:Math.round(5*X),l:Math.round(3*X)}}
-function sl(ms,tk){return new Promise(function(r,j){setTimeout(function(){tk===T.tok?r():j("abort")},reduce()?Math.min(ms,200):ms)})}
-function cards(){if(CI)return Promise.resolve(CI);return(wrA.cards?wrA.cards():Promise.resolve([])).then(function(c){CI=c||[];return CI}).catch(function(){CI=[];return CI})}
-function esc2(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function cardH(c,o){o=o||{};var ci=CI&&CI[c.n];return'<div class="wtC'+(o.cls?" "+o.cls:"")+'" data-id="'+c.id+'" role="button" tabindex="0" aria-label="ไพ่เลข '+c.n+'"><div class="im">'+(ci&&ci.thumb?'<img alt="" src="'+ci.thumb+'">':"")+'</div><b class="nb">'+c.n+"</b>"+(o.tag?'<i class="tg">'+o.tag+"</i>":"")+"</div>"}
-function faceH(n){return cardH({n:n,id:-1,d:0},{cls:"sm"})}
-function logAdd(t,war){var li=document.createElement("li");li.textContent=t;if(war)li.className="war";var ol=Q("#wtLog");ol.insertBefore(li,ol.firstChild);Q("#wtLogN").textContent="("+ol.children.length+")"}
-function paintBar(){if(!E)return;var p=E.pubState();Q("#wtRd").textContent="รอบ "+p.round;Q("#wtDk").textContent="🂠 กองจั่ว "+p.deckN;Q("#wtPl").textContent="🏁 คุณ "+p.pileN[0]+" : "+p.pileN[1]+" น้องเบสท์";Q("#wtDd").textContent="🗑 ทิ้ง "+p.discN;
- var o=Q("#wtOpp"),n=p.handN[1],h="";for(var i=0;i<n;i++)h+='<div class="wtC bk sm"></div>';o.innerHTML='<div class="bks">'+h+'</div><span class="st">'+(T.opp||"")+"</span>"}
-function setSlot(i,n,cls){var e=Q("#wtS"+i);e.className="wtSl"+(cls?" "+cls:"");e.innerHTML=n==null?"":faceH(n)}
-function setStake(i,n){Q("#wtK"+i).textContent=n!=null&&n>=0?"➕ เดิมพัน "+n:""}
-function clearTable(){setSlot(0,null);setSlot(1,null);setStake(0,null);setStake(1,null);Q("#wtPot").textContent=""}
-function tip(t){Q("#wtTip").textContent=t||""}
-/* ---------- มือ + การเลือก ---------- */
-function drawHand(){var v=T.v,S=T.S,h=v.hand.slice().sort(function(a,b){return a.n-b.n}),el=Q("#wtHand"),s="";
- el.className="wtHand"+(h.length>5?" many":"");
- h.forEach(function(c){var tag="",cls="";
-  if(S.mode==="play"){if(S.c===c.id){tag="ลง";cls="sel"}else if(S.x===c.id){tag="เดิมพัน";cls="stk"}}
-  else if(S.mode==="war"){if(S.downs.indexOf(c.id)>=0){tag="⬇ คว่ำ";cls="sel"}else if(S.up===c.id){tag="⭐ ตัดสิน";cls="up"}}
-  s+=cardH(c,{cls:cls,tag:tag})});
- el.innerHTML=s;setActs()}
-function setActs(){var v=T.v,S=T.S,go=Q("#wtGo"),rz=Q("#wtRz"),rt=Q("#wtRt");if(!v||!S.mode){go.hidden=rz.hidden=rt.hidden=true;return}
- go.hidden=false;
- if(S.mode==="play"){rt.hidden=true;rz.hidden=!(v.rzLeft>0&&v.hand.length>1);rz.textContent=(S.raise?"✅ ":"➕ ")+"เพิ่มเดิมพัน (เหลือ "+v.rzLeft+")";rz.classList.toggle("on",!!S.raise);go.disabled=S.c==null;go.textContent="✅ ลงไพ่"+(S.x!=null?" + เดิมพัน":"")}
- else{rz.hidden=true;rt.hidden=false;rt.textContent="🏳️ ถอย (เสีย "+v.potN+" ใบ)";go.disabled=!(S.downs.length===v.need&&S.up!=null);go.textContent="⚔️ ลุย!"}}
-function onCard(id){var S=T.S,v=T.v;if(!S.mode)return;var c=v.hand.filter(function(x){return x.id===id})[0];if(!c)return;sfx("tap");
- tip("ไพ่เลข "+c.n);
- if(S.mode==="play"){if(S.raise&&S.c!=null&&id!==S.c){S.x=S.x===id?null:id}else{if(S.x===id)S.x=null;S.c=S.c===id?null:id}}
- else{var i=S.downs.indexOf(id);if(i>=0)S.downs.splice(i,1);else if(S.up===id)S.up=null;else if(S.downs.length<v.need)S.downs.push(id);else S.up=id}
- drawHand()}
-function humanPlay(tk){return new Promise(function(res){T.S={mode:"play",c:null,x:null,raise:false,res:res};T.v=E.view(0);T.opp="";paintBar();drawHand();say(pk("turn",{r:E.round+1}),"🃏");tip("แตะไพ่เพื่อเลือก แล้วกดลงไพ่ · เพิ่มเดิมพันได้ถ้าอยากเสี่ยง")})}
-function humanWar(tk){return new Promise(function(res){T.S={mode:"war",downs:[],up:null,res:res};T.v=E.view(0);paintBar();drawHand();say(pk("war",{n:T.v.need}),"⚔️");tip("แตะไพ่ "+T.v.need+" ใบเป็นไพ่คว่ำ (⬇) แล้วแตะอีกใบเป็นใบตัดสิน (⭐) · กองกลาง "+T.v.potN+" ใบ")})}
-function submit(ch){var S=T.S;if(!S.mode)return;var r=S.res;T.S={mode:null};T.v=null;Q("#wtHand").innerHTML="";setActs();tip("");r(ch)}
-/* ---------- AI (น้องเบสท์ · เล่นแฟร์: รับ view ของตัวเองเท่านั้น) ---------- */
-async function aiPlay(tk){T.opp="🤔 กำลังคิด…";paintBar();var t0=PF.lv==="hard"?1300:PF.lv==="novice"?600:900;await sl(t0+Math.random()*500,tk);var ch=playDecide(E.view(1),PF.lv,Math.random);T.opp="✋ เลือกแล้ว";paintBar();return ch}
-async function aiWar(tk){T.opp="🤔 กำลังคิด…";paintBar();await sl(900+Math.random()*600,tk);var ch=warDecide(E.view(1),PF.lv,Math.random);T.opp="✋ เลือกแล้ว";paintBar();return ch}
-/* ---------- แสดงผลเหตุการณ์ ---------- */
-function nm(p){return p===0?"คุณ":"น้องเบสท์"}
-async function show(evs,tk){
- for(var i=0;i<evs.length;i++){var e=evs[i],m="";
-  if(e.t==="flip"){clearTable();setSlot(0,e.up[0]);setSlot(1,e.up[1]);setStake(0,e.stk[0]);setStake(1,e.stk[1]);sfx("flip");
-   if(e.stk[1]>=0){say(pk("oppRaise",{sub:PF.lv}),"😏",true);logAdd("น้องเบสท์เพิ่มเดิมพัน")}
-   logAdd("รอบ "+e.r+": คุณ "+e.up[0]+" ต่อ "+e.up[1]+" น้องเบสท์"+(e.stk[0]>=0?" (คุณเพิ่มเดิมพัน)":""));await sl(800,tk)}
-  else if(e.t==="fool"){m="🃏 คนโง่ล้มเจ้าโลก! "+nm(e.p)+" ชนะ";logAdd(m);tip(m);sfx("fool");await sl(750,tk)}
-  else if(e.t==="war"){m="⚔️ ชนกัน! ซ้อนศึกชั้น "+e.d+" · กองกลาง "+e.pot+" ใบ";logAdd(m,true);Q("#wtPot").textContent="🎴 กองกลาง "+e.pot;tip(m);sfx("war");await sl(700,tk)}
-  else if(e.t==="lay"){setSlot(0,e.ups[0],"war");setSlot(1,e.ups[1],"war");Q("#wtPot").textContent="🎴 กองกลาง "+e.pot;sfx("lay");logAdd("ใบตัดสิน: คุณ "+e.ups[0]+" ต่อ "+e.ups[1]+" น้องเบสท์",true);await sl(900,tk)}
-  else if(e.t==="res"){var mine=e.w===0;
-   m=e.war?"⚔️ ศึกจบ! "+nm(e.w)+" กวาดกองกลาง "+e.n+" ใบ":nm(e.w)+" ชนะ ได้ไพ่ "+e.n+" ใบ";logAdd(m,!!e.war);tip(m);
-   Q("#wtS"+e.w).classList.add("win");Q("#wtS"+(1-e.w)).classList.add("lose");sfx("take");
-   say(mine?pk("win"):pk("lose"),mine?"👏":"😏");await sl(500,tk);
-   say(mine?pk("oppLose",{sub:PF.lv}):pk("oppWin",{sub:PF.lv}),mine?"🥲":"😎",true);await sl(700,tk)}
-  else if(e.t==="ret"){if(e.both)m="🤝 ทั้งสองถอย กองกลาง "+e.n+" ใบถูกทิ้ง";else if(e.forfeit)m=nm(e.p)+" ไพ่หมดกลางสงคราม "+nm(e.w)+" เก็บ "+e.n+" ใบ";else m="🏳️ "+nm(e.p)+" ถอย "+nm(e.w)+" เก็บ "+e.n+" ใบ";
-   logAdd(m,true);tip(m);if(e.p===1)say(pk("oppRet",{sub:PF.lv}),"🏳️",true);await sl(900,tk)}}
- paintBar()}
-/* ---------- ลูปเกม ---------- */
-async function loop(tk){
- try{while(!E.over&&tk===T.tok){
-   var evs;
-   if(E.phase==="play"){var hc=await humanPlay(tk);var ac=await aiPlay(tk);evs=E.step([hc,ac])}
-   else{var hw=E.hands[0].length?await humanWar(tk):null;var aw=E.hands[1].length?await aiWar(tk):null;evs=E.step([hw,aw])}
-   await show(evs,tk);
-   if(E.phase==="play"&&!E.over)await sl(250,tk)}
-  if(tk===T.tok)await finish(tk)}catch(x){if(x!=="abort")throw x}}
-function day2(){return typeof day==="function"?day():new Date().toISOString().slice(0,10)}
-function reward(w){var t=tacS(),d=day2();if(t.day!==d){t.day=d;t.n=0}var r=reward0(PF.lv),c=w===0?r.w:w===1?r.l:r.d,full=t.n<3;t.n++;if(!full)c=Math.max(2,Math.round(c/3));if(ST.sick)c=Math.max(1,Math.round(c/2));return{c:c,full:full}}
-async function finish(tk){T.run=false;var r=E.result(),t=tacS(),rw=reward(r.w);
- if(r.w===0)t.sm.w++;else if(r.w===1)t.sm.l++;else t.sm.d++;
- save();if(rw.c>0&&typeof addCoins==="function")addCoins(rw.c,"สงครามไพ่ยุทธวิธี");
- var wn=r.w===0?"win":r.w===1?"lose":"draw";say(pk("end",{sub:wn}),wn==="win"?"🏆":wn==="lose"?"💪":"🤝");sfx(wn==="win"?"fool":"cnt");
- var en=Q("#wtEnd");en.hidden=false;en.innerHTML='<h3>'+(wn==="win"?"🏆 คุณชนะ!":wn==="lose"?"😅 น้องเบสท์ชนะ":"🤝 เสมอ")+'</h3><p class="big">'+r.a+" : "+r.b+'</p><p>รอบทั้งหมด '+E.round+" · สงคราม "+E.wars+" ครั้ง</p><p>🪙 +"+rw.c+(rw.full?"":" (เกินโควตาเต็มของวัน)")+'</p><div class="wtAct"><button type="button" class="wrBtn" id="wtAgain">⚔️ เล่นอีกตา</button><button type="button" class="wrBtn alt" id="wtBackS">⚙️ ตั้งค่า</button></div>';
- Q("#wtAgain").onclick=start;Q("#wtBackS").onclick=toSetup;Q("#wtHand").innerHTML="";setActs();paintSet()}
-function start(){if(wrA.busy&&wrA.busy())return;cards().then(function(){T.tok++;var tk=T.tok;T.run=true;
- var R=Object.assign({},PRESET,{clash:PF.clash,fool:PF.fool});E=wtEngine(R,Math.random).deal();T.E=E;
- Q("#wtSet").hidden=true;Q("#wtPlay").hidden=false;Q("#wtEnd").hidden=true;Q("#wtLog").innerHTML="";Q("#wtLogN").textContent="";clearTable();T.opp="";
- say(pk("start",{h:R.hand}),"🃏");paintBar();sfx("deal");loop(tk).catch(function(x){console.error(x)})})}
-function toSetup(){T.tok++;T.run=false;T.S={mode:null};E=null;Q("#wtPlay").hidden=true;Q("#wtSet").hidden=false;Q("#wtEnd").hidden=true;setActs();paintSet();say(pk("intro"),"🧠")}
-/* ---------- สลับโหมด + ตั้งค่า ---------- */
-function setGm(g,quiet){if(g==="luck"&&T.run&&!confirm("เลิกเล่นตานี้แล้วกลับโหมดวัดดวง?"))return;if(g==="tac"&&wrA.busy&&wrA.busy()){if(window.toast)toast("จบศึกวัดดวงที่กำลังเล่นก่อนนะคะ");return}
- if(g==="luck"&&T.run)toSetup();B.dataset.gm=g;ST.wr.gm=g;save();
- Q("#wtModes").querySelectorAll("button").forEach(function(b){b.classList.toggle("on",b.dataset.g===g)});
- if(g==="tac"){paintSet();if(!quiet)say(pk("intro"),"🧠");cards()}else if(who)who.textContent="🎩 น้องเบสท์ · เจ้ามือ"}
-Q("#wtModes").onclick=function(e){var b=e.target.closest("button");if(b)setGm(b.dataset.g)};
-function bindSeg(id,key,num){Q(id).onclick=function(e){var b=e.target.closest("button");if(!b)return;PF[key]=num?+b.dataset.v:b.dataset.v;savePrefs();paintSet()}}
-bindSeg("#wtOLv","lv");bindSeg("#wtOCl","clash");bindSeg("#wtOFl","fool",1);
-Q("#wtStart").onclick=start;
-Q("#wtHand").onclick=function(e){var c=e.target.closest(".wtC");if(c)onCard(+c.dataset.id)};
-Q("#wtHand").onkeydown=function(e){if(e.key==="Enter"||e.key===" "){var c=e.target.closest(".wtC");if(c){e.preventDefault();onCard(+c.dataset.id)}}};
-Q("#wtRz").onclick=function(){if(T.S.mode!=="play")return;T.S.raise=!T.S.raise;if(!T.S.raise)T.S.x=null;else if(T.S.c==null)tip("เลือกไพ่ที่จะลงก่อน แล้วแตะไพ่อีกใบเป็นเดิมพัน");else tip("แตะไพ่อีกใบเป็นเดิมพัน (ผู้ชนะเก็บทั้งหมด)");drawHand()};
-Q("#wtGo").onclick=function(){var S=T.S;if(S.mode==="play"&&S.c!=null){var ch={c:S.c};if(S.x!=null)ch.x=S.x;submit(ch)}else if(S.mode==="war"&&S.downs.length===T.v.need&&S.up!=null)submit({down:S.downs.slice(),up:S.up})};
-Q("#wtRt").onclick=function(){if(T.S.mode==="war")submit({r:1})};
-Q("#wtQuit").onclick=function(){if(confirm("เลิกเล่นตานี้? (ไม่ได้เหรียญ)"))toSetup()};
-(function init(){loadPrefs();
- var g=ST.wr.gm==="tac"?"tac":"luck";B.dataset.gm=g;setGm(g,true);paintSet()})();
-window.__wt={engine:wtEngine,PRESET:PRESET,ai:{playDecide:playDecide,warDecide:warDecide},ui:{busy:function(){return !!T.run}}};
-})();
-
 
 /* ===== เกมเลขเพดาน (99 ดัดแปลง) : เพดาน 120/150/200 · 2-4 คน · น้องเบสท์+ทีมงาน หรือเพื่อนส่งเครื่องกัน ===== */
 function callName(n){n=String(n||'').trim();if(!n||n==='เบล'||/^(พี่|น้อง|คุณ|ผู้เล่น)/.test(n)||/AI$/.test(n))return n;return 'พี่'+n}
@@ -4625,7 +3973,7 @@ function shake(){var t=Q("#nnT");if(!t)return;t.classList.remove("shake");void t
 function burst(em,n,ox,oy){var f=fxl();if(!f||!f.animate)return;var r=f.getBoundingClientRect();for(var i=0;i<n;i++){var s=document.createElement("span");s.className="nnP";s.textContent=em;s.style.left=((ox==null?50:ox)/100*r.width)+"px";s.style.top=((oy==null?44:oy)/100*r.height)+"px";f.appendChild(s);var dx=(Math.random()-.5)*r.width*.8,dy=(Math.random()-.7)*r.height*.6;s.animate([{transform:"translate(0,0) scale(.4) rotate(0)",opacity:1},{transform:"translate("+dx+"px,"+dy+"px) scale(1.3) rotate("+(Math.random()*360)+"deg)",opacity:0}],{duration:ms(1100+Math.random()*500),easing:"ease-out",fill:"forwards"}).onfinish=(function(s){return function(){s.remove()}})(s)}}
 function bolt(){var f=fxl();if(!f||!f.animate)return;var r=f.getBoundingClientRect(),w=r.width,h=r.height,pts=[],x=w*(.45+Math.random()*.1),y=0;while(y<h*.46){pts.push(x.toFixed(0)+","+y.toFixed(0));x+=(Math.random()-.5)*w*.16;y+=h*.06}
  var s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("class","nnBolt");s.setAttribute("viewBox","0 0 "+w+" "+h);s.innerHTML='<polyline points="'+pts.join(" ")+'" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round" style="filter:drop-shadow(0 0 8px #8cf) drop-shadow(0 0 18px #6af)"/>';f.appendChild(s);s.animate([{opacity:0},{opacity:1},{opacity:.2},{opacity:1},{opacity:0}],{duration:ms(800)}).onfinish=function(){s.remove()}}
-function banner(t,sub,dur){var f=fxl();if(!f||!f.animate)return;var b=document.createElement("div");b.className="nnBn";b.innerHTML='<div>'+esc(t)+'</div>'+(sub?'<small>'+esc(sub)+'</small>':"");f.appendChild(b);b.animate([{opacity:0,transform:"translate(-50%,10px) scale(.8)"},{opacity:1,transform:"translate(-50%,0) scale(1)",offset:.1},{opacity:1,transform:"translate(-50%,0) scale(1)",offset:.88},{opacity:0,transform:"translate(-50%,-8px) scale(.95)"}],{duration:ms(dur)}).onfinish=function(){b.remove()}}
+function banner(t,sub,dur){dur=+dur>0?+dur:1700;var f=fxl();if(!f||!f.animate)return;var b=document.createElement("div");b.className="nnBn";b.innerHTML='<div>'+esc(t)+'</div>'+(sub?'<small>'+esc(sub)+'</small>':"");f.appendChild(b);b.animate([{opacity:0,transform:"translate(-50%,10px) scale(.8)"},{opacity:1,transform:"translate(-50%,0) scale(1)",offset:.1},{opacity:1,transform:"translate(-50%,0) scale(1)",offset:.88},{opacity:0,transform:"translate(-50%,-8px) scale(.95)"}],{duration:ms(dur)}).onfinish=function(){b.remove()}}
 function pop(txt,col){var f=fxl(),e=Q("#nnNum");if(!f||!e||!f.animate)return;var er=e.getBoundingClientRect(),r=f.getBoundingClientRect(),s=document.createElement("b");s.className="nnPop";s.textContent=txt;s.style.cssText="left:"+(er.left-r.left+er.width+8)+"px;top:"+(er.top-r.top-6)+"px;color:"+col;f.appendChild(s);s.animate([{transform:"translateY(0) scale(.6)",opacity:0},{transform:"translateY(-8px) scale(1.25)",opacity:1,offset:.2},{transform:"translateY(-36px) scale(1)",opacity:0}],{duration:ms(1600)}).onfinish=function(){s.remove()}}
 function rectOf(el){var r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2,w:r.width}}
 function fly(rc,card,dur){return new Promise(function(res){var f=fxl(),pe=Q("#nnPile");if(!f||!pe||!f.animate){res();return}var fr=f.getBoundingClientRect(),pr=pe.getBoundingClientRect(),w=pr.width,h=pr.height,d=document.createElement("div");d.className="nnFly";d.style.cssText="width:"+w+"px;height:"+h+"px;left:"+(rc.x-fr.left-w/2)+"px;top:"+(rc.y-fr.top-h/2)+"px";d.innerHTML='<img alt="" src="'+(TH[card.n]||"")+'">';f.appendChild(d);
@@ -4704,7 +4052,7 @@ async function turn(my){if(my!==tk||G.over>=0)return;var pd=G.pend,p=pd?pd.p:G.c
  if(isHuman(p)){busy=false;thinking=-1;paint();if(PF.mode==="clone"&&!pd)scheduleAiInterject(my);return}
  busy=true;thinking=p;paint();await sl(1500);if(my!==tk)return;
  var m=G.aiStep(p);
- if(m.t==="swap"){var k0=m.ix.length;G.swap(p,m.ix);thinking=-1;paint();if(k0)banner("🌙 "+names[p]+" เปลี่ยนไพ่ "+k0+" ใบ","The Moon");await sl(700);if(my!==tk)return;turn(my);return}
+ if(m.t==="swap"){var k0=m.ix.length;G.swap(p,m.ix);thinking=-1;paint();if(k0)banner("🌙 "+names[p]+" เปลี่ยนไพ่ "+k0+" ใบ","The Moon",1500);await sl(700);if(my!==tk)return;turn(my);return}
  if(m.t==="pass"){G.pass(p);thinking=-1;paint();await sl(300);if(my!==tk)return;turn(my);return}
  doPlay(my,p,m.i,m.k,rectOf(Q("#nnS"+p+" .av")),m.tg)}
 function nnReward(x){var d=day();if(S.day!==d){S.day=d;S.n={f:0,d:0}}var k=PF.mode==="friend"?"f":"d",cnt=S.n[k]||0,c;
@@ -4756,7 +4104,7 @@ var dd=false;
 function loop(ts){
  if(!vis("#gPet")&&!dock.hidden)dock.hidden=true;
  var d=Math.min(2.2,(ts-R.last)/16.67||1);R.last=ts;if(d>1.7)slowc++;else if(slowc>0)slowc-=.5;if(slowc>80)LQ=1;else if(slowc<=0)LQ=0;
- musicSync();if(vis("#gRun")){if(R.st==="run"){if(R.slow>0)R.slow-=d;if(R.tl>0)R.tl-=d;step(d*(R.slow>0?.5:1)*(R.tl>0?.72:1))}else{R.t+=.4*d;vfxStep(d)}draw()}
+ musicSync();if(vis("#gRun")){if(R.st==="run")step(d);else{R.t+=.4*d;vfxStep(d)}draw()}
  else if(vis("#gWar")){wrApi.frame&&wrApi.frame(ts)}
   else if(vis("#gNn")){nnApi.frame(ts)}
  else if(vis("#gPet")){if(!dockWant&&!dock.hidden)dock.hidden=true;pg.clearRect(0,0,216,264);pg.imageSmoothingEnabled=false;compose();var f=Math.round(Math.sin(ts/420)*(asleep()?1:3));var sx=ST.sick&&!asleep()?Math.round(Math.sin(ts/60)*2):0;pg.drawImage(comp,sx,f,216,264);
@@ -4795,7 +4143,6 @@ if ("serviceWorker" in navigator) {
 <script src="online/config.js"></script>
 <script src="online/nn-engine.js"></script>
 <script src="online/online-game.js"></script>
-<script src="online/online-war.js"></script>
 <script src="online/online.js"></script>
 </body>
 </html>
