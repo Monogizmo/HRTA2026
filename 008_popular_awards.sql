@@ -61,16 +61,16 @@ insert into public.awd_members (name, ord) values
 on conflict (name) do nothing;
 
 insert into public.awd_categories (id, ord, emoji, title_en, title_th) values
-  ('foodie', 1, '🍜', 'The Ultimate Foodie', 'กินจุที่สุด'),
-  ('comedy', 2, '😂', 'The Comedy Star', 'สายฮาที่สุด'),
-  ('energy', 3, '⚡', 'The Energy Booster', 'พลังงานเยอะที่สุด'),
-  ('paparazzi', 4, '📸', 'The Paparazzi', 'ถ่ายรูปเก่งที่สุด'),
-  ('style', 5, '😎', 'The Style Icon', 'แต่งตัวมีสไตล์ที่สุด'),
-  ('butterfly', 6, '🗣️', 'The Social Butterfly', 'คุยเก่งที่สุด'),
-  ('shopaholic', 7, '🛍️', 'The Shopaholic', 'นักช้อปตัวยง'),
+  ('vacuum', 1, '🍜', 'The Human Vacuum', 'กินเก่งที่สุด'),
+  ('meme', 2, '😂', 'The Walking Meme', 'สายฮาที่สุด'),
+  ('battery', 3, '🔋', 'The Overcharged Battery', 'พลังงานเยอะที่สุด'),
+  ('camera', 4, '📸', 'The Camera Magnet', 'รูปเยอะที่สุด'),
+  ('runway', 5, '👗', 'The Walking Runway', 'แต่งตัวมีสไตล์ที่สุด'),
+  ('radio', 6, '📻', 'The Human Radio', 'คุยเก่งที่สุด'),
+  ('confused', 7, '😵‍💫', 'The "What''s Going On?"', 'ผู้ที่งงกับชีวิตที่สุด'),
   ('adventure', 8, '🎒', 'The Adventure Seeker', 'พร้อมลุยทุกกิจกรรมที่สุด'),
-  ('caring', 9, '💗', 'The Caring Soul', 'ดูแลเพื่อนดีที่สุด'),
-  ('timekeeper', 10, '⏰', 'The Time Traveler', 'รักษาเวลาได้ดีที่สุด')
+  ('caring', 9, '💗', 'The Caring Soul', 'ดูแลทุกคนดีที่สุด'),
+  ('gift', 10, '🎁', 'The Gift Guru', 'เลือกของขวัญได้ดีและตรงโจทย์มากที่สุด')
 on conflict (id) do nothing;
 
 -- หนึ่งแถว = ผู้โหวต 1 คน × หัวข้อ 1 หัวข้อ (primary key กันโหวตซ้ำ) · แก้คะแนน = update แถวเดิม
