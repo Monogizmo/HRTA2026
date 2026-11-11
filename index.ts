@@ -435,6 +435,543 @@ const self = globalThis;
   return { startGame: startGame, applyPlay: applyPlay, applyPass: applyPass, applySwap: applySwap, applyInterject: applyInterject, applyForfeit: applyForfeit, summary: summary, copy: copy };
 });
 
+/* ===== online/war-engine.js ===== */
+/* HRTA สงครามไพ่ "ยุทธวิธี" (ไม่มีพลังพิเศษ) — engine ฟังก์ชันล้วน ใช้ร่วม client + server (Supabase Edge Function)
+ * ส่วนระหว่าง TACTICS_ENGINE_START / TACTICS_ENGINE_END ต้องเหมือนกับที่ฝังใน index.html ทุกตัวอักษร (tests/war-parity ตรวจ)
+ * กติกาและลำดับตัดสินดู docs/war-tactics-balance.md
+ * ความลับ: engine เก็บสถานะเต็ม (มือ/กองจั่ว) ไว้ฝั่งเซิร์ฟเวอร์เท่านั้น ส่งให้ผู้เล่นผ่าน E.view(p) / E.pub() เท่านั้น
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.WarTactics = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+/*TACTICS_ENGINE_START*/
+function wtEngine(R0, rnd) {
+  var R = {clash: "u", fool: 1, hand: 3, wh: 7, cap: 60, raise: 1, raiseMax: 2};
+  for (var k0 in (R0 || {})) R[k0] = R0[k0];
+  rnd = rnd || Math.random;
+  var shuf = function (a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t } return a };
+  var E = {R: R, deck: [], hands: [[], []], piles: [[], []], disc: [], pot: [], up: [null, null], cs: null, stk: [null, null],
+    round: 0, wars: 0, depth: 0, phase: "play", over: null, pub: {}, own: [{}, {}], rz: [0, 0], ev: [],
+    st: {rw: [0, 0], ww: [0, 0], ret: [0, 0], maxd: 0, pot: 0}};
+  var mark = function (cards) { cards.forEach(function (c) { if (c) E.pub[c.id] = 1 }) };
+  var cnum = function (c) { return c ? c.n : -1 };
+  var rmId = function (arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr.splice(i, 1)[0]; return null };
+  var hasId = function (arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return true; return false };
+  var emit = function (o) { E.ev.push(o) };
+
+  E.deal = function () {
+    var d = []; for (var k = 0; k < 2; k++) for (var n = 0; n < 22; n++) d.push({n: n, d: k, id: k * 22 + n});
+    shuf(d); E.hands = [d.slice(0, R.hand), d.slice(R.hand, 2 * R.hand)]; E.deck = d.slice(2 * R.hand);
+    E.piles = [[], []]; E.disc = []; E.pot = []; E.round = 0; E.wars = 0; E.phase = "play"; E.over = null;
+    E.pub = {}; E.own = [{}, {}]; E.rz = [0, 0];
+    return E;
+  };
+  E.clashes = function (a, b) { if (a === b) return true; if (R.clash === "eq") return false; if (a % 10 === b % 10) return true; return R.clash === "un" && Math.abs(a - b) === 1 };
+  E.draw = function (p) { var c = E.deck.shift(); if (!c) return null; E.hands[p].push(c); return c };
+  var drawTo = function (n) { /* จั่วสลับฝั่ง จนมือ >= n หรือกองหมด; ฝั่งที่เริ่มก่อนสลับทุกรอบ */
+    var f = E.round % 2, go = true;
+    while (go && E.deck.length) { go = false; for (var i = 0; i < 2; i++) { var p = (f + i) % 2; if (E.hands[p].length < n && E.deck.length) { E.draw(p); go = true } } }
+  };
+
+  /* ---------- ตรวจการเลือก ---------- */
+  E.legalPlay = function (p, ch) {
+    if (!(ch && E.phase === "play" && !E.over && hasId(E.hands[p], ch.c))) return false;
+    if (ch.x == null) return true;
+    return !!R.raise && E.rz[p] < R.raiseMax && ch.x !== ch.c && hasId(E.hands[p], ch.x);
+  };
+  E.needDown = function (p) { return Math.min(3, Math.max(0, E.hands[p].length - 1)) };
+  E.legalWar = function (p, ch) {
+    if (E.phase !== "war" || E.over) return false;
+    if (!E.hands[p].length) return true;
+    if (!ch) return false; if (ch.r) return true;
+    var h = E.hands[p], d = ch.down || [], nd = E.needDown(p), seen = {};
+    if (d.length !== nd || ch.up == null) return false;
+    var all = d.concat([ch.up]);
+    for (var i = 0; i < all.length; i++) { if (seen[all[i]] || !hasId(h, all[i])) return false; seen[all[i]] = 1 }
+    return true;
+  };
+
+  /* ---------- ขั้นตอนหลัก ---------- */
+  E.step = function (ch) {
+    E.ev = [];
+    if (E.over) return E.ev;
+    if (E.phase === "play") playStep(ch); else warStep(ch);
+    return E.ev;
+  };
+
+  function playStep(ch) {
+    var cs = [], p;
+    for (p = 0; p < 2; p++) { if (!E.legalPlay(p, ch && ch[p])) throw new Error("illegal play p" + p); }
+    for (p = 0; p < 2; p++) cs.push(rmId(E.hands[p], ch[p].c));
+    var stk = [null, null];
+    if (R.raise) for (p = 0; p < 2; p++) if (ch[p].x != null) { stk[p] = rmId(E.hands[p], ch[p].x); E.rz[p]++ }
+    E.stk = stk; mark(stk.filter(Boolean));
+    E.cs = cs; E.round++; E.up = cs.slice(); E.pot = cs.concat(stk.filter(Boolean)); E.depth = 0; mark(cs);
+    emit({t: "flip", r: E.round, up: cs.map(cnum), stk: stk.map(function (c) { return c ? c.n : -1 })});
+    var a = cs[0].n, b = cs[1].n, fw = -1;
+    if (R.fool) { if (a === 0 && b === 21) fw = 0; else if (a === 21 && b === 0) fw = 1 }
+    if (fw >= 0) return settle(fw, false, {fool: true});
+    if (E.clashes(a, b)) return startWar();
+    return settle(a > b ? 0 : 1, false, {});
+  }
+
+  function startWar() {
+    E.wars++; E.depth++; if (E.depth > E.st.maxd) E.st.maxd = E.depth;
+    E.phase = "war";
+    drawTo(R.wh);
+    emit({t: "war", d: E.depth, pot: E.pot.length, ups: E.up.map(cnum)});
+  }
+
+  function warStep(ch) {
+    var p, mode = ["f", "f"];
+    for (p = 0; p < 2; p++) {
+      if (!E.hands[p].length) mode[p] = "x";
+      else { if (!E.legalWar(p, ch && ch[p])) throw new Error("illegal war p" + p); if (ch[p].r) mode[p] = "r" }
+    }
+    if (mode[0] === "f" && mode[1] === "f") {
+      var ups = [], downN = [0, 0];
+      for (p = 0; p < 2; p++) {
+        var dn = ch[p].down.map(function (id) { return rmId(E.hands[p], id) });
+        dn.forEach(function (c) { E.own[p][c.id] = 1 });
+        downN[p] = dn.length; E.pot = E.pot.concat(dn); ups.push(rmId(E.hands[p], ch[p].up));
+      }
+      E.pot = E.pot.concat(ups); E.up = ups; mark(ups);
+      emit({t: "lay", ups: ups.map(cnum), dn: downN, pot: E.pot.length});
+      var a = ups[0].n, b = ups[1].n, fw = -1;
+      if (R.fool) { if (a === 0 && b === 21) fw = 0; else if (a === 21 && b === 0) fw = 1 }
+      if (fw >= 0) return settle(fw, true, {fool: true});
+      if (E.clashes(a, b)) return startWar();
+      return settle(a > b ? 0 : 1, true, {});
+    }
+    /* มีคนถอย/ไพ่หมด */
+    var pot = E.pot.slice(); E.pot = []; E.up = [null, null];
+    var f = mode[0] === "f" ? 0 : mode[1] === "f" ? 1 : -1;
+    for (p = 0; p < 2; p++) if (mode[p] === "r") E.st.ret[p]++;
+    if (f < 0) {
+      mark(pot); E.disc = E.disc.concat(pot); emit({t: "ret", both: true, n: pot.length, d: E.depth});
+    } else {
+      var q = 1 - f;
+      E.piles[f] = E.piles[f].concat(pot); mark(pot);
+      emit({t: "ret", p: q, w: f, n: pot.length, d: E.depth, forfeit: mode[q] === "x"});
+      E.st.rw[f]++; E.st.ww[f]++;
+      if (pot.length > E.st.pot) E.st.pot = pot.length;
+    }
+    E.depth = 0;
+    endRound();
+  }
+
+  function settle(w, war, o) {
+    var pot = E.pot.slice(), depth = E.depth;
+    E.piles[w] = E.piles[w].concat(pot); mark(pot);
+    E.st.rw[w]++; if (war) E.st.ww[w]++; if (pot.length > E.st.pot) E.st.pot = pot.length;
+    if (o.fool) emit({t: "fool", p: w});
+    emit({t: "res", w: w, n: pot.length, war: war ? depth : 0, up: E.up.map(cnum)});
+    endRound();
+  }
+
+  function endRound() {
+    drawTo(R.hand);
+    E.up = [null, null]; E.pot = []; E.phase = "play";
+    if (!E.deck.length && (!E.hands[0].length || !E.hands[1].length)) E.over = "done";
+    else if (E.round >= R.cap) E.over = "cap";
+    if (E.over) emit({t: "end", why: E.over, s: [E.piles[0].length, E.piles[1].length]});
+  }
+  E.result = function () { var a = E.piles[0].length, b = E.piles[1].length; return {w: a > b ? 0 : b > a ? 1 : -1, a: a, b: b} };
+
+  /* ---------- มุมมอง ---------- */
+  E.pubState = function () { /* ข้อมูลสาธารณะ: ไม่มีมือ/กองจั่ว/ไพ่ที่เลือกแต่ยังไม่เปิด/ไพ่คว่ำ */
+    return {round: E.round, phase: E.phase, depth: E.depth, over: E.over, deckN: E.deck.length, handN: [E.hands[0].length, E.hands[1].length],
+      pileN: [E.piles[0].length, E.piles[1].length], discN: E.disc.length, potN: E.pot.length,
+      up: E.up.map(function (c) { return c ? {n: c.n, d: c.d, id: c.id} : null }), cfg: {clash: R.clash, fool: R.fool}};
+  };
+  E.view = function (p) {
+    var v = E.pubState(), unseen = [], i;
+    v.rzLeft = R.raise ? Math.max(0, R.raiseMax - E.rz[p]) : 0; v.p = p; v.hand = E.hands[p].slice(); v.pile = E.piles[p].slice();
+    for (i = 0; i < 44; i++) { if (E.pub[i] || E.own[p][i] || hasId(E.hands[p], i)) continue; unseen.push({n: i % 22, d: Math.floor(i / 22), id: i}) }
+    v.unseen = unseen; v.R = {clash: R.clash, fool: R.fool, hand: R.hand, wh: R.wh, cap: R.cap, raise: R.raise, raiseMax: R.raiseMax};
+    v.need = E.phase === "war" ? E.needDown(p) : 0;
+    return v;
+  };
+
+  /* ---------- บันทึก/โหลดสถานะ (ใช้ในตัวจำลองของ AI และเซิร์ฟเวอร์) ---------- */
+  E.save = function () {
+    return {deck: E.deck.slice(), hands: [E.hands[0].slice(), E.hands[1].slice()], piles: [E.piles[0].slice(), E.piles[1].slice()], disc: E.disc.slice(),
+      pot: E.pot.slice(), up: E.up.slice(), cs: E.cs, stk: E.stk || [null, null], round: E.round, wars: E.wars, depth: E.depth, phase: E.phase, over: E.over,
+      pub: Object.assign({}, E.pub), own: [Object.assign({}, E.own[0]), Object.assign({}, E.own[1])], rz: E.rz.slice(), st: JSON.parse(JSON.stringify(E.st))};
+  };
+  E.load = function (s) {
+    for (var k in s) { var v = s[k]; E[k] = (v && typeof v === "object") ? JSON.parse(JSON.stringify(v)) : v }
+    return E;
+  };
+  return E;
+}
+/*TACTICS_ENGINE_END*/
+
+/*TACTICS_AI_START*/
+/* ===================== AI "น้องเบสท์" (เล่นแฟร์: รับ view ของตัวเองเท่านั้น) ===================== */
+var LEVELS = {
+  random: {kind: "random"},
+  novice: {kind: "mc", samples: 3, noise: 0.7, count: false},
+  normal: {kind: "mc", samples: 8, noise: 0, count: false},
+  hard:   {kind: "mc", samples: 20, noise: 0, count: true},
+  retreatAlways: {kind: "mc", samples: 8, noise: 0, count: false, war: "retreat"},
+  retreatNever:  {kind: "mc", samples: 8, noise: 0, count: false, war: "fight"}
+};
+var FULL = []; for (var _k = 0; _k < 2; _k++) for (var _n = 0; _n < 22; _n++) FULL.push({n: _n, d: _k, id: _k * 22 + _n});
+
+function pickRand(arr, rnd) { return arr[Math.floor(rnd() * arr.length)] }
+function shuffled(a, rnd) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t } return a }
+
+/* กลุ่มไพ่ที่ฝั่งตรงข้ามน่าจะถืออยู่ (ตามข้อมูลที่ AI เห็นได้) */
+function oppPool(view, lv) {
+  if (lv.count) return view.unseen;
+  var mine = {}; view.hand.forEach(function (c) { mine[c.id] = 1 });
+  return FULL.filter(function (c) { return !mine[c.id] });
+}
+function sampleOpp(view, lv, rnd, n) {
+  var known = [], kid = {};
+  var pool = shuffled(oppPool(view, lv).filter(function (c) { return !kid[c.id] }), rnd);
+  var take = pool.slice(0, Math.max(0, n - known.length));
+  var hh = known.concat(take);
+  while (hh.length < n) hh.push(FULL[Math.floor(rnd() * 44)]); /* ข้อมูลที่เห็นไม่พอ (ไพ่ซ่อนในกองรางวัล) → เติมสุ่ม */
+  return {hand: hh, rest: pool.slice(take.length)};
+}
+
+/* สร้างสถานะจำลองจากมุมมองของ me (ฝั่งตรงข้าม+กองจั่วสุ่มจากสิ่งที่ยังไม่เห็น) */
+function determinize(view, lv, rnd) {
+  var me = view.p, o = 1 - me, R = Object.assign({}, view.R);
+  var s = sampleOpp(view, lv, rnd, view.handN[o]);
+  var dummy = function (n) { var a = []; for (var i = 0; i < n; i++) a.push({n: 5, d: 0, id: 100 + i}); return a };
+  var deck = s.rest.slice(0, view.deckN);
+  while (deck.length < view.deckN) deck.push({n: Math.floor(rnd() * 22), d: 0, id: 200 + deck.length});
+  var sim = wtEngine(R, rnd);
+  var st = {deck: deck, hands: [[], []], piles: [[], []], disc: dummy(view.discN), pot: [], up: [null, null], cs: null, stk: [null, null],
+    round: view.round, wars: 0, depth: 0, phase: "play", over: null, pub: {}, own: [{}, {}],
+    rz: me === 0 ? [Math.max(0, view.R.raiseMax - view.rzLeft), 0] : [0, Math.max(0, view.R.raiseMax - view.rzLeft)],
+    st: {rw: [0, 0], ww: [0, 0], ret: [0, 0], maxd: 0, pot: 0}};
+  st.hands[me] = view.hand.slice(); st.hands[o] = s.hand;
+  st.piles[me] = view.pile.slice(); st.piles[o] = dummy(view.pileN[o]);
+  return sim.load(st);
+}
+
+function rank(c) { return c.n }
+
+/* ตัดสินใจในสงคราม: คืน {r:1} หรือ {down:[ids], up:id} */
+function warDecide(view, lvName, rnd) {
+  var lv = LEVELS[lvName] || LEVELS.normal, h = view.hand.slice().sort(function (a, b) { return a.n - b.n });
+  var nd = view.need;
+  var legalFight = function () { var up = h[h.length - 1]; return {down: h.slice(0, nd).map(function (c) { return c.id }), up: up.id} };
+  if (lv.kind === "random") {
+    if (rnd() < 0.2) return {r: 1};
+    var sh = shuffled(h, rnd); return {down: sh.slice(0, nd).map(function (c) { return c.id }), up: sh[nd].id};
+  }
+  if (lv.war === "retreat") return {r: 1};
+  var fight = legalFight();
+  if (lv.war === "fight") return fight;
+  if (lv.noise && rnd() < lv.noise) { if (rnd() < 0.5) return fight; var sh2 = shuffled(h, rnd); return {down: sh2.slice(0, nd).map(function (c) { return c.id }), up: sh2[nd].id} }
+  /* ประเมินโอกาสชนะใบตัดสิน เทียบมือคู่ต่อสู้ที่สุ่มจากข้อมูลที่เห็น (คู่ต่อสู้เลือกใบสูงสุด) */
+  var mine = h[h.length - 1].n, W = 0, K = 40, oppN = view.handN[1 - view.p];
+  if (!oppN) return fight;
+  for (var i = 0; i < K; i++) {
+    var oh = sampleOpp(view, lv, rnd, oppN).hand, ob = -1; oh.forEach(function (c) { if (c.n > ob) ob = c.n });
+    var cl = (mine === ob) || (view.R.clash !== "eq" && mine % 10 === ob % 10) || (view.R.clash === "un" && Math.abs(mine - ob) === 1);
+    W += cl ? 0.5 : (mine > ob ? 1 : (view.R.fool && mine === 0 && ob === 21 ? 1 : (view.R.fool && mine === 21 && ob === 0) ? 0 : 0));
+  }
+  var p = W / K, T = view.potN + (nd + 1) * 2;
+  var cost = view.potN;
+  return ((2 * p - 1) * T > -cost) ? fight : {r: 1};
+}
+
+/* เลือกไพ่ลงรอบปกติ: คืน {c:id, mag, jud, star, her} */
+function playDecide(view, lvName, rnd) {
+  var lv = LEVELS[lvName] || LEVELS.normal, hand = view.hand;
+  if (lv.kind === "random" || hand.length === 1) { var rc = pickRand(hand, rnd), ro = {c: rc.id}; if (view.rzLeft > 0 && hand.length > 1 && rnd() < 0.3) ro.x = pickRand(hand.filter(function (x) { return x.id !== rc.id }), rnd).id; return ro }
+  if (lv.noise && rnd() < lv.noise) return {c: pickRand(hand, rnd).id};
+  var me = view.p, o = 1 - me, late = view.deckN <= 2;
+  /* ตัวเลือก: ลงใบ c เฉย ๆ หรือลง c + เพิ่มเดิมพันด้วยใบอื่นที่ต่ำสุด */
+  var acts = [];
+  hand.forEach(function (c) {
+    acts.push({c: c.id});
+    if (view.rzLeft > 0 && hand.length > 1) {
+      var low = null; hand.forEach(function (x) { if (x.id !== c.id && (!low || x.n < low.n)) low = x });
+      acts.push({c: c.id, x: low.id});
+    }
+  });
+  var scores = acts.map(function () { return 0 });
+  for (var s = 0; s < lv.samples; s++) {
+    var base = determinize(view, lv, rnd).save();
+    var oh = base.hands[o], oc = pickRand(oh, rnd), ox = null;
+    if (view.R.raise && oh.length > 1 && rnd() < 0.2) ox = pickRand(oh.filter(function (x) { return x.id !== oc.id }), rnd);
+    acts.forEach(function (a, ai) {
+      var sim = wtEngine(view.R, rnd).load(base), oa = {c: oc.id}; if (ox) oa.x = ox.id;
+      try {
+        sim.step(me === 0 ? [a, oa] : [oa, a]);
+        var guard = 0;
+        while (sim.phase === "war" && !sim.over && guard++ < 6) {
+          var ch = [null, null];
+          for (var q = 0; q < 2; q++) ch[q] = warDecide(sim.view(q), "normal", rnd);
+          sim.step(ch);
+        }
+      } catch (e) { return }
+      var diff = sim.piles[me].length - sim.piles[o].length, hq = 0;
+      sim.hands[me].forEach(function (x) { hq += x.n / 21 - 0.5 }); sim.hands[o].forEach(function (x) { hq -= (x.n / 21 - 0.5) * 0 });
+      scores[ai] += diff + (late ? 0 : (lv.keep == null ? 0.5 : lv.keep) * hq);
+    });
+  }
+  var bi = 0; for (var i = 1; i < acts.length; i++) if (scores[i] > scores[bi] + 1e-9) bi = i;
+  return acts[bi];
+}
+
+var PRESET = {clash: "u", fool: 1, hand: 3, wh: 7, cap: 60, raise: 1, raiseMax: 2};
+/*TACTICS_AI_END*/
+
+return {engine: wtEngine, PRESET: PRESET, LEVELS: LEVELS, playDecide: playDecide, warDecide: warDecide, determinize: determinize};
+});
+
+/* ===== online/war-server.js ===== */
+/* HRTA สงครามไพ่ยุทธวิธี (ออนไลน์) — ตรรกะฝั่งเซิร์ฟเวอร์แบบฟังก์ชันล้วน (ไม่แตะฐานข้อมูล ทดสอบบน Node ได้)
+ * snap = { pub, secret:{deck, rest, pend}, hands:{uid:[card]}, uids:[uidผู้เล่น0, uidผู้เล่น1] }
+ *   pub    = สถานะสาธารณะ (เก็บใน games.public_state)  — ห้ามมี มือ/กองจั่ว/ไพ่ที่เลือกแต่ยังไม่เปิด/ไพ่คว่ำ
+ *   secret = สถานะลับของ engine + pend (การเลือกที่ยังไม่เปิด)
+ * ทุกฟังก์ชันคืนผลใหม่ ไม่แก้ snap เดิม; ความผิดพลาดที่คาดได้คืน { error }
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./war-engine.js"));
+  else root.WarServer = factory(root.WarTactics);
+})(typeof self !== "undefined" ? self : this, function (WT) {
+  "use strict";
+  var clone = function (x) { return JSON.parse(JSON.stringify(x)) };
+  var isInt = function (v) { return Number.isInteger(v) && v >= 0 && v < 1000 };
+
+  function rConfig(cfg) { return Object.assign({}, WT.PRESET, { clash: cfg.clash, fool: cfg.fool ? 1 : 0 }) }
+  function cleanCfg(cfg) {
+    cfg = cfg || {};
+    var cl = cfg.clash == null ? "u" : cfg.clash;
+    if (["u", "un", "eq"].indexOf(cl) < 0) return null;
+    return { clash: cl, fool: (cfg.fool === 0 || cfg.fool === false || cfg.fool === "0") ? 0 : 1 };
+  }
+
+  function loadEngine(snap, rnd) {
+    var E = WT.engine(rConfig(snap.pub.cfg), rnd);
+    var st = clone(snap.secret.rest);
+    st.deck = clone(snap.secret.deck);
+    st.hands = [clone(snap.hands[snap.uids[0]]), clone(snap.hands[snap.uids[1]])];
+    E.load(st);
+    return E;
+  }
+  function dump(E, uids) {
+    var s = E.save(), hands = {}; hands[uids[0]] = s.hands[0]; hands[uids[1]] = s.hands[1];
+    var deck = s.deck; delete s.deck; delete s.hands;
+    return { deck: deck, rest: s, hands: hands };
+  }
+  function autoMark(E, pend) { /* สงคราม: คนที่ไพ่หมดมือไม่ต้องเลือก (ถือว่าแพ้ศึกนั้น) */
+    if (E.phase === "war" && !E.over) for (var p = 0; p < 2; p++) if (!E.hands[p].length && !pend[p]) pend[p] = { auto: 1 };
+  }
+  function buildPub(E, players, cm, evs, rs) {
+    var p = E.pubState();
+    p.players = players; p.cm = cm; p.rs = rs; p.ev = evs; p.rz = E.rz.slice();   /* จำนวนครั้งที่เพิ่มเดิมพันไปแล้ว (เปิดเผยอยู่แล้วตอนเปิดไพ่) */
+    p.need = [E.phase === "war" ? E.needDown(0) : 0, E.phase === "war" ? E.needDown(1) : 0];
+    p.cfg = { clash: E.R.clash, fool: E.R.fool ? 1 : 0 };
+    p.res = null;
+    if (E.over) { var r = E.result(); p.res = { w: r.w, a: r.a, b: r.b, why: E.over } }
+    return p;
+  }
+  function overCode(E) { if (!E.over) return -1; var r = E.result(); return r.w === 0 ? 1 : r.w === 1 ? 0 : -2 }
+
+  /* players: [{user_id, seat, name, avatar}] เรียงตามที่นั่ง ; cfg: {clash, fool} */
+  function startGame(players, cfg, rnd) {
+    var c = cleanCfg(cfg); if (!c) return { error: "bad_cfg" };
+    if (!players || players.length !== 2) return { error: "bad_player_count" };
+    var E = WT.engine(rConfig(c), rnd).deal(), uids = players.map(function (p) { return p.user_id });
+    var pend = [null, null];
+    var d = dump(E, uids);
+    var pub = buildPub(E, players.map(function (p) { return { seat: p.seat, name: p.name, avatar: p.avatar } }), [false, false], [], 0);
+    return { pub: pub, secret: { deck: d.deck, rest: d.rest, pend: pend }, hands: d.hands };
+  }
+
+  /* คืนข้อมูลที่ผู้เล่นรู้ได้เองจากการเลือกของตัวเอง — ตรวจรูปแบบแล้วคัดเฉพาะคีย์ที่อนุญาต */
+  function normChoice(phase, ch) {
+    if (!ch || typeof ch !== "object") return null;
+    if (phase === "play") {
+      if (!isInt(ch.c)) return null;
+      var o = { c: ch.c }; if (ch.x != null) { if (!isInt(ch.x)) return null; o.x = ch.x } return o;
+    }
+    if (ch.r) return { r: 1 };
+    if (!Array.isArray(ch.down) || ch.down.length > 3 || !ch.down.every(isInt) || !isInt(ch.up)) return null;
+    return { down: ch.down.slice(), up: ch.up };
+  }
+
+  function applyChoice(snap, uid, choice, rnd) {
+    var p = snap.uids.indexOf(uid);
+    if (p < 0) return { error: "not_in_game" };
+    if (snap.pub.over) return { error: "game_over" };
+    var pend = (snap.secret.pend || [null, null]).slice();
+    if (pend[p]) return { error: "already_chosen" };
+    var ch = normChoice(snap.pub.phase, choice);
+    if (!ch) return { error: "illegal" };
+    var E = loadEngine(snap, rnd);
+    var ok = snap.pub.phase === "play" ? E.legalPlay(p, ch) : E.legalWar(p, ch);
+    if (!ok) return { error: "illegal" };
+    pend[p] = ch;
+    var cm = [!!pend[0], !!pend[1]];
+    if (!(pend[0] && pend[1])) { /* ยังรออีกฝั่ง: เก็บการเลือกไว้ลับ เผยแค่ "ยืนยันแล้ว" */
+      var pub1 = clone(snap.pub); pub1.cm = cm;
+      return { pub: pub1, secret: { deck: snap.secret.deck, rest: snap.secret.rest, pend: pend }, hands: clone(snap.hands), over: -1, resolved: false, type: "choice" };
+    }
+    /* ทั้งคู่ยืนยัน → เปิดไพ่พร้อมกันและตัดสิน */
+    var evs = [], guard = 0, chs = [pend[0].auto ? null : pend[0], pend[1].auto ? null : pend[1]];
+    evs = evs.concat(E.step(chs));
+    pend = [null, null]; autoMark(E, pend);
+    while (!E.over && E.phase === "war" && pend[0] && pend[1] && guard++ < 10) { evs = evs.concat(E.step([null, null])); pend = [null, null]; autoMark(E, pend) }
+    var d = dump(E, snap.uids), pub = buildPub(E, snap.pub.players, [!!pend[0], !!pend[1]], evs, (snap.pub.rs || 0) + 1);
+    return { pub: pub, secret: { deck: d.deck, rest: d.rest, pend: pend }, hands: d.hands, over: overCode(E), resolved: true, type: "resolve" };
+  }
+
+  /* เริ่มเกมแล้วอาจต้อง auto-mark (ไม่เกิดตอนเริ่ม แต่เผื่อไว้) — ยอมแพ้: idx = ผู้เล่นที่แพ้ ; idx = -1 = ทั้งคู่ทิ้งเกม (เสมอ) */
+  function applyForfeit(snap, idx, reason) {
+    if (snap.pub.over) return { error: "game_over" };
+    var pub = clone(snap.pub), a = pub.pileN[0], b = pub.pileN[1];
+    pub.over = "forfeit"; pub.cm = [false, false]; pub.rs = (pub.rs || 0) + 1;
+    pub.res = idx < 0 ? { w: -1, a: a, b: b, why: "abandoned", reason: reason } : { w: 1 - idx, a: a, b: b, why: "forfeit", forfeit: idx, reason: reason };
+    pub.ev = [{ t: "end", why: pub.res.why, s: [a, b], forfeit: idx, reason: reason }];
+    return { pub: pub, secret: snap.secret, hands: clone(snap.hands), over: idx < 0 ? -2 : idx, type: "forfeit" };
+  }
+
+  return { startGame: startGame, applyChoice: applyChoice, applyForfeit: applyForfeit, cleanCfg: cleanCfg, loadEngine: loadEngine };
+});
+
+/* ===== online/war-api-core.js ===== */
+/* HRTA สงครามไพ่ยุทธวิธี — แกน Edge Function ส่วนของเกมนี้ (เรียกผ่าน nn-api-core: action ขึ้นต้นด้วย war_)
+ * deps = { admin: supabase client แบบ service_role, rnd, now?, log?, uuid? } · handle(uid, body) -> object เสมอ
+ * uid ต้องมาจากการตรวจ JWT ชั้นนอก ไม่เชื่อค่าจาก body
+ * ข้อกำหนด: ตัดสิน 60 วินาที/การเลือก · หลุดสัญญาณรอ 120 วินาที · หมดเวลา/ออก = ยอมแพ้ · ไม่มี AI แทนผู้เล่น
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./war-server.js"));
+  else root.WarApi = factory(root.WarServer);
+})(typeof self !== "undefined" ? self : this, function (SV) {
+  "use strict";
+  var TURN_MS = 60000, HB_FRESH_MS = 45000, RECONNECT_MS = 120000;
+  var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  function create(deps) {
+    var admin = deps.admin, rnd = deps.rnd;
+    var now = deps.now || function () { return Date.now(); };
+    var log = deps.log || function () {};
+    async function q(promise) { var r = await promise; if (r.error) throw new Error("db: " + r.error.message); return r.data; }
+    function deadline() { return new Date(now() + TURN_MS).toISOString(); }
+    function newUuid() { return deps.uuid ? deps.uuid() : (globalThis.crypto && globalThis.crypto.randomUUID ? globalThis.crypto.randomUUID() : null) }
+
+    async function start(uid, b) {
+      if (!UUID.test(String(b.room_id || ""))) return { error: "bad_request" };
+      var room = await q(admin.from("rooms").select("*").eq("id", b.room_id).maybeSingle());
+      if (!room) return { error: "room_not_found" };
+      if (room.game_type !== "war") return { error: "wrong_game" };
+      if (room.host_user_id !== uid) return { error: "not_host" };
+      if (room.status !== "lobby") return { error: "room_started" };
+      var ps = await q(admin.from("room_players").select("*").eq("room_id", room.id).is("left_at", null).order("seat"));
+      if (ps.length !== 2) return { error: "bad_player_count" };
+      if (ps.some(function (p) { return !p.is_ready })) return { error: "not_all_ready" };
+      var g = SV.startGame(ps.map(function (p) { return { user_id: p.user_id, seat: p.seat, name: p.player_name, avatar: p.avatar } }), room.war_cfg, rnd);
+      if (g.error) return { error: g.error };
+      var res = await q(admin.rpc("war_commit_start", { p_room: room.id, p_host: uid, p_public: g.pub, p_secret: g.secret, p_hands: g.hands, p_deadline: deadline() }));
+      if (res && res.error) return { error: res.error };
+      return { ok: true, game_id: res.game_id };
+    }
+
+    async function loadGame(uid, b, needSecret) {
+      if (!UUID.test(String(b.game_id || ""))) return { error: "bad_request" };
+      var game = await q(admin.from("games").select("*").eq("id", b.game_id).maybeSingle());
+      if (!game) return { error: "game_not_found" };
+      var mem = await q(admin.from("room_players").select("user_id").eq("room_id", game.room_id).eq("user_id", uid).is("left_at", null));
+      if (!mem.length) return { error: "not_in_game" };
+      if (game.status !== "playing") return { ok: true, state: "over", game: game };
+      var sec = await q(admin.from("game_secrets").select("deck,disc,pend").eq("game_id", game.id).maybeSingle());
+      var rows = await q(admin.from("player_private_states").select("user_id,seat,hand").eq("game_id", game.id));
+      if (!sec || !rows.length) return { error: "game_not_found" };
+      var uids = [], hands = {};
+      game.public_state.players.forEach(function (pl, p) { var row = rows.filter(function (r) { return r.seat === pl.seat })[0]; uids[p] = row ? row.user_id : null });
+      if (uids.some(function (u) { return !u })) return { error: "server_error" };
+      rows.forEach(function (r) { hands[r.user_id] = r.hand });
+      return { game: game, uids: uids, snap: { pub: game.public_state, secret: { deck: sec.deck, rest: sec.disc, pend: sec.pend || [null, null] }, hands: hands, uids: uids } };
+    }
+
+    async function choose(uid, b) {
+      if (!UUID.test(String(b.request_id || "")) || !Number.isInteger(b.expected_version) || !b.choice || typeof b.choice !== "object") return { error: "bad_request" };
+      var L = await loadGame(uid, b); if (L.error) return L;
+      if (L.state === "over") return { error: "game_over" };
+      var game = L.game;
+      if (game.version !== b.expected_version) {
+        var seen = await q(admin.from("game_actions").select("seq").eq("game_id", game.id).eq("request_id", b.request_id));
+        if (seen.length) return { ok: true, dup: true, version: game.version };
+        return { error: "stale", version: game.version };
+      }
+      var out = SV.applyChoice(L.snap, uid, b.choice, rnd);
+      if (out.error) return { error: out.error };
+      var res = await q(admin.rpc("war_commit", {
+        p_game: game.id, p_expected: b.expected_version, p_user: uid, p_request: b.request_id,
+        p_public: out.pub, p_secret: out.secret, p_hands: out.hands, p_over: out.over,
+        p_deadline: out.resolved ? deadline() : game.turn_deadline_at, p_type: out.type
+      }));
+      if (res && res.error) return res.error === "stale" ? { error: "stale", version: res.version } : { error: res.error };
+      return { ok: true, version: res.version, dup: !!res.dup, resolved: !!out.resolved };
+    }
+
+    async function forfeitCommit(L, idx, reason, caller) {
+      var out = SV.applyForfeit(L.snap, idx, reason);
+      if (out.error) return { error: out.error };
+      var res = await q(admin.rpc("war_commit", {
+        p_game: L.game.id, p_expected: L.game.version, p_user: caller, p_request: newUuid(),
+        p_public: out.pub, p_secret: out.secret, p_hands: out.hands, p_over: out.over, p_deadline: deadline(), p_type: "forfeit"
+      }));
+      if (res && res.error === "stale") return { ok: true, state: "stale" };
+      if (res && res.error === "game_over") return { ok: true, state: "over" };
+      if (res && res.error) return { error: res.error };
+      return { ok: true, state: idx < 0 ? "abandoned" : "forfeited", loser: idx, reason: reason, over: true };
+    }
+
+    // ใครก็ตามในเกมเรียกได้ แต่เซิร์ฟเวอร์ตัดสินจากเวลา/heartbeat เอง (เรียกเร็วเกินไปไม่มีผล)
+    async function check(uid, b) {
+      var L = await loadGame(uid, b); if (L.error) return L; if (L.state === "over") return { ok: true, state: "over" };
+      var game = L.game, pend = L.snap.secret.pend, slow = [];
+      for (var p = 0; p < 2; p++) if (!pend[p]) slow.push(p);
+      if (!slow.length) return { ok: true, state: "waiting", remaining_ms: 0 };
+      var t = now(), dl = Date.parse(game.turn_deadline_at) || 0, late = [], minRemain = Infinity, anyConnected = false;
+      for (var i = 0; i < slow.length; i++) {
+        var p2 = slow[i], hb = await q(admin.from("player_heartbeats").select("user_id,last_seen_at").eq("room_id", game.room_id).eq("user_id", L.uids[p2]));
+        var seen = hb.length ? Date.parse(hb[0].last_seen_at) : (Date.parse(game.updated_at || game.created_at) || 0);
+        var connected = (t - seen) <= HB_FRESH_MS, eff = connected ? dl : Math.max(dl, seen + RECONNECT_MS);
+        if (connected) anyConnected = true;
+        if (t > eff) late.push({ p: p2, reason: connected ? "timeout" : "disconnected" }); else minRemain = Math.min(minRemain, eff - t);
+      }
+      if (!late.length) return { ok: true, state: "waiting", remaining_ms: minRemain };
+      if (late.length === 2) return await forfeitCommit(L, -1, "both_idle", uid);   // ทั้งคู่ไม่เลือก = ทิ้งเกม เสมอ
+      return await forfeitCommit(L, late[0].p, late[0].reason, uid);
+    }
+
+    // ผู้เล่นกดออกจากเกมกลางคัน = ยอมแพ้
+    async function forfeit(uid, b) {
+      var L = await loadGame(uid, b); if (L.error) return L; if (L.state === "over") return { ok: true, state: "over" };
+      var p = L.uids.indexOf(uid); if (p < 0) return { error: "not_in_game" };
+      return await forfeitCommit(L, p, "left", uid);
+    }
+
+    async function handle(uid, body) {
+      try {
+        if (!uid || !body || typeof body !== "object") return { error: "bad_request" };
+        if (body.action === "war_start") return await start(uid, body);
+        if (body.action === "war_choose") return await choose(uid, body);
+        if (body.action === "war_check") return await check(uid, body);
+        if (body.action === "war_forfeit") return await forfeit(uid, body);
+        return { error: "bad_action" };
+      } catch (e) { log("war-api error", e && e.message); return { error: "server_error" } }
+    }
+    return { handle: handle };
+  }
+  return { create: create, TURN_MS: TURN_MS };
+});
+
 /* ===== online/nn-api-core.js ===== */
 /* HRTA Number Ceiling — แกนของ Edge Function `nn-api` (ไม่ผูกกับ Deno/Supabase โดยตรง จึงทดสอบบน Node ได้)
  * deps = { admin: supabase client แบบ service_role, rnd: ตัวสุ่มปลอดภัย, now?: () => ms }
@@ -442,9 +979,9 @@ const self = globalThis;
  * uid ต้องมาจากการตรวจ JWT ในชั้นนอก (index.ts) ไม่เคยเชื่อค่าจาก body
  */
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory(require("./nn-server.js"));
-  else root.NNApi = factory(root.NNServer);
-})(typeof self !== "undefined" ? self : this, function (SV) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./nn-server.js"), require("./war-api-core.js"));
+  else root.NNApi = factory(root.NNServer, root.WarApi);
+})(typeof self !== "undefined" ? self : this, function (SV, WA) {
   "use strict";
   var TURN_MS = 60000;
   var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -453,6 +990,7 @@ const self = globalThis;
     var admin = deps.admin, rnd = deps.rnd;
     var now = deps.now || function () { return Date.now(); };
     var log = deps.log || function () {};
+    var warApi = WA ? WA.create(deps) : null;   // สงครามไพ่ยุทธวิธี (action ขึ้นต้น war_)
 
     async function q(promise) {
       var r = await promise;
@@ -466,6 +1004,7 @@ const self = globalThis;
       var room = await q(admin.from("rooms").select("*").eq("id", b.room_id).maybeSingle());
       if (!room) return { error: "room_not_found" };
       if (room.host_user_id !== uid) return { error: "not_host" };
+      if (room.game_type && room.game_type !== "nn") return { error: "wrong_game" };
       if (room.status !== "lobby") return { error: "room_started" };
       var ps = await q(admin.from("room_players").select("*").eq("room_id", room.id).is("left_at", null).order("seat"));
       if (ps.length < 2 || ps.length > 4) return { error: "bad_player_count" };
@@ -599,6 +1138,7 @@ const self = globalThis;
     async function handle(uid, body) {
       try {
         if (!uid || !body || typeof body !== "object") return { error: "bad_request" };
+        if (typeof body.action === "string" && body.action.indexOf("war_") === 0) return warApi ? await warApi.handle(uid, body) : { error: "bad_action" };
         if (body.action === "start") return await start(uid, body);
         if (KINDS[body.action]) return await act(uid, body, body.action);
         if (body.action === "check") return await check(uid, body);
