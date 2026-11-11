@@ -1,14 +1,14 @@
 # Popular Awards – Who's The Most? (v41)
 
 ## ติดตั้งก่อน 13 พ.ย.
-1. Supabase → SQL Editor → รัน `supabase/migrations/008_popular_awards.sql` ทั้งไฟล์ (รันซ้ำได้) · ต้องเปิด Anonymous sign-ins ไว้แล้ว (ใช้ชุดเดียวกับ Quiz/ออนไลน์)
+1. Supabase → SQL Editor → รัน `supabase/migrations/008_popular_awards.sql` ทั้งไฟล์ (รันซ้ำได้) · ถ้าเคยรัน 008 มาก่อน v43 ให้รัน `009_awards_new_categories.sql` เพิ่มด้วย · ต้องเปิด Anonymous sign-ins ไว้แล้ว (ใช้ชุดเดียวกับ Quiz/ออนไลน์)
 2. อัปโหลดโฟลเดอร์ v41 ขึ้น GitHub Pages ทับของเดิม (`sw.js` เปลี่ยนเป็น v41 เครื่องผู้ใช้จะโหลดของใหม่เอง)
 3. ทดสอบ: เปิดเว็บแล้วต่อท้าย URL ด้วย `#test` → แท็บ 🏆 Popular Awards → เลือกชื่อ → โหวตครบ 10 หัวข้อ → กด "จำลองทุกคนโหวตครบ (ยกเว้นฉัน)" → ดูหน้า Results / Reveal · เสร็จแล้วกด "ล้างข้อมูลทดสอบ" และ "ออกจากโหมดทดสอบ" · ข้อมูลทดสอบแยกจากของจริงเด็ดขาด (ns='test')
 4. ตรวจก่อนเริ่มจริง: ใน Table Editor ตาราง `awd_votes` ต้องไม่มีแถว ns='live' · `awd_members` ต้องมี 20 ชื่อตรงกับรายชื่อในเว็บ · `awd_categories` ต้องมี 10 หัวข้อ
 
 ## แก้รายชื่อ/หัวข้อ (ทำก่อนเริ่มโหวตจริง)
 - เพิ่ม/ลบคน: `awd_members` (name, ord) — ชื่อต้องตรงกับชื่อในเว็บ เพื่อให้รูปขึ้น
-- แก้หัวข้อ: `awd_categories` (id, ord, emoji, title_en, title_th) — ไม่ต้องแก้โค้ด · **ห้ามแก้จำนวนสมาชิก/หัวข้อหลังเริ่มโหวต** เพราะนิยาม "โหวตครบ" จะเปลี่ยน
+- แก้หัวข้อ: `awd_categories` (id, ord, emoji, title_en, title_th) — คำอธิบายใต้ชื่อ (ตัวเล็ก) อยู่ใน `AW_DESC` ของ index.html · v43 เปลี่ยนชุดหัวข้อด้วย `009_awards_new_categories.sql` · **ห้ามแก้จำนวนสมาชิก/หัวข้อหลังเริ่มโหวต** เพราะนิยาม "โหวตครบ" จะเปลี่ยน
 - เปลี่ยนเวลาเปิด: `update awd_config set open_at = '...' where id = 1;` และแก้ `OPEN` ใน index.html ให้ตรงกัน
 
 ## ความปลอดภัย / ข้อจำกัด
