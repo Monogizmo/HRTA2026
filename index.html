@@ -722,6 +722,121 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
 .qlbWrap{overflow-x:auto}.qlbT{border-collapse:collapse;width:100%;font-size:14px}.qlbT th,.qlbT td{padding:7px 8px;text-align:left;border-bottom:1px solid rgba(0,0,0,.08);white-space:nowrap}.qlbT th{font-size:12px;opacity:.7}.qlbT td:nth-child(1){width:38px;text-align:center}.qlbT tr.me td{background:rgba(224,182,74,.22);font-weight:700}
 .qlbErr{color:#a4452c}
 </style>
+<style id="awCss">
+/* ===== Popular Awards (v41) ===== */
+#awards{--awGold:#e0b64a;--awGold2:#f3d77a}
+#awards .awHero{text-align:center;padding:18px 12px 14px;border-radius:18px;margin-bottom:12px;border:1px solid var(--line);background:radial-gradient(120% 100% at 50% 0%,var(--hi),var(--sand) 72%)}
+#awards .awHero small{display:block;letter-spacing:.24em;font-weight:600;color:var(--brown);font-size:12px}
+#awards .awHero h2{font-family:"Cormorant Garamond","IBM Plex Sans Thai",serif;font-size:34px;line-height:1.1;margin:6px 0 6px;color:var(--olive)}
+#awards .awHero p{margin:0;color:var(--muted);font-size:14px}
+#awards .awTest{margin-top:10px;padding:8px 10px;border:1px dashed var(--brown);border-radius:12px;font-size:13px;color:var(--brown);display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
+#awards .awTest button{font:inherit;font-size:12px;border:1px solid var(--brown);background:transparent;color:var(--brown);border-radius:999px;padding:3px 10px;cursor:pointer}
+#awTop{margin:0 0 10px}
+#awTop .awTopRow{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--muted);margin-bottom:4px}
+#awTop .awTopRow b{color:var(--ink);font-size:16px}
+.awBar{height:10px;border-radius:999px;background:var(--sand);border:1px solid var(--line);overflow:hidden}
+.awBar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--olive),var(--awGold));transition:width .5s ease}
+#awNav[hidden]{display:none}
+#awNav{display:flex;gap:6px;margin:0 0 12px;padding:4px;border-radius:999px;background:var(--sand);border:1px solid var(--line)}
+#awNav .awSeg{flex:1;font:inherit;font-size:14px;border:0;background:transparent;color:var(--ink);padding:8px 6px;border-radius:999px;cursor:pointer;white-space:nowrap}
+#awNav .awSeg.on{background:var(--olive);color:#fff;font-weight:500}
+.awCard{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;background:var(--bg)}
+.awCard h3{margin:0 0 4px;font-size:20px;color:var(--brown)}
+.awCard p{margin:6px 0}
+.awWait,.awGo{text-align:center}
+.awEmoji{font-size:44px;line-height:1.1;margin-bottom:4px}
+.awAv{display:inline-grid;place-items:center;overflow:hidden;border-radius:50%;background:var(--sand);border:2px solid var(--line);flex:none;width:44px;height:44px;color:var(--brown);font-size:18px}
+.awAv img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block}
+.awAv.sm{width:24px;height:24px;font-size:12px;border-width:1px}
+.awAv.md{width:52px;height:52px}
+.awAv.lg{width:84px;height:84px;font-size:30px;border-color:var(--awGold)}
+.awAv.xl{width:120px;height:120px;font-size:42px;border:4px solid var(--awGold);box-shadow:0 0 0 6px rgba(224,182,74,.25),0 8px 24px rgba(0,0,0,.18)}
+#awards input.awSearch{width:100%;font:inherit;padding:10px 14px;margin:8px 0 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink)}
+.awGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.awPerson{font:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s}
+.awPerson[hidden]{display:none}
+.awPerson:hover:not(:disabled){transform:translateY(-2px);border-color:var(--olive)}
+.awPerson:active:not(:disabled){transform:scale(.97)}
+.awPerson small{font-size:11px;color:var(--muted)}
+.awPerson.done{opacity:.6;cursor:not-allowed}
+.awPerson.self{opacity:.45;cursor:not-allowed;border-style:dashed}
+.awPerson.sel{border-color:var(--awGold);background:var(--hi);box-shadow:0 0 0 3px rgba(224,182,74,.35)}
+.awPerson.sel::after{content:"✓ เลือกแล้ว";font-size:11px;color:var(--brown);font-weight:600}
+.awMe{display:flex;gap:12px;align-items:center}
+.awMe>div{flex:1}
+.awLink{font:inherit;font-size:13px;background:none;border:0;color:var(--brown);text-decoration:underline;cursor:pointer;padding:4px}
+.awProg{margin:0 0 12px}
+.awProgRow{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
+.awCats{display:grid;gap:10px}
+.awCat{font:inherit;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center;text-align:left;padding:12px;border:1.5px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ink);cursor:pointer;transition:transform .12s,border-color .12s}
+.awCat:hover{transform:translateY(-2px);border-color:var(--olive)}
+.awCat.sub{border-color:var(--olive);background:linear-gradient(0deg,rgba(79,107,58,.07),rgba(79,107,58,.07)),var(--bg)}
+.awCat.thk{border-color:var(--awGold)}
+.awCatEm{font-size:34px;grid-row:span 2}
+.awCatT b{display:block;font-size:16px}
+.awCatT small{color:var(--muted);font-size:14px}
+.awSt{grid-column:2;font-size:13px;color:var(--muted)}
+.awSt em{font-style:normal;color:var(--olive);font-weight:600;margin-left:6px}
+.awBtn{font:inherit;border:0;border-radius:999px;padding:10px 20px;background:var(--olive);color:#fff;font-weight:500;cursor:pointer;transition:transform .12s,opacity .12s}
+.awBtn:active:not(:disabled){transform:scale(.97)}
+.awBtn:disabled{opacity:.45;cursor:not-allowed}
+.awBtn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.awBtn.big{padding:14px 26px;font-size:18px;background:linear-gradient(135deg,var(--awGold),#c99a2e);color:#2a2105;box-shadow:0 6px 18px rgba(201,154,46,.4);animation:awPulse 1.8s ease-in-out infinite}
+.awBack{margin:0 0 6px}
+.awSticky{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-top:10px;display:flex;justify-content:center;z-index:5}
+.awSticky .awBtn{width:100%;max-width:420px;box-shadow:0 6px 20px rgba(0,0,0,.22)}
+.awPill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:13px;border:1px solid var(--line);background:var(--sand)}
+.awPill.ok{background:rgba(79,107,58,.14);border-color:var(--olive);color:var(--olive);font-weight:600}
+.awPill.think{color:var(--brown)}
+.awChips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+.awRows{display:grid;gap:8px}
+.awRow{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.awRow b{flex:1}
+.awCount2{font-size:30px;font-weight:700;color:var(--olive);text-align:center;margin:2px 0 6px}
+.awRc{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin-bottom:6px}
+.awRc button{font:inherit;flex:none;display:flex;flex-direction:column;align-items:center;min-width:64px;padding:6px 8px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);cursor:pointer;font-size:11px}
+.awRc button span{font-size:24px;line-height:1.2}
+.awRc button.on{border-color:var(--awGold);background:var(--hi)}
+.awRc button.seen::after{content:"✓";color:var(--olive);font-weight:700}
+.awStage{min-height:300px}
+.awSpot{text-align:center;padding:26px 12px;border-radius:20px;color:#fff6d8;background:radial-gradient(70% 60% at 50% 0%,rgba(255,236,160,.55),rgba(20,18,12,.96) 70%),#14120c}
+.awSpot p{margin:10px 0 0;opacity:.85}
+.awTitleEn{font-weight:700;font-size:20px}
+.awTitleTh{opacity:.85}
+.awCnt{font-size:84px;font-weight:800;line-height:1;color:var(--awGold2);margin-top:6px}
+.awCnt.pop{animation:awPop .6s ease}
+.awWin{text-align:center;padding:20px 12px 16px;border-radius:20px;border:1px solid var(--awGold);background:radial-gradient(90% 70% at 50% 0%,var(--hi),var(--bg) 78%)}
+.awWin.anim{animation:awRise .7s cubic-bezier(.2,1.2,.3,1)}
+.awWin .awTitleEn{color:var(--olive)}
+.awWin .awTitleTh{color:var(--muted);margin-bottom:8px}
+.awCrown{font-size:34px}
+.awWinners{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:6px 0}
+.awWinner{display:flex;flex-direction:column;align-items:center;gap:4px;max-width:46%}
+.awWinner .nm{font-size:24px;font-weight:700;color:var(--brown)}
+.awWinner .sc{font-size:14px;color:var(--muted)}
+.awCo{display:inline-block;margin-top:6px;padding:3px 12px;border-radius:999px;background:var(--hi);border:1px solid var(--awGold);color:var(--brown);font-size:13px}
+.awPod{margin-top:12px;display:grid;gap:8px}
+.awPodRow{display:grid;grid-template-columns:30px 36px 1fr;gap:8px;align-items:center}
+.awPodRow .bar{height:22px;border-radius:999px;background:var(--sand);border:1px solid var(--line);overflow:hidden;position:relative}
+.awPodRow .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--olive),var(--awGold));border-radius:999px}
+.awPodRow .bar span{position:absolute;left:10px;top:0;line-height:20px;font-size:12px;font-weight:600;color:var(--ink);text-shadow:0 0 3px var(--bg)}
+.awPodRow .who{grid-column:3;font-size:14px}
+.awNext{text-align:center;margin-top:14px}
+.awModal{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:16px}
+.awSheet{width:100%;max-width:380px;background:var(--bg);color:var(--ink);border-radius:20px;padding:18px;text-align:center;animation:awRise .35s ease}
+.awSheet h3{margin:0 0 8px;color:var(--brown)}
+.awBigFace{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 10px}
+.awBigFace b{font-size:22px}
+.awWarn{color:#a33;font-weight:600;font-size:14px;background:rgba(170,50,50,.1);padding:8px;border-radius:10px}
+.awBtns{display:flex;gap:8px;margin-top:12px}
+.awBtns .awBtn{flex:1}
+.awToast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9600;max-width:90%;padding:10px 18px;border-radius:999px;background:#2E2A24;color:#fff;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.3);animation:awRise .3s ease}
+.awErr{color:#a33;text-align:center}
+@keyframes awPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes awPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
+@keyframes awRise{0%{transform:translateY(18px) scale(.94);opacity:0}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){#awards *,.awModal *,.awToast{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 <main>
@@ -757,6 +872,7 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
   <button class="tab" role="tab" data-t="wheel">วงล้อ</button>
   <button class="tab" role="tab" data-t="color">Color Hunting</button>
   <button class="tab" role="tab" data-t="hall">Hall of Appreciation</button>
+  <button class="tab" role="tab" data-t="awards">🏆 Popular Awards</button>
   <button class="tab" role="tab" data-t="fortune">ดูดวง</button>
   <button class="tab" role="tab" data-t="game">🎮 เกม</button>
 </nav>
@@ -1034,6 +1150,15 @@ details.nnX{margin-top:10px;font-size:13px}details.nnX summary{cursor:pointer;fo
     </ul>
   </div>
   <p class="hallPrep">📅 <b>เตรียมตัวมาก่อนงาน</b> พูดถึงคนละประมาณ 1-2 คน</p>
+</section>
+
+<section id="awards">
+  <div id="awRoot">
+    <div class="awHero" id="awHero"></div>
+    <div id="awTop"></div>
+    <div id="awNav" hidden></div>
+    <div id="awBody"></div>
+  </div>
 </section>
 
 <section id="fortune">
@@ -2426,10 +2551,11 @@ function renderResult(){
 function render(){ renderLists(); renderColors(); renderResult(); initScratch($("#res")); }
 
 function show(t){
-  if (!["plan","rooms","cars","dress","gift","quiz","soulmate","bingo","wheel","color","hall","fortune","game"].includes(t)) t = "plan";
+  if (!["plan","rooms","cars","dress","gift","quiz","soulmate","bingo","wheel","color","hall","awards","fortune","game"].includes(t)) t = "plan";
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === t));
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.t === t));
   if (t === "plan") setTimeout(mapsInit, 60);
+  if (t === "awards") window.awOpen && awOpen();
 }
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => { show(b.dataset.t); try{ history.replaceState(null,"","#"+b.dataset.t); }catch(e){} });
 $("#q").addEventListener("input", e => {
@@ -5086,6 +5212,306 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 }
+</script>
+<script id="awardsPack">
+/* ===== HRTA Popular Awards – Who's The Most? (v41) =====
+   ทุกอย่างผ่าน RPC awd_* ใน supabase/migrations/008_popular_awards.sql · ไม่มี Login · โหมด #test ใช้ ns='test' แยกจากของจริง */
+(function () {
+  "use strict";
+  var OPEN = Date.parse("2026-11-13T00:00:00+07:00"), POLL = 5000;
+  var AW = { test: false, st: null, me: null, view: "vote", cat: null, pick: null, res: null, resShown: false, revealed: {}, resCat: null,
+             rtok: 0, loading: false, again: false, err: "", q: "", draft: {}, seen: {}, started: false, wasAll: null, busy: false };
+  function $a(s){ return document.querySelector(s); }
+  function h(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function ns(){ return AW.test ? "test" : "live"; }
+  function skey(){ return "hrta-awd-me-" + ns(); }
+  function isOpen(){ return AW.test || Date.now() >= OPEN; }
+  function photo(n){ try { return (typeof PHOTOS !== "undefined" && PHOTOS[n]) || ""; } catch (e) { return ""; } }
+  function face(n, cls){ var p = photo(n); return '<span class="awAv' + (cls ? " " + cls : "") + '">' + (p ? '<img src="' + h(p) + '" alt="" loading="lazy">' : "<b>" + h(Array.from(n)[0] || "?") + "</b>") + "</span>"; }
+  function members(){ return AW.st ? AW.st.members : []; }
+  function cats(){ return AW.st ? AW.st.categories : []; }
+  function reduced(){ try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } }
+
+  function errMsg(e){
+    var m = (e && e.message) || "";
+    if (/no_online|lib_missing|failed to fetch|network|load failed/i.test(m)) return "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้งนะ (ต้องใช้อินเทอร์เน็ต)";
+    if (/locked/.test(m)) return "คุณโหวตครบแล้ว แก้ไขไม่ได้แล้ว";
+    if (/self_vote/.test(m)) return "เลือกชื่อตัวเองไม่ได้";
+    if (/not_open/.test(m)) return "ยังไม่เปิดให้โหวต";
+    if (/rate_limited/.test(m)) return "ส่งถี่เกินไป รอสักครู่แล้วลองใหม่";
+    if (/anonymous|not_authenticated/i.test(m)) return "เข้าสู่ระบบแบบไม่ระบุตัวตนไม่สำเร็จ ลองรีเฟรชหน้านี้";
+    return "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง";
+  }
+  async function client(){ if (!window.HRTAOnline || !window.HRTAOnline.getClient) throw new Error("no_online"); return await window.HRTAOnline.getClient(); }
+  async function rpc(fn, args){ var sb = await client(), r; try { r = await sb.rpc(fn, args); } catch (e) { throw new Error("network"); } if (r.error) throw new Error(r.error.message || "error"); return r.data; }
+
+  function toast(t){ var old = $a(".awToast"); if (old) old.remove(); var d = document.createElement("div"); d.className = "awToast"; d.setAttribute("role", "status"); d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3200); }
+  function party(){ try { if (typeof confetti === "function") confetti(); } catch (e) {} }
+  function dlg(o){
+    return new Promise(function (res) {
+      var m = document.createElement("div"); m.className = "awModal"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true");
+      m.innerHTML = '<div class="awSheet"><h3>' + h(o.title) + "</h3>" + o.body + '<div class="awBtns"><button class="awBtn ghost" data-k="0">' + h(o.cancel) + '</button><button class="awBtn" data-k="1">' + h(o.ok) + "</button></div></div>";
+      function done(v){ document.removeEventListener("keydown", kd); m.remove(); res(v); }
+      function kd(e){ if (e.key === "Escape") done(false); }
+      m.addEventListener("click", function (e) { var k = e.target.getAttribute && e.target.getAttribute("data-k"); if (k != null) done(k === "1"); else if (e.target === m) done(false); });
+      document.addEventListener("keydown", kd); document.body.appendChild(m);
+      var b = m.querySelector('[data-k="1"]'); if (b) b.focus();
+    });
+  }
+
+  /* ---------- โหลดสถานะจากเซิร์ฟเวอร์ ---------- */
+  async function load(){
+    if (!isOpen()) return;
+    if (AW.loading){ AW.again = true; return; }
+    AW.loading = true;
+    try {
+      var st = await rpc("awd_state", { p_ns: ns(), p_voter: AW.me });
+      AW.st = st; AW.err = "";
+      if (AW.me && !st.me){ AW.me = null; try { localStorage.removeItem(skey()); } catch (e) {} }
+      var all = !!st.all_done, flipped = AW.wasAll === false && all;
+      AW.wasAll = all;
+      if (!all){ AW.res = null; AW.resShown = false; AW.revealed = {}; }
+      paint(flipped);
+    } catch (e) { AW.err = errMsg(e); paintErr(); }
+    AW.loading = false;
+    if (AW.again){ AW.again = false; load(); }
+  }
+  function paint(flipped){
+    renderTop(); renderNav();
+    var v = AW.view;
+    if (flipped){ toast("🎉 Everyone Has Voted! ไปดูผลรางวัลได้เลย"); party(); }
+    if (v === "results" && AW.resShown && AW.st.all_done) return;                       // กำลังประกาศผล ไม่รบกวน
+    if (v === "vote" && AW.cat && AW.st.me && !AW.st.me.done) return;                    // กำลังเลือกผู้ได้รับคะแนน ไม่รบกวน
+    renderBody();
+  }
+  function paintErr(){ if (!AW.st) renderBody(); }
+
+  /* ---------- ส่วนหัว / ความคืบหน้า / เมนูย่อย ---------- */
+  function renderHero(){
+    var el = $a("#awHero"); if (!el) return;
+    el.innerHTML = "<small>HRTA POPULAR AWARDS</small><h2>Who's The Most...?</h2><p>โหวตเพื่อนร่วมทีมในแต่ละหัวข้อ · ไม่มีใครรู้ว่าคุณโหวตให้ใคร · ผลจะประกาศเมื่อทุกคนโหวตครบ</p>" +
+      (AW.test ? '<div class="awTest">🧪 โหมดทดสอบ — ข้อมูลแยกจากของจริง <button data-aw="seed">จำลองทุกคนโหวตครบ (ยกเว้นฉัน)</button><button data-aw="reset">ล้างข้อมูลทดสอบ</button><button data-aw="exit">ออกจากโหมดทดสอบ</button></div>' : "");
+  }
+  function renderTop(){
+    var el = $a("#awTop"), s = AW.st; if (!el) return;
+    if (!s || !isOpen()){ el.innerHTML = ""; return; }
+    var p = s.total ? Math.round(s.done / s.total * 100) : 0;
+    el.innerHTML = '<div class="awTopRow"><span>ทีมโหวตครบแล้ว</span><span><b>' + s.done + " / " + s.total + "</b> Completed</span></div>" +
+      '<div class="awBar" role="progressbar" aria-valuemin="0" aria-valuemax="' + s.total + '" aria-valuenow="' + s.done + '"><i style="width:' + p + '%"></i></div>';
+  }
+  function renderNav(){
+    var el = $a("#awNav"); if (!el) return;
+    if (!isOpen()){ el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = [["vote", "🗳️ โหวต"], ["status", "👥 ใครโหวตแล้ว"], ["results", "🏆 ผลรางวัล"]].map(function (x) {
+      return '<button class="awSeg' + (AW.view === x[0] ? " on" : "") + '" data-aw="view" data-v="' + x[0] + '">' + x[1] + "</button>";
+    }).join("");
+  }
+
+  /* ---------- หน้าต่าง ๆ ---------- */
+  function teaser(){
+    return '<div class="awCard awWait"><div class="awEmoji">🏆</div><h3>เปิดให้โหวตวันที่ 13 พ.ย.</h3><p>เตรียมลุ้นว่าใครจะได้รางวัล "Who\'s The Most...?" ของทีม HRTA</p>' +
+      '<p class="cap">เลือกชื่อ → โหวตเพื่อนทีละหัวข้อ → รอทุกคนโหวตครบ แล้วลุ้นผลพร้อมกัน</p></div>';
+  }
+  function errBox(){ return '<div class="awCard awErr"><p>' + h(AW.err) + '</p><button class="awBtn" data-aw="retry">ลองใหม่</button></div>'; }
+
+  function viewIdentity(){
+    return '<div class="awCard"><h3>Who Are You?</h3><p class="cap" style="margin:0">เลือกชื่อของคุณเพื่อเริ่มต้นกิจกรรม · เลือกชื่อตัวเองเท่านั้นนะ</p>' +
+      '<input id="awSearch" class="awSearch" type="search" placeholder="🔍 ค้นหาชื่อ" autocomplete="off" value="' + h(AW.q) + '" aria-label="ค้นหาชื่อ">' +
+      '<div class="awGrid">' + members().map(function (m) {
+        return m.done
+          ? '<button class="awPerson done" disabled data-v="' + h(m.name) + '">' + face(m.name) + "<b>" + h(m.name) + "</b><small>✅ Completed</small></button>"
+          : '<button class="awPerson" data-aw="who" data-v="' + h(m.name) + '">' + face(m.name) + "<b>" + h(m.name) + "</b></button>";
+      }).join("") + "</div></div>";
+  }
+  function catCard(c, votes){
+    var v = votes[c.id], s = v ? "sub" : (AW.draft[c.id] || AW.seen[c.id]) ? "thk" : "new";
+    var lab = s === "sub" ? "✅ ส่งผลโหวตแล้ว" : s === "thk" ? "🤔 กำลังตัดสินใจ" : "⚪ ยังไม่ได้เลือก";
+    return '<button class="awCat ' + s + '" data-aw="cat" data-v="' + h(c.id) + '"><span class="awCatEm">' + h(c.emoji) + '</span><span class="awCatT"><b>' + h(c.en) + "</b><small>" + h(c.th) + '</small></span><span class="awSt">' + lab + (v ? "<em>→ " + h(v) + "</em>" : "") + "</span></button>";
+  }
+  function viewHub(){
+    var me = AW.st.me, votes = me.votes || {}, cs = cats(), n = 0; cs.forEach(function (c) { if (votes[c.id]) n++; });
+    var pct = cs.length ? Math.round(n / cs.length * 100) : 0;
+    return '<div class="awCard awMe">' + face(me.name, "md") + '<div><b>สวัสดี ' + h(me.name) + ' 👋</b><div class="cap" style="margin:0">เลือกหัวข้อที่อยากโหวตได้เลย ข้ามแล้วกลับมาทีหลังก็ได้</div></div><button class="awLink" data-aw="switch">ไม่ใช่ฉัน?</button></div>' +
+      '<div class="awProg"><div class="awProgRow"><span>โหวตของคุณ</span><b>' + n + " / " + cs.length + '</b></div><div class="awBar"><i style="width:' + pct + '%"></i></div>' +
+      '<p class="cap" style="margin:6px 0 0">เปลี่ยนใจได้จนกว่าจะส่งครบทุกหัวข้อ · พอครบแล้วระบบจะล็อกทันที</p></div>' +
+      '<div class="awCats">' + cs.map(function (c) { return catCard(c, votes); }).join("") + "</div>";
+  }
+  function viewPick(){
+    var c = cats().filter(function (x) { return x.id === AW.cat; })[0]; if (!c){ AW.cat = null; return viewHub(); }
+    var me = AW.st.me, cur = (me.votes || {})[c.id];
+    return '<button class="awLink awBack" data-aw="back">← กลับไปหัวข้อทั้งหมด</button>' +
+      '<div class="awCard" style="text-align:center"><div class="awEmoji">' + h(c.emoji) + "</div><h3>" + h(c.en) + '</h3><div class="cap" style="margin:0">' + h(c.th) + "</div>" +
+      '<p class="cap" style="margin:8px 0 0">' + (cur ? "ตอนนี้คุณโหวตให้ <b>" + h(cur) + "</b> · เปลี่ยนได้จนกว่าจะส่งครบทุกหัวข้อ" : "เลือกได้ 1 คน · เลือกตัวเองไม่ได้") + "</p>" +
+      '<input id="awSearch" class="awSearch" type="search" placeholder="🔍 ค้นหาชื่อ" autocomplete="off" value="' + h(AW.q) + '" aria-label="ค้นหาชื่อ"></div>' +
+      '<div class="awGrid">' + members().map(function (m) {
+        return m.name === me.name
+          ? '<button class="awPerson self" disabled data-v="' + h(m.name) + '">' + face(m.name) + "<b>" + h(m.name) + "</b><small>นี่คือคุณ</small></button>"
+          : '<button class="awPerson" data-aw="pick" data-v="' + h(m.name) + '" aria-pressed="false">' + face(m.name) + "<b>" + h(m.name) + "</b></button>";
+      }).join("") + '</div><div class="awSticky"><button id="awSubmit" class="awBtn" data-aw="submit" disabled>Submit Vote</button></div>';
+  }
+  function viewDone(){
+    var s = AW.st;
+    return '<div class="awCard awGo">' + face(s.me.name, "lg") + '<h3 style="margin-top:8px">✅ Completed</h3><p>โหวตครบทุกหัวข้อแล้ว ขอบคุณที่ร่วมสนุกนะ ' + h(s.me.name) + ' 🎉</p><p class="cap">การโหวตของคุณถูกล็อกแล้ว</p>' +
+      (s.all_done ? '<button class="awBtn big" data-aw="view" data-v="results">🏆 ไปดูผลรางวัล</button>'
+                  : "<p><b>Waiting for Everyone!</b> เหลืออีก " + (s.total - s.done) + ' คนที่ยังโหวตไม่ครบ</p><button class="awBtn ghost" data-aw="view" data-v="status">👥 ดูว่าใครโหวตแล้วบ้าง</button>') +
+      '<div><button class="awLink" data-aw="switch">เปลี่ยนเป็นชื่ออื่น</button></div></div>';
+  }
+  function viewVote(){ if (!AW.me || !AW.st.me) return viewIdentity(); if (AW.st.me.done) return viewDone(); return AW.cat ? viewPick() : viewHub(); }
+  function viewStatus(){
+    var s = AW.st, p = s.total ? Math.round(s.done / s.total * 100) : 0;
+    return '<div class="awCard"><h3>Who\'s Done Voting?</h3><div class="awCount2" aria-live="polite">' + s.done + " / " + s.total + ' Completed</div><div class="awBar"><i style="width:' + p + '%"></i></div>' +
+      '<p class="cap" style="margin:8px 0 0">อัปเดตอัตโนมัติ · เห็นเฉพาะสถานะ ไม่เห็นว่าใครโหวตให้ใคร</p></div>' +
+      '<div class="awRows">' + s.members.map(function (m) {
+        return '<div class="awRow">' + face(m.name) + "<b>" + h(m.name) + "</b>" + (m.done ? '<span class="awPill ok">✅ Completed</span>' : '<span class="awPill think">🤔 Thinking</span>') + "</div>";
+      }).join("") + "</div>";
+  }
+  function viewResults(){
+    var s = AW.st;
+    if (!s.all_done){
+      var pend = s.members.filter(function (m) { return !m.done; });
+      return '<div class="awCard awWait"><div class="awEmoji">⏳</div><h3>Waiting for Everyone!</h3><p>ยังรอเพื่อน ๆ โหวตให้ครบ — เหลือสถานะ <b>Thinking</b> อีก ' + pend.length + ' คน</p>' +
+        '<div class="awChips">' + pend.map(function (m) { return '<span class="awPill think">' + face(m.name, "sm") + h(m.name) + "</span>"; }).join("") + "</div>" +
+        '<p class="cap" style="margin:0">ผลคะแนนและอันดับจะไม่เปิดเผยจนกว่าทุกคนจะโหวตครบทุกหัวข้อ</p></div>';
+    }
+    if (!AW.resShown) return '<div class="awCard awGo"><div class="awEmoji">🎊</div><h3>Everyone Has Voted!</h3><p>ทุกคนโหวตครบแล้ว พร้อมลุ้นผลรางวัล</p><button class="awBtn big" data-aw="reveal">✨ Reveal The Winners</button></div>';
+    return '<div class="awRc" id="awRc">' + AW.res.categories.map(function (c) {
+      return '<button data-aw="rcat" data-v="' + h(c.id) + '" aria-label="' + h(c.en) + '"><span>' + h(c.emoji) + "</span>" + h(c.th.length > 9 ? c.th.slice(0, 9) + "…" : c.th) + "</button>";
+    }).join("") + '</div><div id="awStage" class="awStage" aria-live="polite"></div>';
+  }
+  function renderBody(){
+    var b = $a("#awBody"); if (!b) return;
+    if (!isOpen()){ b.innerHTML = teaser(); return; }
+    if (!AW.st){ b.innerHTML = AW.err ? errBox() : '<p class="cap">กำลังโหลด…</p>'; return; }
+    var v = AW.view; b.innerHTML = v === "status" ? viewStatus() : v === "results" ? viewResults() : viewVote();
+    applyFilter(); pickRefresh(); chipsRefresh();
+  }
+
+  /* ---------- ค้นหา / เลือกผู้ได้รับคะแนน ---------- */
+  function applyFilter(){
+    var q = (AW.q || "").trim().toLowerCase().replace(/^(พี่|น้อง)\s*/, "");
+    document.querySelectorAll("#awBody .awPerson").forEach(function (el) {
+      var n = el.getAttribute("data-v") || "", hit = !q || n.toLowerCase().indexOf(q) >= 0;
+      if (!hit && typeof ALIAS !== "undefined" && ALIAS[n]) hit = ALIAS[n].some(function (a) { return a.toLowerCase().indexOf(q) >= 0; });
+      el.hidden = !hit;
+    });
+  }
+  function pickRefresh(){
+    if (!AW.cat || !AW.st || !AW.st.me) return;
+    var cur = (AW.st.me.votes || {})[AW.cat], sel = AW.pick || cur;
+    document.querySelectorAll("#awBody .awPerson").forEach(function (el) { var on = el.getAttribute("data-v") === sel; el.classList.toggle("sel", on); el.setAttribute("aria-pressed", on ? "true" : "false"); });
+    var b = $a("#awSubmit"); if (!b) return;
+    var can = !!AW.pick && AW.pick !== cur; b.disabled = !can;
+    b.textContent = can ? (cur ? "เปลี่ยนเป็นคนนี้ · Submit Vote" : "Submit Vote") : (cur ? "ส่งผลโหวตแล้ว · แตะชื่อใหม่เพื่อเปลี่ยน" : "เลือกเพื่อนก่อน");
+  }
+  async function submit(){
+    if (AW.busy || !AW.cat || !AW.pick) return;
+    var c = cats().filter(function (x) { return x.id === AW.cat; })[0], me = AW.st.me, votes = me.votes || {}, name = AW.pick;
+    var willDone = !votes[c.id] && Object.keys(votes).length + 1 >= cats().length;
+    var ok = await dlg({ title: "You are voting for...", cancel: "กลับไปเลือกใหม่", ok: "ยืนยัน",
+      body: '<div class="awBigFace">' + face(name, "lg") + "<b>" + h(name) + "</b></div><p>คุณกำลังมอบรางวัล <b>" + h(c.th) + "</b> ให้กับ <b>" + h(name) + "</b></p>" +
+            (willDone ? '<p class="awWarn">นี่คือหัวข้อสุดท้าย — เมื่อยืนยันแล้วระบบจะล็อกการโหวตทั้งหมด แก้ไขไม่ได้อีก</p>' : "") });
+    if (!ok) return;
+    AW.busy = true; var b = $a("#awSubmit"); if (b) b.disabled = true;
+    try {
+      var r = await rpc("awd_vote", { p_ns: ns(), p_voter: me.name, p_category: c.id, p_nominee: name });
+      delete AW.draft[c.id]; AW.pick = null; AW.cat = null; AW.q = "";
+      await load();
+      if (r && r.completed){ party(); toast("🎉 โหวตครบทุกหัวข้อแล้ว!"); } else toast("✅ ส่งผลโหวตแล้ว");
+    } catch (e) { toast(errMsg(e)); if (/locked/.test(e.message || "")){ AW.cat = null; AW.pick = null; await load(); } else pickRefresh(); }
+    AW.busy = false;
+  }
+  async function who(n){
+    var ok = await dlg({ title: "ยืนยันตัวตน", cancel: "เลือกใหม่", ok: "ใช่ เริ่มเลย", body: '<div class="awBigFace">' + face(n, "lg") + "<b>" + h(n) + "</b></div><p>คุณคือ <b>" + h(n) + "</b> ใช่ไหม?<br><small>เลือกชื่อของตัวเองเท่านั้น</small></p>" });
+    if (!ok) return;
+    AW.me = n; try { localStorage.setItem(skey(), n); } catch (e) {}
+    AW.cat = null; AW.pick = null; AW.q = ""; AW.draft = {}; AW.seen = {};
+    await load();
+    if (AW.st && AW.st.me && AW.st.me.done) toast("ชื่อนี้โหวตครบแล้ว (Completed)");
+  }
+  function switchMe(){ AW.me = null; AW.cat = null; AW.pick = null; AW.q = ""; AW.draft = {}; AW.seen = {}; try { localStorage.removeItem(skey()); } catch (e) {} if (AW.st) AW.st.me = null; renderBody(); load(); }
+
+  /* ---------- ประกาศผล ---------- */
+  async function revealAll(){
+    try {
+      var r = await rpc("awd_results", { p_ns: ns() });
+      if (!r.ready){ await load(); return; }
+      AW.res = r; AW.resShown = true; AW.revealed = {}; renderBody();
+      if (r.categories.length) revealCat(r.categories[0].id);
+    } catch (e) { toast(errMsg(e)); }
+  }
+  function chipsRefresh(){
+    document.querySelectorAll("#awRc button").forEach(function (b) { var id = b.getAttribute("data-v"); b.classList.toggle("on", id === AW.resCat); b.classList.toggle("seen", !!AW.revealed[id]); });
+  }
+  function winnerHtml(r, anim){
+    var rk = r.ranks || [], top = rk.filter(function (x) { return x.rank === 1; }), co = top.length > 1, max = rk.length ? rk[0].votes : 1;
+    var nextC = AW.res.categories.filter(function (c) { return !AW.revealed[c.id] && c.id !== r.id; })[0];
+    return '<div class="awWin' + (anim ? " anim" : "") + '"><div class="awCrown">' + (co ? "👑👑" : "👑") + '</div><div class="awTitleEn">' + h(r.emoji) + " " + h(r.en) + '</div><div class="awTitleTh">' + h(r.th) + "</div>" +
+      '<div class="awWinners">' + top.map(function (w) { return '<div class="awWinner">' + face(w.name, "xl") + '<div class="nm">' + h(w.name) + '</div><div class="sc">' + w.votes + " คะแนน · " + w.pct + "%</div></div>"; }).join("") + "</div>" +
+      (co ? '<span class="awCo">🏆 ผู้ชนะร่วม — คะแนนเท่ากัน</span>' : "") + "</div>" +
+      '<div class="awPod">' + rk.map(function (x) {
+        var med = x.rank === 1 ? "🥇" : x.rank === 2 ? "🥈" : "🥉";
+        return '<div class="awPodRow"><span>' + med + "</span>" + face(x.name, "sm") + '<div class="bar"><i style="width:' + Math.max(8, Math.round(x.votes / max * 100)) + '%"></i><span>' + h(x.name) + " · " + x.votes + " คะแนน (" + x.pct + "%)</span></div></div>";
+      }).join("") + "</div>" +
+      '<p class="cap" style="text-align:center;margin:10px 0 0">ผู้ร่วมโหวตหัวข้อนี้ทั้งหมด ' + r.voters + " คน</p>" +
+      '<div class="awNext">' + (nextC ? '<button class="awBtn" data-aw="rcat" data-v="' + h(nextC.id) + '">หัวข้อถัดไป → ' + h(nextC.emoji) + "</button>" : '<p><b>🎉 ดูครบทุกหัวข้อแล้ว</b> · แตะหัวข้อด้านบนเพื่อดูซ้ำได้</p>') + "</div>";
+  }
+  function revealCat(id){
+    var r = AW.res && AW.res.categories.filter(function (c) { return c.id === id; })[0], st = $a("#awStage"); if (!r || !st) return;
+    AW.resCat = id; var tok = ++AW.rtok; chipsRefresh();
+    function finish(){ if (tok !== AW.rtok) return; AW.revealed[id] = 1; st.innerHTML = winnerHtml(r, true); chipsRefresh(); party(); }
+    if (AW.revealed[id]){ st.innerHTML = winnerHtml(r, false); return; }
+    if (reduced()){ finish(); return; }
+    st.innerHTML = '<div class="awSpot"><div class="awTitleEn">' + h(r.emoji) + " " + h(r.en) + '</div><div class="awTitleTh">' + h(r.th) + '</div><p>And the winner is…</p><div class="awCnt pop" id="awCnt">3</div></div>';
+    var n = 3;
+    (function step(){ setTimeout(function () {
+      if (tok !== AW.rtok) return;
+      if (n > 1){ n--; var c = $a("#awCnt"); if (c){ c.textContent = n; c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop"); } step(); } else finish();
+    }, 700); })();
+  }
+
+  /* ---------- โหมดทดสอบ ---------- */
+  async function seedTest(){ try { await rpc("awd_seed_test", { p_except: AW.me }); toast("จำลองให้คนอื่นโหวตครบแล้ว"); await load(); } catch (e) { toast(errMsg(e)); } }
+  async function resetTest(){
+    var ok = await dlg({ title: "ล้างข้อมูลทดสอบ?", cancel: "ยกเลิก", ok: "ล้าง", body: "<p>ลบเฉพาะการโหวตในโหมดทดสอบ ของจริงไม่ถูกแตะ</p>" }); if (!ok) return;
+    try { await rpc("awd_reset_test", {}); AW.res = null; AW.resShown = false; AW.revealed = {}; AW.cat = null; AW.pick = null; AW.draft = {}; AW.seen = {}; toast("ล้างข้อมูลทดสอบแล้ว"); await load(); } catch (e) { toast(errMsg(e)); }
+  }
+
+  /* ---------- เหตุการณ์ ---------- */
+  function act(a, v){
+    if (a === "view"){ AW.view = v; renderNav(); renderBody(); load(); }
+    else if (a === "who") who(v);
+    else if (a === "switch") switchMe();
+    else if (a === "cat"){ AW.cat = v; AW.pick = null; AW.q = ""; AW.seen[v] = 1; renderBody(); window.scrollTo({ top: Math.max(0, ($a("#awards").offsetTop || 0) - 8), behavior: reduced() ? "auto" : "smooth" }); }
+    else if (a === "back"){ AW.cat = null; AW.pick = null; AW.q = ""; renderBody(); }
+    else if (a === "pick"){ AW.pick = v; AW.draft[AW.cat] = 1; pickRefresh(); }
+    else if (a === "submit") submit();
+    else if (a === "reveal") revealAll();
+    else if (a === "rcat") revealCat(v);
+    else if (a === "retry"){ AW.err = ""; load(); }
+    else if (a === "seed") seedTest();
+    else if (a === "reset") resetTest();
+    else if (a === "exit"){ try { sessionStorage.removeItem("hrta-awd-test"); } catch (e) {} location.hash = "awards"; location.reload(); }
+  }
+  function bind(){
+    var root = $a("#awRoot"); if (!root || root._awBound) return; root._awBound = true;
+    root.addEventListener("click", function (e) { var t = e.target.closest && e.target.closest("[data-aw]"); if (!t || t.disabled) return; act(t.getAttribute("data-aw"), t.getAttribute("data-v")); });
+    root.addEventListener("input", function (e) { if (e.target && e.target.id === "awSearch"){ AW.q = e.target.value; applyFilter(); } });
+  }
+  function setTest(){ try { sessionStorage.setItem("hrta-awd-test", "1"); } catch (e) {} AW.test = true; AW.me = null; AW.st = null; AW.res = null; AW.resShown = false; AW.revealed = {}; AW.cat = null; AW.pick = null; AW.wasAll = null; try { AW.me = localStorage.getItem(skey()) || null; } catch (e) {} }
+
+  window.awOpen = function (){
+    bind();
+    if (!AW.started){ AW.started = true; try { AW.me = localStorage.getItem(skey()) || null; } catch (e) {}
+      setInterval(function () { var s = $a("#awards"); if (document.hidden || !s || !s.classList.contains("on")) return; load(); }, POLL);
+      document.addEventListener("visibilitychange", function () { var s = $a("#awards"); if (!document.hidden && s && s.classList.contains("on")) load(); }); }
+    renderHero(); renderNav(); renderTop(); renderBody(); load();
+  };
+  var keepTest = false; try { keepTest = sessionStorage.getItem("hrta-awd-test") === "1"; } catch (e) {}
+  if (location.hash === "#test" || keepTest) setTest();
+  window.addEventListener("hashchange", function () { if (location.hash === "#test" && !AW.test){ setTest(); renderHero(); var s = $a("#awards"); if (s && s.classList.contains("on")) window.awOpen(); } });
+  window.__AW = AW;   // สำหรับการทดสอบ
+})();
 </script>
 <script src="online/config.js"></script>
 <script src="online/nn-engine.js"></script>
