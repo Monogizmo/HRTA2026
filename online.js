@@ -8,7 +8,7 @@
   var S = {
     sb: null, uid: null, rid: null, room: null, players: [], online: {}, ch: null,
     link: "idle", busy: false, screen: "menu", net: navigator.onLine !== false,
-    name: "", av: "", cap: 150, mode: "one_loser", code: "", timer: null, root: null,
+    name: "", av: "", cap: 150, mode: "one_loser", gt: "nn", wclash: "u", wfool: 1, code: "", timer: null, root: null,
     game: null, hand: null, extra: null, sel: null, flash: false, skewMs: 0
   };
 
@@ -47,8 +47,15 @@
     bad_option: "ตัวเลือกไม่ถูกต้อง",
     must_swap: "ต้องเลือกไพ่ที่จะทิ้งของ The Moon ก่อน",
     no_pending: "ตอนนี้ไม่มีอะไรให้ข้ามหรือเลือก",
-    cant_interject: "แทรกตอนนี้ไม่ได้"
+    cant_interject: "แทรกตอนนี้ไม่ได้",
+    wrong_game: "ห้องนี้เป็นเกมอีกชนิด",
+    illegal: "เลือกแบบนี้ไม่ได้ ลองเลือกใหม่",
+    already_chosen: "คุณยืนยันไปแล้ว รออีกฝั่ง",
+    bad_cfg: "ตั้งค่าเกมไม่ถูกต้อง",
+    wrong_game_type: "ห้องนี้เป็นเกมอีกชนิด"
   };
+  var CL_TXT = { u: "หลักหน่วยเหมือนกัน", un: "หลักหน่วยเหมือน/ห่าง 1", eq: "เลขเท่ากัน" };
+  function isWar() { return !!(S.room && S.room.game_type === "war"); }
   var MODE_TXT = {
     one_loser: "แพ้ 1 คน (ที่เหลือชนะ)",
     elimination: "คัดออกทีละคน เหลือผู้ชนะ 1 คน"
@@ -248,6 +255,7 @@
   function exitRoom(msg) {
     unsub(); stopBeat(); clearTimeout(S.timer);
     if (window.NNOnlineGame) NNOnlineGame.reset();
+    if (window.WarOnline) WarOnline.reset();
     if (S.root && !S.root.hidden) document.documentElement.style.overflow = "hidden";
     S.rid = null; S.room = null; S.players = []; S.screen = "menu"; S.game = null; S.hand = null; S.extra = null; S.sel = null;
     if (msg) toast(msg);
@@ -274,7 +282,9 @@
     return run(async function () {
       await ensureAuth();
       try {
-        var d = await rpc("nn_create_room", { p_name: S.name, p_avatar: S.av, p_cap: S.cap, p_mode: S.mode });
+        var d = S.gt === "war"
+          ? await rpc("war_create_room", { p_name: S.name, p_avatar: S.av, p_cfg: { clash: S.wclash, fool: S.wfool } })
+          : await rpc("nn_create_room", { p_name: S.name, p_avatar: S.av, p_cap: S.cap, p_mode: S.mode });
         enterRoom(d.room_id);
       } catch (e) {
         if (e && e.message === "already_in_room") { await resume(true); return; }
@@ -306,6 +316,7 @@
     S.players.forEach(function (p) { if (p.user_id === S.uid) me = p; });
     if (!g || !me) return false;
     var pub = g.public_state, alive = true;
+    if (isWar()) return g.status === "playing";
     pub.players.forEach(function (pl) { if (pl.seat === me.seat && pub.alive && pub.alive.indexOf(pl.p) < 0) alive = false; });
     return alive;
   }
@@ -341,16 +352,21 @@
   }
   function viewMenu() {
     return top("🌐 เล่นออนไลน์") +
-      '<p class="onlSub">เล่นเกมเลขเพดานกับเพื่อน 2–4 คน คนละเครื่อง ผ่านอินเทอร์เน็ต (ไม่มี AI ร่วมเล่น)</p>' +
+      '<p class="onlSub">เล่นเกมเลขเพดาน (2–4 คน) หรือสงครามไพ่ยุทธวิธี (2 คน) กับเพื่อนคนละเครื่อง ผ่านอินเทอร์เน็ต (ไม่มี AI ร่วมเล่น)</p>' +
       '<button type="button" class="onlBtn pri" data-act="go" data-v="create">➕ สร้างห้องใหม่</button>' +
       '<button type="button" class="onlBtn" data-act="go" data-v="join">🔑 เข้าร่วมห้องด้วยรหัส</button>' +
       '<p class="onlHint">ยังไม่มีรางวัลเหรียญในโหมดออนไลน์</p>';
   }
   function viewCreate() {
     return top("➕ สร้างห้อง", "menu") + formTop(true) +
-      '<div class="lb">เพดาน (เกินแล้วแพ้)</div>' + seg("cap", [[120, "120 · สบาย"], [150, "150 · กลาง"], [200, "200 · ยาว"]], S.cap) +
-      '<div class="lb">โหมดจบเกม</div>' + seg("mode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], S.mode) +
-      '<p class="onlSub" id="onlModeD">' + MODE_TXT[S.mode] + "</p>" +
+      '<div class="lb">เกม</div>' + seg("gt", [["nn", "🎯 เลขเพดาน"], ["war", "🧠 สงครามไพ่ ยุทธวิธี"]], S.gt) +
+      (S.gt === "war"
+        ? '<p class="onlSub">2 คน · เลือกไพ่ลับพร้อมกัน เลขมากชนะ · ชนกันเป็นสงคราม สู้หรือถอยได้ · ตาละ 60 วินาที</p>' +
+          '<div class="lb">เมื่อไหร่ถึงเรียกว่า “ชนกัน”</div>' + seg("wclash", [["u", "หลักหน่วย"], ["un", "+ ห่าง 1"], ["eq", "เท่ากัน"]], S.wclash) +
+          '<div class="lb">“คนโง่ล้มเจ้าโลก” (0 ชนะ 21)</div>' + seg("wfool", [[1, "เปิด"], [0, "ปิด"]], S.wfool)
+        : '<div class="lb">เพดาน (เกินแล้วแพ้)</div>' + seg("cap", [[120, "120 · สบาย"], [150, "150 · กลาง"], [200, "200 · ยาว"]], S.cap) +
+          '<div class="lb">โหมดจบเกม</div>' + seg("mode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], S.mode) +
+          '<p class="onlSub" id="onlModeD">' + MODE_TXT[S.mode] + "</p>") +
       '<button type="button" class="onlBtn pri" data-act="create"' + (S.busy ? " disabled" : "") + ">สร้างห้อง</button>";
   }
   function viewJoin() {
@@ -374,9 +390,10 @@
     var r = S.room, me = mine();
     if (!r || !me) return top("🌐 ห้องออนไลน์") + '<div class="onlSpin" role="progressbar" aria-label="กำลังโหลด"></div>';
     var isHost = r.host_user_id === S.uid, n = S.players.length;
+    var war = r.game_type === "war", cfg = r.war_cfg || {};
     var allReady = n >= 2 && S.players.every(function (p) { return p.is_ready; });
     var seats = "";
-    for (var i = 1; i <= 4; i++) {
+    for (var i = 1; i <= (war ? 2 : 4); i++) {
       var p = S.players.filter(function (x) { return x.seat === i; })[0];
       seats += p ? seatHTML(p) : '<div class="onlSeat empty">รอผู้เล่น…</div>';
     }
@@ -384,17 +401,22 @@
       return top("🌐 ห้องออนไลน์") + '<p>' + (r.status === "closed" ? "ห้องนี้ถูกปิดแล้ว" : "ห้องนี้หมดอายุแล้ว") + '</p>' +
         '<button type="button" class="onlBtn pri" data-act="leave">กลับเมนู</button>';
     }
-    if (r.status === "playing" || r.status === "finished") return top("🎮 เกมเลขเพดาน") + '<div class="onlSpin" role="progressbar" aria-label="กำลังโหลด"></div>';
+    if (r.status === "playing" || r.status === "finished") return top(war ? "🧠 สงครามไพ่ยุทธวิธี" : "🎮 เกมเลขเพดาน") + '<div class="onlSpin" role="progressbar" aria-label="กำลังโหลด"></div>';
     var hint = isHost
       ? (n < 2 ? "ต้องมีผู้เล่นอย่างน้อย 2 คนจึงเริ่มได้" : (allReady ? "ทุกคนพร้อมแล้ว เริ่มเกมได้เลย" : "รอทุกคนกด “พร้อม” (รวมคุณด้วย)"))
       : "รอ Host กดเริ่มเกม";
     return banner() + top("🌐 ห้องออนไลน์") +
       '<div class="onlCode"><span class="onlSub">รหัสห้อง</span><b aria-label="รหัสห้อง ' + esc(r.code) + '">' + esc(r.code) + "</b>" +
       '<button type="button" class="onlX" data-act="share">📤 ชวนเพื่อน</button></div>' +
-      '<div class="onlInfo"><span>👥 ' + n + "/" + r.max_players + " คน</span><span>🎯 เพดาน " + r.cap + "</span><span>🏁 " + MODE_TXT[r.mode] + "</span></div>" +
-      (isHost ? '<div class="lb">ตั้งค่าห้อง (Host)</div>' + seg("scap", [[120, "120"], [150, "150"], [200, "200"]], r.cap, S.busy) +
-        seg("smode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], r.mode, S.busy) +
-        '<p class="onlSub">เปลี่ยนตั้งค่า = ทุกคนต้องกด พร้อม ใหม่</p>' : "") +
+      (war
+        ? '<div class="onlInfo"><span>🧠 สงครามไพ่ยุทธวิธี</span><span>👥 ' + n + "/2 คน</span><span>⚔️ ชนกัน: " + CL_TXT[cfg.clash || "u"] + "</span><span>🃏 คนโง่ล้มเจ้าโลก: " + (cfg.fool === 0 ? "ปิด" : "เปิด") + "</span></div>" +
+          (isHost ? '<div class="lb">ตั้งค่าห้อง (Host)</div>' + seg("wsclash", [["u", "หลักหน่วย"], ["un", "+ ห่าง 1"], ["eq", "เท่ากัน"]], cfg.clash || "u", S.busy) +
+            seg("wsfool", [[1, "คนโง่: เปิด"], [0, "คนโง่: ปิด"]], cfg.fool === 0 ? 0 : 1, S.busy) +
+            '<p class="onlSub">เปลี่ยนตั้งค่า = ทุกคนต้องกด พร้อม ใหม่</p>' : '<p class="onlSub">กติกาตั้งโดย Host — เช็กให้ชัดก่อนกด พร้อม</p>')
+        : '<div class="onlInfo"><span>👥 ' + n + "/" + r.max_players + " คน</span><span>🎯 เพดาน " + r.cap + "</span><span>🏁 " + MODE_TXT[r.mode] + "</span></div>" +
+          (isHost ? '<div class="lb">ตั้งค่าห้อง (Host)</div>' + seg("scap", [[120, "120"], [150, "150"], [200, "200"]], r.cap, S.busy) +
+            seg("smode", [["one_loser", "แพ้ 1 คน"], ["elimination", "คัดออก"]], r.mode, S.busy) +
+            '<p class="onlSub">เปลี่ยนตั้งค่า = ทุกคนต้องกด พร้อม ใหม่</p>' : "")) +
       '<div class="onlSeats">' + seats + "</div>" +
       '<button type="button" class="onlBtn ' + (me.is_ready ? "" : "pri") + '" data-act="ready"' + (S.busy ? " disabled" : "") + ">" +
       (me.is_ready ? "ยกเลิกพร้อม" : "✅ พร้อม") + "</button>" +
@@ -406,10 +428,14 @@
 
   function render() {
     if (!S.root || S.root.hidden) return;
-    if (S.screen === "lobby" && S.room && (S.room.status === "playing" || S.room.status === "finished") && window.NNOnlineGame) {
+    if (S.screen === "lobby" && S.room && S.room.game_type !== "war" && (S.room.status === "playing" || S.room.status === "finished") && window.NNOnlineGame) {
       if (NNOnlineGame.render(S.root)) return;       // หน้าเกม: วาดครั้งเดียวแล้วอัปเดตเฉพาะส่วน (ไม่ล้างเอฟเฟกต์กลางแอนิเมชัน)
     }
+    if (S.screen === "lobby" && S.room && S.room.game_type === "war" && (S.room.status === "playing" || S.room.status === "finished") && window.WarOnline) {
+      if (WarOnline.render(S.root)) return;
+    }
     if (window.NNOnlineGame && S.screen !== "lobby") NNOnlineGame.reset();
+    if (window.WarOnline && S.screen !== "lobby") WarOnline.reset();
     var scr = S.screen;
     var html = scr === "create" ? viewCreate() : scr === "join" ? viewJoin() : scr === "lobby" ? viewLobby() :
       scr === "loading" ? top("🌐 เล่นออนไลน์") + '<div class="onlSpin" role="progressbar" aria-label="กำลังเชื่อมต่อ"></div>' : viewMenu();
@@ -434,6 +460,7 @@
     S.root = d; return d;
   }
   async function open(to, code) {
+    if (window.__wt && __wt.ui && __wt.ui.busy && __wt.ui.busy()) { toast("จบเกมยุทธวิธีออฟไลน์ที่กำลังเล่นอยู่ก่อน (กด ✕ ในเกม) แล้วค่อยเล่นออนไลน์"); return; }
     if (window.__nn && __nn.ui && __nn.ui.offlineBusy && __nn.ui.offlineBusy()) { toast("จบเกมออฟไลน์ที่กำลังเล่นอยู่ก่อน (กด ✕ ในเกม) แล้วค่อยเล่นออนไลน์"); return; }
     ensureRoot().hidden = false;
     document.documentElement.style.overflow = "hidden";
@@ -474,6 +501,12 @@
       var g = $("#onlAvG"); if (g) g.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === v); });
       return;
     }
+    if (a === "gt") { readForm(); S.gt = v; return render(); }
+    if (a === "wclash" || a === "wfool") {
+      if (a === "wclash") S.wclash = v; else S.wfool = +v;
+      t.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === t); });
+      return;
+    }
     if (a === "cap" || a === "mode") {
       if (a === "cap") S.cap = +v; else S.mode = v;
       t.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === t); });
@@ -485,15 +518,18 @@
     if (a === "reload") { subscribe(); return schedule(); }
     if (a === "share") return share();
     if (!S.rid) return;
-    if (window.NNOnlineGame && window.NNOnlineGame.onClick(a, v)) return;
+    if (isWar() && window.WarOnline && window.WarOnline.onClick(a, v)) return;
+    if (!isWar() && window.NNOnlineGame && window.NNOnlineGame.onClick(a, v)) return;
     if (a === "ready") { var me = mine(); return run(async function () { await rpc("nn_set_ready", { p_room: S.rid, p_ready: !(me && me.is_ready) }); await refetch(); }); }
     if (a === "scap") return run(async function () { await rpc("nn_update_settings", { p_room: S.rid, p_cap: +v, p_mode: S.room.mode }); await refetch(); });
     if (a === "smode") return run(async function () { await rpc("nn_update_settings", { p_room: S.rid, p_cap: S.room.cap, p_mode: v }); await refetch(); });
-    if (a === "start") return run(async function () { var res = await callApi({ action: "start", room_id: S.rid }); if (res.error) throw new Error(res.error); await refetch(); });
+    if (a === "wsclash") return run(async function () { var c = S.room.war_cfg || {}; await rpc("war_update_settings", { p_room: S.rid, p_cfg: { clash: v, fool: c.fool === 0 ? 0 : 1 } }); await refetch(); });
+    if (a === "wsfool") return run(async function () { var c = S.room.war_cfg || {}; await rpc("war_update_settings", { p_room: S.rid, p_cfg: { clash: c.clash || "u", fool: +v } }); await refetch(); });
+    if (a === "start") return run(async function () { var res = await callApi({ action: isWar() ? "war_start" : "start", room_id: S.rid }); if (res.error) throw new Error(res.error); await refetch(); });
     if (a === "leave") {
       if (S.room && S.room.status === "lobby" && !confirm("ออกจากห้องนี้?")) return;
       if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing" && amAlive() && !confirm("ออกจากเกมกลางคัน? จะถือว่าคุณยอมแพ้")) return;
-      return run(async function () { var id = S.rid; if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing" && amAlive()) { try { await callApi({ action: "forfeit", game_id: S.game.id }); } catch (fe) {} } try { await rpc("nn_leave_room", { p_room: id }); } catch (er) { if (er.message !== "not_in_room") throw er; } exitRoom(); });
+      return run(async function () { var id = S.rid; if (S.room && S.room.status === "playing" && S.game && S.game.status === "playing" && amAlive()) { try { await callApi({ action: isWar() ? "war_forfeit" : "forfeit", game_id: S.game.id }); } catch (fe) {} } try { await rpc("nn_leave_room", { p_room: id }); } catch (er) { if (er.message !== "not_in_room") throw er; } exitRoom(); });
     }
     if (a === "close") {
       if (!confirm("ปิดห้อง? ทุกคนจะถูกเด้งออกจากห้อง")) return;
@@ -503,7 +539,7 @@
   function share() {
     if (!S.room) return;
     var url = location.origin + location.pathname + "?room=" + S.room.code;
-    var txt = "ชวนเล่นเกมเลขเพดาน HRTA 🎯 รหัสห้อง " + S.room.code + "\n" + url;
+    var txt = (isWar() ? "ชวนเล่นสงครามไพ่ยุทธวิธี HRTA 🧠 รหัสห้อง " : "ชวนเล่นเกมเลขเพดาน HRTA 🎯 รหัสห้อง ") + S.room.code + "\n" + url;
     if (navigator.share) { navigator.share({ text: txt }).catch(function () {}); return; }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(txt).then(function () { toast("คัดลอกลิงก์ชวนเพื่อนแล้ว"); }, function () { toast("รหัสห้อง " + S.room.code); });
@@ -521,15 +557,17 @@
     syncEntry();
   }
   function init() {
-    if (window.NNOnlineGame) window.NNOnlineGame.init({
+    var XX = {
       S: S, esc: esc, avImg: avImg, mine: mine, top: top, banner: banner, run: run, rpc: rpc, callApi: callApi,
       refetch: refetch, render: render, softRender: softRender, uuid: uuid,
       isHost: function () { return !!(S.room && S.room.host_user_id === S.uid); },
       skew: function () { return S.skewMs || 0; }, hide: hide
-    });
+    };
+    if (window.NNOnlineGame) window.NNOnlineGame.init(XX);
+    if (window.WarOnline) window.WarOnline.init(XX);
     var B = document.getElementById("nnB");
     if (B) { new MutationObserver(inject).observe(B, { childList: true }); inject(); }
-    document.addEventListener("click", function (e) { if (e.target.closest && e.target.closest("#onlOpen")) open(); });
+    document.addEventListener("click", function (e) { if (e.target.closest && e.target.closest("#onlOpen,[data-onl-open]")) open(); });
     window.addEventListener("online", function () { S.net = true; if (S.rid) { subscribe(); beat(); schedule(); } render(); });
     window.addEventListener("offline", function () { S.net = false; render(); });
     document.addEventListener("visibilitychange", function () {
@@ -546,5 +584,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 
   // เปิดให้ทดสอบ/ดีบักจากคอนโซล (ไม่มีข้อมูลลับ)
-  window.HRTAOnline = { open: open, state: S };
+  window.HRTAOnline = { open: open, state: S, getClient: async function () { await ensureAuth(); return client(); } };   // getClient: ให้ฟีเจอร์อื่น (Quiz leaderboard) ใช้การล็อกอินแบบไม่ระบุตัวตนชุดเดียวกัน
 })();

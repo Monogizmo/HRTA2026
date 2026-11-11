@@ -2,7 +2,8 @@
 # เล่นครบเกมใน Chromium ด้วยตรรกะเซิร์ฟเวอร์ตัวจริง + ฐานข้อมูลจำลอง + บอท 2 ตัว ทั้งโหมดแพ้ 1 คน และคัดออก
 from playwright.sync_api import sync_playwright
 import re, sys
-root='/home/claude/out/'
+import os
+root=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+'/'
 mock=open(root+'tests/e2e/mock-supabase.js',encoding='utf-8').read()
 libs=''.join(open(root+'online/'+f,encoding='utf-8').read()+'\n' for f in ['nn-engine.js','nn-server.js','nn-api-core.js'])
 def check(c,msg):

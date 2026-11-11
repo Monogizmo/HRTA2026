@@ -4,9 +4,9 @@
  * uid ต้องมาจากการตรวจ JWT ในชั้นนอก (index.ts) ไม่เคยเชื่อค่าจาก body
  */
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory(require("./nn-server.js"));
-  else root.NNApi = factory(root.NNServer);
-})(typeof self !== "undefined" ? self : this, function (SV) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./nn-server.js"), require("./war-api-core.js"));
+  else root.NNApi = factory(root.NNServer, root.WarApi);
+})(typeof self !== "undefined" ? self : this, function (SV, WA) {
   "use strict";
   var TURN_MS = 60000;
   var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -15,6 +15,7 @@
     var admin = deps.admin, rnd = deps.rnd;
     var now = deps.now || function () { return Date.now(); };
     var log = deps.log || function () {};
+    var warApi = WA ? WA.create(deps) : null;   // สงครามไพ่ยุทธวิธี (action ขึ้นต้น war_)
 
     async function q(promise) {
       var r = await promise;
@@ -28,6 +29,7 @@
       var room = await q(admin.from("rooms").select("*").eq("id", b.room_id).maybeSingle());
       if (!room) return { error: "room_not_found" };
       if (room.host_user_id !== uid) return { error: "not_host" };
+      if (room.game_type && room.game_type !== "nn") return { error: "wrong_game" };
       if (room.status !== "lobby") return { error: "room_started" };
       var ps = await q(admin.from("room_players").select("*").eq("room_id", room.id).is("left_at", null).order("seat"));
       if (ps.length < 2 || ps.length > 4) return { error: "bad_player_count" };
@@ -161,6 +163,7 @@
     async function handle(uid, body) {
       try {
         if (!uid || !body || typeof body !== "object") return { error: "bad_request" };
+        if (typeof body.action === "string" && body.action.indexOf("war_") === 0) return warApi ? await warApi.handle(uid, body) : { error: "bad_action" };
         if (body.action === "start") return await start(uid, body);
         if (KINDS[body.action]) return await act(uid, body, body.action);
         if (body.action === "check") return await check(uid, body);

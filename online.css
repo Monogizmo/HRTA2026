@@ -74,3 +74,11 @@
 /* ไพ่ที่ถูกหงาย (The Moon): แสดงเลขแทนไพ่คว่ำที่ที่นั่ง */
 .nnSeat .bk.rv i{width:auto;min-width:5.4cqmin;height:5.6cqmin;padding:0 .8cqmin;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#2b2f6b;font:700 3.6cqmin/1 inherit;font-style:normal;border:1px solid #2b2f6b}
 .nnAct button.alt{background:transparent;border:1.5px solid currentColor;opacity:.85}
+
+/* ---- สงครามไพ่ยุทธวิธี (ออนไลน์) — ใช้คลาส .wt* ของโต๊ะออฟไลน์ใน index.html ---- */
+.wtOnl{--wr-gold:#e6c15a;--wr-cream:#f6efd9;background:#143626;color:var(--wr-cream);border-radius:16px;padding:8px}
+.wtOnl .wtHand.lock .wtC{opacity:.6;pointer-events:none}
+.wtOnl .wtAct .onlBtn{flex:1;min-width:120px}
+.wtOnl #woLog{margin:6px 0 0;padding-left:22px;font-size:12px;max-height:160px;overflow:auto}.wtOnl #woLog li.war{color:#ffb4a0}
+.wtOnl .wrLogBox summary{cursor:pointer;padding:6px 4px;font-weight:700}
+.wtOnl .wtOpp .st b{color:var(--wr-gold)}
