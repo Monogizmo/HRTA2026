@@ -1315,7 +1315,7 @@ const M = {
   kaan:"https://maps.app.goo.gl/tzWU5DK2sReFcTL19",
   tiger:"https://maps.app.goo.gl/rUVQHeq7nzdVTSm37",
   meena:"https://maps.app.goo.gl/sVjJNjDNezRvgP69A",
-  seven:"https://maps.app.goo.gl/MJkW3yfeD2SvQdS26"
+  seven:"https://maps.app.goo.gl/5Ji9bpyLmF7VzovGA"
 };
 const PLAN = [
  {day:"วันที่ 1 · 12 พฤศจิกายน 2569 (พฤหัส)", rows:[
@@ -1325,7 +1325,7 @@ const PLAN = [
   ["12:40–13:10","☕","พักผ่อน ถ่ายรูป","Mulberry Mellow",M.mul],
   ["13:25–17:00","🏨","เช็กอิน และพักผ่อนตามอัธยาศัย","X River Kwai",M.xrk],
   ["17:30–18:30","🍽️","รับประทานอาหารเย็น","คีรีมันตรา + The Village Farm To Café",M.kiri],
-  ["18:40–18:50","🛒","แวะ 7-Eleven ซื้อของก่อนกลับที่พัก","7-Eleven (ถนนแสงชูโต)",M.seven],
+  ["18:40–18:50","🛒","แวะ 7-Eleven ซื้อของก่อนกลับที่พัก","7-Eleven (หนองบัว)",M.seven],
   ["19:10–19:30","🏨","ถึงที่พักและเตรียมร่างกาย","X River Kwai",M.xrk],
   ["19:30–22:00","🎉","Team Activity","X River Kwai",M.xrk]
  ]},
@@ -1880,9 +1880,9 @@ const GEO = {
  "แก้ว Boutique": [14.0346, 99.5687], "ปลากาญจน์ ล็อคโฮม": [13.9943, 99.5371], "Mulberry Mellow": [13.9982, 99.5156],
  "X River Kwai": [13.9668, 99.4659], "คีรีมันตรา + The Village Farm To Café": [14.0486, 99.4396],
  "KAAN Riverkwai Restaurant + ร็อกเซียคาเฟ่": [14.0370, 99.5078], "สะพานข้ามแม่น้ำแคว": [14.0420, 99.5042],
- "วัดถ้ำเสือ": [13.9539, 99.6051], "Meena Café": [13.9492, 99.6003]
+ "วัดถ้ำเสือ": [13.9539, 99.6051], "Meena Café": [13.9492, 99.6003], "7-Eleven (หนองบัว)": [14.0581, 99.4260]
 };
-const SHORT = { "คีรีมันตรา + The Village Farm To Café": "คีรีมันตรา|The Village", "KAAN Riverkwai Restaurant + ร็อกเซียคาเฟ่": "KAAN Riverkwai", "สะพานข้ามแม่น้ำแคว": "สะพานข้าม แม่น้ำแคว" };
+const SHORT = { "คีรีมันตรา + The Village Farm To Café": "คีรีมันตรา|The Village", "KAAN Riverkwai Restaurant + ร็อกเซียคาเฟ่": "KAAN Riverkwai", "สะพานข้ามแม่น้ำแคว": "สะพานข้าม แม่น้ำแคว", "7-Eleven (หนองบัว)": "7-Eleven|หนองบัว" };
 const RIVERS = [[[14.13, 99.48], [14.08, 99.50], [14.042, 99.505], [14.02, 99.512]], [[13.94, 99.40], [13.96, 99.44], [13.968, 99.47], [13.99, 99.49], [14.02, 99.512]], [[14.02, 99.512], [14.012, 99.54], [13.99, 99.58], [13.95, 99.66]]];
 function wrapTh(t, n){
   if (t.includes("|")) return t.split("|");
@@ -1892,7 +1892,7 @@ function wrapTh(t, n){
   return out.flatMap(l => l.length > n + 2 ? [l.slice(0, n), l.slice(n)] : [l]);
 }
 const SIDES = [
-  { "แก้ว Boutique": "r", "ปลากาญจน์ ล็อคโฮม": "r", "Mulberry Mellow": "l", "X River Kwai": "l", "คีรีมันตรา + The Village Farm To Café": "l" },
+  { "แก้ว Boutique": "r", "ปลากาญจน์ ล็อคโฮม": "r", "Mulberry Mellow": "l", "X River Kwai": "l", "คีรีมันตรา + The Village Farm To Café": "l", "7-Eleven (หนองบัว)": "r" },
   { "X River Kwai": "l", "KAAN Riverkwai Restaurant + ร็อกเซียคาเฟ่": "r", "สะพานข้ามแม่น้ำแคว": "l", "วัดถ้ำเสือ": "r", "Meena Café": "l" }
 ];
 function mapSvg(di){
